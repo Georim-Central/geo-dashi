@@ -1,4 +1,4 @@
-import { Plus, Calendar, MapPin, Users, DollarSign, TrendingUp, MoreVertical, Bell, MessageCircle, ShoppingBag, AlertTriangle, TrendingUp as TrendingUpIcon, ArrowRight, Ticket } from 'lucide-react';
+import { Plus, Calendar, MapPin, Users, DollarSign, TrendingUp, MoreVertical, ArrowRight, Ticket } from 'lucide-react';
 
 interface DashboardProps {
   onCreateEvent: () => void;
@@ -39,6 +39,17 @@ const mockEvents = [
     totalTickets: 800,
     revenue: 15360,
     image: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=400&h=300&fit=crop'
+  },
+  {
+    id: '4',
+    title: 'Georim Founders Circle',
+    date: 'September 3, 2026',
+    location: 'Private Rooftop Venue, Chicago',
+    status: 'Private',
+    ticketsSold: 64,
+    totalTickets: 120,
+    revenue: 9600,
+    image: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=400&h=300&fit=crop'
   }
 ];
 
@@ -59,8 +70,7 @@ const platformActivity = [
     title: 'Ticket Sales',
     value: '1,247 sold',
     description: 'across all events',
-    badge: '+18%',
-    link: 'analytics'
+    badge: '+18%'
   },
   {
     type: 'revenue',
@@ -70,8 +80,7 @@ const platformActivity = [
     title: 'Total Revenue',
     value: '$124,560',
     description: 'this month',
-    badge: '+23%',
-    link: 'analytics'
+    badge: '+23%'
   },
   {
     type: 'events',
@@ -81,8 +90,7 @@ const platformActivity = [
     title: 'Active Events',
     value: '12 live',
     description: '3 ending this week',
-    badge: 'Live',
-    link: 'dashboard'
+    badge: 'Live'
   },
   {
     type: 'attendees',
@@ -92,8 +100,7 @@ const platformActivity = [
     title: 'Total Attendees',
     value: '3,428',
     description: 'registered this month',
-    badge: '+15%',
-    link: 'analytics'
+    badge: '+15%'
   }
 ];
 
@@ -134,9 +141,9 @@ const recentActivity = [
 
 export function Dashboard({ onCreateEvent, onEventSelect }: DashboardProps) {
   return (
-    <div className="p-8">
+    <div className="p-8 motion-page">
       {/* Header */}
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex items-center justify-between mb-8 motion-row">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Events Dashboard</h1>
           <p className="text-gray-600 mt-1">Manage and monitor all your events</p>
@@ -151,7 +158,7 @@ export function Dashboard({ onCreateEvent, onEventSelect }: DashboardProps) {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8 motion-stagger">
         {stats.map((stat, index) => {
           const Icon = stat.icon;
           return (
@@ -171,13 +178,13 @@ export function Dashboard({ onCreateEvent, onEventSelect }: DashboardProps) {
       </div>
 
       {/* Platform Activity Summary */}
-      <div className="mb-8">
+      <div className="mb-8 motion-row">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-semibold text-gray-900">Platform Activity</h2>
           <span className="text-sm text-gray-600">Live updates across all events</span>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 motion-stagger">
           {platformActivity.map((activity, index) => {
             const Icon = activity.icon;
             return (
@@ -216,7 +223,7 @@ export function Dashboard({ onCreateEvent, onEventSelect }: DashboardProps) {
       </div>
 
       {/* Two Column Layout: Events + Activity Feed */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 motion-row">
         {/* Events List - Takes 2 columns */}
         <div className="lg:col-span-2">
           <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
@@ -224,7 +231,7 @@ export function Dashboard({ onCreateEvent, onEventSelect }: DashboardProps) {
               <h2 className="text-lg font-semibold text-gray-900">Your Events</h2>
             </div>
 
-            <div className="divide-y divide-gray-200">
+            <div className="divide-y divide-gray-200 motion-stagger">
               {mockEvents.map((event) => (
                 <div
                   key={event.id}
@@ -258,6 +265,8 @@ export function Dashboard({ onCreateEvent, onEventSelect }: DashboardProps) {
                             className={`px-3 py-1 rounded-full text-xs font-medium ${
                               event.status === 'Published'
                                 ? 'bg-green-100 text-green-700'
+                                : event.status === 'Private'
+                                ? 'bg-purple-100 text-purple-700'
                                 : 'bg-gray-100 text-gray-700'
                             }`}
                           >
@@ -307,7 +316,7 @@ export function Dashboard({ onCreateEvent, onEventSelect }: DashboardProps) {
               <h2 className="text-lg font-semibold text-gray-900">Recent Activity</h2>
             </div>
 
-            <div className="divide-y divide-gray-200">
+            <div className="divide-y divide-gray-200 motion-stagger">
               {recentActivity.map((activity, index) => (
                 <div key={index} className="p-4 hover:bg-gray-50 transition-colors">
                   <div className="flex items-start gap-3">

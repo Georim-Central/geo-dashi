@@ -60,7 +60,7 @@ export function TopBar({ contextMode, onOpenProfile }: TopBarProps) {
               <>
                 <div className="fixed inset-0 z-10" onClick={() => setShowNotifications(false)} />
 
-                <div className="absolute right-0 mt-2 w-96 bg-white rounded-xl shadow-2xl border border-gray-200 z-20 max-h-[500px] flex flex-col">
+                <div className="absolute right-0 mt-2 w-96 bg-white rounded-xl shadow-2xl border border-gray-200 z-20 max-h-[500px] flex flex-col motion-pop">
                   <div className="p-4 border-b border-gray-200 flex items-center justify-between">
                     <h3 className="font-semibold text-gray-900">Notifications</h3>
                     {unreadCount > 0 && (

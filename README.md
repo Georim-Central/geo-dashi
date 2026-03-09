@@ -8,7 +8,7 @@ Georim dashboard MVP for organization and event operations.
 - React 18 + TypeScript
 - Vite
 - Tailwind CSS v4
-- Radix UI primitives
+- Apple-style icon mapping via `src/apple-icons.tsx`
 - Recharts
 - Vitest + Testing Library
 

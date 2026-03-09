@@ -1,9 +1,10 @@
 import { X } from 'lucide-react';
 import { useState } from 'react';
+import { EventDraft, EventDraftUpdate } from '../../types/event';
 
 interface BasicInfoProps {
-  data: any;
-  onUpdate: (data: any) => void;
+  data: EventDraft;
+  onUpdate: (data: EventDraftUpdate) => void;
 }
 
 const eventTypes = ['Conference', 'Festival', 'Concert', 'Workshop', 'Seminar', 'Webinar', 'Networking', 'Other'];

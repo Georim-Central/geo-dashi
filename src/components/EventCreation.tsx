@@ -5,6 +5,7 @@ import { DateTimeSetup } from './event-creation/DateTimeSetup';
 import { MediaGallery } from './event-creation/MediaGallery';
 import { DescriptionEditor } from './event-creation/DescriptionEditor';
 import { Check } from 'lucide-react';
+import { EventDraft, EventDraftUpdate } from '../types/event';
 
 interface EventCreationProps {
   onEventCreated: (eventId: string, eventName?: string) => void;
@@ -23,11 +24,11 @@ const steps = [
 export function EventCreation({ onEventCreated }: EventCreationProps) {
   const [currentStep, setCurrentStep] = useState<Step>('basic');
   const [completedSteps, setCompletedSteps] = useState<Step[]>([]);
-  const [eventData, setEventData] = useState({
+  const [eventData, setEventData] = useState<EventDraft>({
     title: '',
     type: '',
     category: '',
-    tags: [] as string[],
+    tags: [],
     locationType: '',
     location: '',
     startDate: '',
@@ -37,6 +38,7 @@ export function EventCreation({ onEventCreated }: EventCreationProps) {
     isRecurring: false,
     mainImage: '',
     videoUrl: '',
+    summary: '',
     description: ''
   });
 
@@ -65,7 +67,7 @@ export function EventCreation({ onEventCreated }: EventCreationProps) {
     onEventCreated(eventId, eventName);
   };
 
-  const updateEventData = (data: Partial<typeof eventData>) => {
+  const updateEventData = (data: EventDraftUpdate) => {
     setEventData({ ...eventData, ...data });
   };
 

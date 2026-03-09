@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { Bold, Italic, List, Link as LinkIcon, AlignLeft } from 'lucide-react';
+import { EventDraft, EventDraftUpdate } from '../../types/event';
 
 interface DescriptionEditorProps {
-  data: any;
-  onUpdate: (data: any) => void;
+  data: EventDraft;
+  onUpdate: (data: EventDraftUpdate) => void;
 }
 
 export function DescriptionEditor({ data, onUpdate }: DescriptionEditorProps) {

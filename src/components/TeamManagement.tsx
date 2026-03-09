@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, Mail, MoreVertical, Shield, Edit2, Trash2, QrCode, CreditCard as CreditCardIcon, Ticket } from 'lucide-react';
+import { Plus, Mail, Shield, Edit2, Trash2, QrCode, CreditCard as CreditCardIcon, Ticket } from 'lucide-react';
 
 type InviteRole = 'admin' | 'marketing' | 'operations';
 type InviteAccess = 'all' | 'specific';

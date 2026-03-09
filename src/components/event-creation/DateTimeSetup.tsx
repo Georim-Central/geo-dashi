@@ -1,8 +1,9 @@
 import { Calendar, Repeat } from 'lucide-react';
+import { EventDraft, EventDraftUpdate } from '../../types/event';
 
 interface DateTimeSetupProps {
-  data: any;
-  onUpdate: (data: any) => void;
+  data: EventDraft;
+  onUpdate: (data: EventDraftUpdate) => void;
 }
 
 export function DateTimeSetup({ data, onUpdate }: DateTimeSetupProps) {

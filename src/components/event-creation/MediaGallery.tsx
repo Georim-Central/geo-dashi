@@ -1,8 +1,9 @@
 import { Upload, Image as ImageIcon, Video } from 'lucide-react';
+import { EventDraft, EventDraftUpdate } from '../../types/event';
 
 interface MediaGalleryProps {
-  data: any;
-  onUpdate: (data: any) => void;
+  data: EventDraft;
+  onUpdate: (data: EventDraftUpdate) => void;
 }
 
 export function MediaGallery({ data, onUpdate }: MediaGalleryProps) {

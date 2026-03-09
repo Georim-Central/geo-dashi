@@ -58,7 +58,6 @@ export default function App() {
         onViewChange={setCurrentView}
         contextMode={contextMode}
         onBackToOrganization={handleBackToOrganization}
-        selectedEventId={selectedEventId}
         selectedEventName={selectedEventName}
         activeEventTab={eventManagementTab}
         onEventTabSelect={handleEventTabSelect}
