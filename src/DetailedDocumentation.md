@@ -702,7 +702,7 @@ npm run build
 
 ## Credits
 
-**Design**: Figma Make AI Assistant
+**Design**: Georim Product Team
 **Framework**: React + TypeScript + Tailwind CSS v4
 **Icons**: Lucide React
 **Images**: Unsplash API

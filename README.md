@@ -1,11 +1,40 @@
 
-  # Dashboard (MVP)
+# Dashboard (MVP)
 
-  This is a code bundle for Dashboard (MVP). The original project is available at https://www.figma.com/design/ArJR7X03MuregxBnA5XCYr/Dashboard--MVP-.
+Georim dashboard MVP for organization and event operations.
 
-  ## Running the code
+## Stack
 
-  Run `npm i` to install the dependencies.
+- React 18 + TypeScript
+- Vite
+- Tailwind CSS v4
+- Radix UI primitives
+- Recharts
+- Vitest + Testing Library
 
-  Run `npm run dev` to start the development server.
+## Key Areas
+
+- Organization dashboard, analytics, team, finance, profile
+- Event creation and event management tabs
+- Ticketing, orders, marketing, reports, settings
+- Checked-In live log workflow with QR scan handling
+
+## Getting Started
+
+1. Install dependencies:
+   `npm install`
+2. Start development server:
+   `npm run dev`
+
+## Scripts
+
+- `npm run dev` - Start local development server
+- `npm run build` - Create production build
+- `npm run test:unit` - Run unit tests
+- `npm run test:e2e` - Run Playwright tests
+
+## Notes
+
+- Static assets are served from `public/`
+- Main application entry is `src/App.tsx`
   
