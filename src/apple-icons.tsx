@@ -1,12 +1,15 @@
 import {
   IoAdd,
   IoArrowBackOutline,
+  IoArrowDownOutline,
   IoArrowForwardOutline,
+  IoArrowUndoOutline,
   IoBarChartOutline,
   IoBagHandleOutline,
   IoCalendarOutline,
   IoCallOutline,
   IoCardOutline,
+  IoAttachOutline,
   IoCashOutline,
   IoChatbubbleOutline,
   IoCheckmark,
@@ -22,11 +25,13 @@ import {
   IoEyeOutline,
   IoFilterOutline,
   IoGlobeOutline,
+  IoHardwareChipOutline,
   IoHomeOutline,
   IoImageOutline,
   IoLinkOutline,
   IoListOutline,
   IoMailOutline,
+  IoMicOutline,
   IoLocationOutline,
   IoNotificationsOutline,
   IoPeopleOutline,
@@ -36,8 +41,10 @@ import {
   IoRepeatOutline,
   IoReorderThreeOutline,
   IoSearchOutline,
+  IoSendOutline,
   IoSettingsOutline,
   IoShieldCheckmarkOutline,
+  IoSparklesOutline,
   IoTimeOutline,
   IoTicketOutline,
   IoTrashOutline,
@@ -52,6 +59,7 @@ export const BarChart3 = IoBarChartOutline;
 export const Users = IoPeopleOutline;
 export const ArrowLeft = IoArrowBackOutline;
 export const ArrowRight = IoArrowForwardOutline;
+export const ArrowDown = IoArrowDownOutline;
 export const Ticket = IoTicketOutline;
 export const CreditCard = IoCardOutline;
 export const Mail = IoMailOutline;
@@ -82,6 +90,12 @@ export const Tag = IoPricetagOutline;
 export const Upload = IoCloudUploadOutline;
 export const Image = IoImageOutline;
 export const Video = IoVideocamOutline;
+export const Paperclip = IoAttachOutline;
+export const Mic = IoMicOutline;
+export const Bot = IoHardwareChipOutline;
+export const Sparkles = IoSparklesOutline;
+export const Send = IoSendOutline;
+export const CornerDownLeft = IoArrowUndoOutline;
 export const Bold = IoReorderThreeOutline;
 export const Italic = IoReorderThreeOutline;
 export const List = IoListOutline;

@@ -1,4 +1,5 @@
 import { Suspense, lazy, useState } from 'react';
+import { GlobalAIChat } from './components/GlobalAIChat';
 import { Sidebar } from './components/Sidebar';
 import { TopBar } from './components/TopBar';
 import { ContentState } from './components/ui/ContentState';
@@ -265,6 +266,11 @@ export default function App() {
           </Suspense>
         </main>
       </div>
+      <GlobalAIChat
+        currentView={currentView}
+        contextMode={contextMode}
+        selectedEventName={selectedEventName}
+      />
     </div>
   );
 }
