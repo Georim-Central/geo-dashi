@@ -3,17 +3,177 @@ import { Plus, Edit2, Trash2, Tag, Clock } from 'lucide-react';
 import { ContentState } from '../ui/ContentState';
 import { useModalA11y } from '../../hooks/useModalA11y';
 
+type TicketType = {
+  id: string;
+  name: string;
+  type: 'paid' | 'free' | 'donation';
+  price: number;
+  originalPrice?: number;
+  description: string;
+  quantity: number;
+  sold: number;
+  salesPeriod: string;
+  isEarlyBird: boolean;
+  addOns: string[];
+  minPerOrder?: number;
+  maxPerOrder?: number;
+  reservedSeating?: boolean;
+  timedEntry?: boolean;
+};
+
+type TicketFormState = {
+  name: string;
+  type: TicketType['type'];
+  price: string;
+  quantity: string;
+  minPerOrder: string;
+  maxPerOrder: string;
+  description: string;
+  isEarlyBird: boolean;
+  reservedSeating: boolean;
+  timedEntry: boolean;
+};
+
 export function TicketingSection() {
+  const [tickets, setTickets] = useState<TicketType[]>(mockTickets);
   const [showAddTicketModal, setShowAddTicketModal] = useState(false);
   const [showCreateCodeModal, setShowCreateCodeModal] = useState(false);
+  const [editingTicketId, setEditingTicketId] = useState<string | null>(null);
+  const [ticketForm, setTicketForm] = useState<TicketFormState>(emptyTicketFormState);
+  const [ticketFormError, setTicketFormError] = useState('');
   const [promoCodes, setPromoCodes] = useState(mockPromoCodes);
+
+  const closeTicketModal = () => {
+    setShowAddTicketModal(false);
+    setEditingTicketId(null);
+    setTicketForm(emptyTicketFormState);
+    setTicketFormError('');
+  };
+
+  const openAddTicketModal = () => {
+    setEditingTicketId(null);
+    setTicketForm(emptyTicketFormState);
+    setTicketFormError('');
+    setShowAddTicketModal(true);
+  };
+
+  const openEditTicketModal = (ticket: TicketType) => {
+    setEditingTicketId(ticket.id);
+    setTicketForm({
+      name: ticket.name,
+      type: ticket.type,
+      price: String(ticket.price),
+      quantity: String(ticket.quantity),
+      minPerOrder: String(ticket.minPerOrder ?? 1),
+      maxPerOrder: String(ticket.maxPerOrder ?? 10),
+      description: ticket.description,
+      isEarlyBird: ticket.isEarlyBird,
+      reservedSeating: Boolean(ticket.reservedSeating),
+      timedEntry: Boolean(ticket.timedEntry)
+    });
+    setTicketFormError('');
+    setShowAddTicketModal(true);
+  };
+
+  const handleTicketFormChange = <K extends keyof TicketFormState>(field: K, value: TicketFormState[K]) => {
+    setTicketForm((currentForm) => ({ ...currentForm, [field]: value }));
+    if (ticketFormError) setTicketFormError('');
+  };
+
+  const handleSaveTicket = () => {
+    const ticketName = ticketForm.name.trim();
+    const description = ticketForm.description.trim();
+    const price = Number(ticketForm.price);
+    const quantity = Number(ticketForm.quantity);
+    const minPerOrder = Number(ticketForm.minPerOrder);
+    const maxPerOrder = Number(ticketForm.maxPerOrder);
+
+    if (!ticketName) {
+      setTicketFormError('Please enter a ticket name.');
+      return;
+    }
+
+    if (!Number.isFinite(price) || price < 0) {
+      setTicketFormError('Please enter a valid price.');
+      return;
+    }
+
+    if (!Number.isFinite(quantity) || quantity < 1) {
+      setTicketFormError('Please enter a valid quantity.');
+      return;
+    }
+
+    if (!Number.isFinite(minPerOrder) || minPerOrder < 1 || !Number.isFinite(maxPerOrder) || maxPerOrder < minPerOrder) {
+      setTicketFormError('Min/Max per order values are invalid.');
+      return;
+    }
+
+    if (editingTicketId) {
+      setTickets((currentTickets) =>
+        currentTickets.map((ticket) => (
+          ticket.id === editingTicketId
+            ? {
+              ...ticket,
+              name: ticketName,
+              type: ticketForm.type,
+              price,
+              quantity,
+              sold: Math.min(ticket.sold, quantity),
+              description: description || 'No description provided.',
+              isEarlyBird: ticketForm.isEarlyBird,
+              minPerOrder,
+              maxPerOrder,
+              reservedSeating: ticketForm.reservedSeating,
+              timedEntry: ticketForm.timedEntry
+            }
+            : ticket
+        ))
+      );
+      closeTicketModal();
+      return;
+    }
+
+    const newTicket: TicketType = {
+      id: `ticket-${Date.now()}`,
+      name: ticketName,
+      type: ticketForm.type,
+      price,
+      quantity,
+      sold: 0,
+      salesPeriod: 'Not set',
+      description: description || 'No description provided.',
+      isEarlyBird: ticketForm.isEarlyBird,
+      addOns: [],
+      minPerOrder,
+      maxPerOrder,
+      reservedSeating: ticketForm.reservedSeating,
+      timedEntry: ticketForm.timedEntry
+    };
+
+    setTickets((currentTickets) => [newTicket, ...currentTickets]);
+    closeTicketModal();
+  };
+
+  const handleDeleteTicket = (ticketId: string, ticketName: string) => {
+    const shouldDelete = window.confirm(`Delete "${ticketName}" ticket type?`);
+    if (!shouldDelete) return;
+
+    setTickets((currentTickets) =>
+      currentTickets.filter((ticket) => ticket.id !== ticketId)
+    );
+
+    if (editingTicketId === ticketId) {
+      closeTicketModal();
+    }
+  };
+
   const {
     dialogRef: addTicketDialogRef,
     titleId: addTicketTitleId,
     descriptionId: addTicketDescriptionId
   } = useModalA11y({
     isOpen: showAddTicketModal,
-    onClose: () => setShowAddTicketModal(false)
+    onClose: closeTicketModal
   });
   const {
     dialogRef: createCodeDialogRef,
@@ -41,7 +201,7 @@ export function TicketingSection() {
         </div>
         <button
           type="button"
-          onClick={() => setShowAddTicketModal(true)}
+          onClick={openAddTicketModal}
           className="flex items-center gap-2 bg-[#7626c6] text-white btn-glass px-4 py-2 rounded-lg hover:bg-[#5f1fa3] transition-colors"
         >
           <Plus className="w-4 h-4" />
@@ -52,11 +212,11 @@ export function TicketingSection() {
       {/* Existing Tickets */}
       <div className="space-y-4">
         <ContentState
-          isEmpty={mockTickets.length === 0}
+          isEmpty={tickets.length === 0}
           emptyMessage="No ticket types configured."
           className="py-14"
         >
-          {mockTickets.map((ticket) => (
+          {tickets.map((ticket) => (
           <div key={ticket.id} className="bg-white rounded-xl border border-gray-200 p-6">
             <div className="flex items-start justify-between mb-4">
               <div className="flex-1">
@@ -92,7 +252,7 @@ export function TicketingSection() {
                   <div className="w-32 h-2 bg-gray-200 rounded-full overflow-hidden">
                     <div
                       className="h-full bg-[#7626c6]"
-                      style={{ width: `${(ticket.sold / ticket.quantity) * 100}%` }}
+                      style={{ width: `${ticket.quantity > 0 ? (ticket.sold / ticket.quantity) * 100 : 0}%` }}
                     ></div>
                   </div>
                 </div>
@@ -106,10 +266,22 @@ export function TicketingSection() {
                   )}
                 </div>
                 <div className="flex gap-2">
-                  <button type="button" className="p-2 hover:bg-gray-100 rounded-lg transition-colors" aria-label={`Edit ${ticket.name}`}>
+                  <button
+                    type="button"
+                    onClick={() => openEditTicketModal(ticket)}
+                    className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                    aria-label={`Edit ${ticket.name}`}
+                    aria-haspopup="dialog"
+                    aria-expanded={showAddTicketModal && editingTicketId === ticket.id}
+                  >
                     <Edit2 className="w-4 h-4 text-gray-600" />
                   </button>
-                  <button type="button" className="p-2 hover:bg-red-50 rounded-lg transition-colors" aria-label={`Delete ${ticket.name}`}>
+                  <button
+                    type="button"
+                    onClick={() => handleDeleteTicket(ticket.id, ticket.name)}
+                    className="p-2 hover:bg-red-50 rounded-lg transition-colors"
+                    aria-label={`Delete ${ticket.name}`}
+                  >
                     <Trash2 className="w-4 h-4 text-red-600" />
                   </button>
                 </div>
@@ -209,7 +381,7 @@ export function TicketingSection() {
         <div className="ticketing-modal-overlay">
           <div
             className="ticketing-modal-backdrop"
-            onClick={() => setShowAddTicketModal(false)}
+            onClick={closeTicketModal}
           />
           <div
             ref={addTicketDialogRef}
@@ -220,8 +392,12 @@ export function TicketingSection() {
             tabIndex={-1}
             className="ticketing-modal-card bg-white rounded-2xl border border-gray-200 shadow-2xl p-6"
           >
-            <h3 id={addTicketTitleId} className="text-xl font-semibold text-gray-900 mb-1">Add Ticket Type</h3>
-            <p id={addTicketDescriptionId} className="text-sm text-gray-600 mb-5">Create a new ticket for this event.</p>
+            <h3 id={addTicketTitleId} className="text-xl font-semibold text-gray-900 mb-1">
+              {editingTicketId ? 'Edit Ticket Type' : 'Add Ticket Type'}
+            </h3>
+            <p id={addTicketDescriptionId} className="text-sm text-gray-600 mb-5">
+              {editingTicketId ? 'Update ticket details and pricing.' : 'Create a new ticket for this event.'}
+            </p>
 
             <div className="ticketing-modal-body space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -229,13 +405,19 @@ export function TicketingSection() {
                   <label className="block text-sm font-medium text-gray-700 mb-2">Ticket Name</label>
                   <input
                     type="text"
+                    value={ticketForm.name}
+                    onChange={(event) => handleTicketFormChange('name', event.target.value)}
                     placeholder="e.g., General Admission"
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7626c6] focus:border-transparent"
                   />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Ticket Type</label>
-                  <select className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7626c6] focus:border-transparent">
+                  <select
+                    value={ticketForm.type}
+                    onChange={(event) => handleTicketFormChange('type', event.target.value as TicketType['type'])}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7626c6] focus:border-transparent"
+                  >
                     <option value="paid">Paid</option>
                     <option value="free">Free</option>
                     <option value="donation">Donation</option>
@@ -248,6 +430,8 @@ export function TicketingSection() {
                   <label className="block text-sm font-medium text-gray-700 mb-2">Price</label>
                   <input
                     type="number"
+                    value={ticketForm.price}
+                    onChange={(event) => handleTicketFormChange('price', event.target.value)}
                     placeholder="50.00"
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7626c6] focus:border-transparent"
                   />
@@ -256,6 +440,8 @@ export function TicketingSection() {
                   <label className="block text-sm font-medium text-gray-700 mb-2">Quantity</label>
                   <input
                     type="number"
+                    value={ticketForm.quantity}
+                    onChange={(event) => handleTicketFormChange('quantity', event.target.value)}
                     placeholder="100"
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7626c6] focus:border-transparent"
                   />
@@ -265,11 +451,15 @@ export function TicketingSection() {
                   <div className="flex gap-2">
                     <input
                       type="number"
+                      value={ticketForm.minPerOrder}
+                      onChange={(event) => handleTicketFormChange('minPerOrder', event.target.value)}
                       placeholder="1"
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7626c6] focus:border-transparent"
                     />
                     <input
                       type="number"
+                      value={ticketForm.maxPerOrder}
+                      onChange={(event) => handleTicketFormChange('maxPerOrder', event.target.value)}
                       placeholder="10"
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7626c6] focus:border-transparent"
                     />
@@ -281,6 +471,8 @@ export function TicketingSection() {
                 <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
                 <textarea
                   rows={3}
+                  value={ticketForm.description}
+                  onChange={(event) => handleTicketFormChange('description', event.target.value)}
                   placeholder="Brief description of what's included"
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7626c6] focus:border-transparent resize-none"
                 />
@@ -288,34 +480,53 @@ export function TicketingSection() {
 
               <div className="flex flex-wrap items-center gap-4 pt-1">
                 <label className="flex items-center gap-2 cursor-pointer">
-                  <input type="checkbox" className="rounded" />
+                  <input
+                    type="checkbox"
+                    checked={ticketForm.isEarlyBird}
+                    onChange={(event) => handleTicketFormChange('isEarlyBird', event.target.checked)}
+                    className="rounded"
+                  />
                   <span className="text-sm text-gray-700">Early Bird Pricing</span>
                 </label>
                 <label className="flex items-center gap-2 cursor-pointer">
-                  <input type="checkbox" className="rounded" />
+                  <input
+                    type="checkbox"
+                    checked={ticketForm.reservedSeating}
+                    onChange={(event) => handleTicketFormChange('reservedSeating', event.target.checked)}
+                    className="rounded"
+                  />
                   <span className="text-sm text-gray-700">Reserved Seating</span>
                 </label>
                 <label className="flex items-center gap-2 cursor-pointer">
-                  <input type="checkbox" className="rounded" />
+                  <input
+                    type="checkbox"
+                    checked={ticketForm.timedEntry}
+                    onChange={(event) => handleTicketFormChange('timedEntry', event.target.checked)}
+                    className="rounded"
+                  />
                   <span className="text-sm text-gray-700">Timed Entry</span>
                 </label>
               </div>
+
+              {ticketFormError && (
+                <p className="text-sm text-red-600" role="alert">{ticketFormError}</p>
+              )}
             </div>
 
             <div className="flex justify-end gap-3 pt-5 mt-5 border-t border-gray-200 bg-white">
               <button
                 type="button"
-                onClick={() => setShowAddTicketModal(false)}
+                onClick={closeTicketModal}
                 className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
               >
                 Cancel
               </button>
               <button
                 type="button"
-                onClick={() => setShowAddTicketModal(false)}
+                onClick={handleSaveTicket}
                 className="px-4 py-2 bg-[#7626c6] text-white btn-glass rounded-lg hover:bg-[#5f1fa3] transition-colors"
               >
-                Create Ticket
+                {editingTicketId ? 'Save Changes' : 'Create Ticket'}
               </button>
             </div>
           </div>
@@ -430,7 +641,20 @@ export function TicketingSection() {
   );
 }
 
-const mockTickets = [
+const emptyTicketFormState: TicketFormState = {
+  name: '',
+  type: 'paid',
+  price: '',
+  quantity: '',
+  minPerOrder: '1',
+  maxPerOrder: '10',
+  description: '',
+  isEarlyBird: false,
+  reservedSeating: false,
+  timedEntry: false
+};
+
+const mockTickets: TicketType[] = [
   {
     id: '1',
     name: 'Early Bird General Admission',
@@ -442,7 +666,11 @@ const mockTickets = [
     sold: 387,
     salesPeriod: 'Mar 1 - May 15',
     isEarlyBird: true,
-    addOns: ['Parking Pass', 'Event T-Shirt']
+    addOns: ['Parking Pass', 'Event T-Shirt'],
+    minPerOrder: 1,
+    maxPerOrder: 10,
+    reservedSeating: false,
+    timedEntry: false
   },
   {
     id: '2',
@@ -454,7 +682,11 @@ const mockTickets = [
     sold: 78,
     salesPeriod: 'Mar 1 - Jun 15',
     isEarlyBird: false,
-    addOns: ['VIP Lounge', 'Meet & Greet']
+    addOns: ['VIP Lounge', 'Meet & Greet'],
+    minPerOrder: 1,
+    maxPerOrder: 8,
+    reservedSeating: true,
+    timedEntry: true
   },
   {
     id: '3',
@@ -466,7 +698,11 @@ const mockTickets = [
     sold: 134,
     salesPeriod: 'Apr 1 - Jun 15',
     isEarlyBird: false,
-    addOns: []
+    addOns: [],
+    minPerOrder: 1,
+    maxPerOrder: 4,
+    reservedSeating: false,
+    timedEntry: true
   }
 ];
 

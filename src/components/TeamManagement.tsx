@@ -3,18 +3,43 @@ import { Plus, Mail, Shield, Edit2, Trash2, QrCode, CreditCard as CreditCardIcon
 import { ContentState } from './ui/ContentState';
 import { useModalA11y } from '../hooks/useModalA11y';
 
-type InviteRole = 'admin' | 'marketing' | 'operations';
-type InviteAccess = 'all' | 'specific';
+type InviteRole = 'admin' | 'marketing' | 'operations' | 'custom';
+type InviteAccess = 'all' | string;
 
-export function TeamManagement() {
+interface TeamManagementProps {
+  eventOptions?: string[];
+}
+
+type TeamMemberRole = 'Admin' | 'Marketing' | 'Operations';
+
+type TeamMember = {
+  id: string;
+  name: string;
+  email: string;
+  role: TeamMemberRole;
+  events: string[];
+  specialTickets: string[];
+  lastActive: string;
+};
+
+export function TeamManagement({ eventOptions = defaultEventOptions }: TeamManagementProps) {
+  const [teamMembers, setTeamMembers] = useState<TeamMember[]>(mockTeamMembers);
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [selectedMember, setSelectedMember] = useState<string | null>(null);
   const [showTicketModal, setShowTicketModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingMemberId, setEditingMemberId] = useState<string | null>(null);
+  const [editName, setEditName] = useState('');
+  const [editEmail, setEditEmail] = useState('');
+  const [editRole, setEditRole] = useState<TeamMemberRole>('Admin');
+  const [editError, setEditError] = useState('');
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteRole, setInviteRole] = useState<InviteRole>('admin');
+  const [inviteCustomRole, setInviteCustomRole] = useState('');
   const [inviteAccess, setInviteAccess] = useState<InviteAccess>('all');
   const [inviteError, setInviteError] = useState('');
   const [inviteLoading, setInviteLoading] = useState(false);
+  const availableEventOptions = Array.from(new Set(eventOptions.map((eventName) => eventName.trim()).filter(Boolean)));
   const {
     dialogRef: inviteDialogRef,
     titleId: inviteTitleId,
@@ -37,25 +62,80 @@ export function TeamManagement() {
       setSelectedMember(null);
     }
   });
+  const {
+    dialogRef: editDialogRef,
+    titleId: editTitleId,
+    descriptionId: editDescriptionId
+  } = useModalA11y({
+    isOpen: showEditModal,
+    onClose: () => {
+      closeEditModal();
+    }
+  });
+
+  const closeEditModal = () => {
+    setShowEditModal(false);
+    setEditingMemberId(null);
+    setEditName('');
+    setEditEmail('');
+    setEditRole('Admin');
+    setEditError('');
+  };
+
+  const openEditModal = (member: TeamMember) => {
+    setEditingMemberId(member.id);
+    setEditName(member.name);
+    setEditEmail(member.email);
+    setEditRole(member.role);
+    setEditError('');
+    setShowEditModal(true);
+  };
 
   const openInviteModal = () => {
     setInviteEmail('');
     setInviteRole('admin');
+    setInviteCustomRole('');
     setInviteAccess('all');
     setInviteError('');
     setShowInviteModal(true);
   };
 
-  const generateInviteLink = () => {
-    const token = Math.random().toString(36).slice(2, 12);
-    const access = inviteAccess === 'all' ? 'all-events' : 'specific-events';
-    return `https://georim.app/team-invite/${token}?role=${inviteRole}&access=${access}`;
+  const handleSaveMemberEdit = () => {
+    if (!editingMemberId) return;
+
+    const name = editName.trim();
+    const email = editEmail.trim();
+    const isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+
+    if (!name) {
+      setEditError('Please enter a member name.');
+      return;
+    }
+
+    if (!isValidEmail) {
+      setEditError('Please enter a valid email address.');
+      return;
+    }
+
+    setTeamMembers((previousMembers) => previousMembers.map((member) => (
+      member.id === editingMemberId
+        ? { ...member, name, email, role: editRole }
+        : member
+    )));
+    closeEditModal();
   };
 
-  const getRoleLabel = (role: InviteRole) => {
+  const generateInviteLink = (roleValue: string, accessValue: InviteAccess) => {
+    const token = Math.random().toString(36).slice(2, 12);
+    const access = accessValue === 'all' ? 'all-events' : accessValue;
+    return `https://georim.app/team-invite/${token}?role=${encodeURIComponent(roleValue)}&access=${encodeURIComponent(access)}`;
+  };
+
+  const getRoleLabel = (role: InviteRole, customRoleName: string) => {
     if (role === 'admin') return 'Admin';
     if (role === 'marketing') return 'Marketing';
-    return 'Operations';
+    if (role === 'operations') return 'Operations';
+    return customRoleName;
   };
 
   const handleSendInvite = () => {
@@ -67,10 +147,16 @@ export function TeamManagement() {
       return;
     }
 
+    const customRoleName = inviteCustomRole.trim();
+    if (inviteRole === 'custom' && !customRoleName) {
+      setInviteError('Please enter a custom role name.');
+      return;
+    }
+
     setInviteLoading(true);
-    const inviteLink = generateInviteLink();
-    const roleLabel = getRoleLabel(inviteRole);
-    const accessLabel = inviteAccess === 'all' ? 'all events' : 'specific events';
+    const roleLabel = getRoleLabel(inviteRole, customRoleName);
+    const inviteLink = generateInviteLink(roleLabel, inviteAccess);
+    const accessLabel = inviteAccess === 'all' ? 'all events' : inviteAccess;
     const subject = 'You are invited to join Georim Team Management';
     const body = [
       'Hi there,',
@@ -181,7 +267,7 @@ export function TeamManagement() {
         </div>
 
         <ContentState
-          isEmpty={mockTeamMembers.length === 0}
+          isEmpty={teamMembers.length === 0}
           emptyMessage="No team members found."
           className="py-14 m-6"
         >
@@ -206,7 +292,7 @@ export function TeamManagement() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
-              {mockTeamMembers.map((member) => (
+              {teamMembers.map((member) => (
                 <tr key={member.id} className="hover:bg-gray-50 transition-colors">
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="flex items-center">
@@ -261,7 +347,14 @@ export function TeamManagement() {
                     >
                       <Ticket className="w-4 h-4 text-[#7626c6]" />
                     </button>
-                    <button type="button" className="p-2 hover:bg-gray-100 rounded-lg transition-colors" aria-label={`Edit ${member.name}`}>
+                    <button
+                      type="button"
+                      onClick={() => openEditModal(member)}
+                      className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                      aria-label={`Edit ${member.name}`}
+                      aria-haspopup="dialog"
+                      aria-expanded={showEditModal && editingMemberId === member.id}
+                    >
                       <Edit2 className="w-4 h-4 text-gray-600" />
                     </button>
                     <button type="button" className="p-2 hover:bg-red-50 rounded-lg transition-colors" aria-label={`Remove ${member.name}`}>
@@ -330,7 +423,7 @@ export function TeamManagement() {
       {/* Invite Modal */}
       {showInviteModal && (
         <div
-          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4 sm:px-6"
           onClick={() => {
             setShowInviteModal(false);
             setInviteError('');
@@ -343,7 +436,7 @@ export function TeamManagement() {
             aria-labelledby={inviteTitleId}
             aria-describedby={inviteDescriptionId}
             tabIndex={-1}
-            className="bg-white rounded-xl p-6 max-w-md w-full mx-4"
+            className="bg-white rounded-xl p-6 max-w-md w-full"
             onClick={(event) => event.stopPropagation()}
           >
             <h2 id={inviteTitleId} className="text-xl font-semibold text-gray-900 mb-4">Invite Team Member</h2>
@@ -372,14 +465,36 @@ export function TeamManagement() {
                 </label>
                 <select
                   value={inviteRole}
-                  onChange={(event) => setInviteRole(event.target.value as InviteRole)}
+                  onChange={(event) => {
+                    setInviteRole(event.target.value as InviteRole);
+                    if (inviteError) setInviteError('');
+                  }}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7626c6] focus:border-transparent"
                 >
                   <option value="admin">Admin - Full access</option>
                   <option value="marketing">Marketing - Marketing tools only</option>
                   <option value="operations">Operations - Check-in access</option>
+                  <option value="custom">Custom role</option>
                 </select>
               </div>
+
+              {inviteRole === 'custom' && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Custom Role Name
+                  </label>
+                  <input
+                    type="text"
+                    value={inviteCustomRole}
+                    onChange={(event) => {
+                      setInviteCustomRole(event.target.value);
+                      if (inviteError) setInviteError('');
+                    }}
+                    placeholder="e.g. Sponsorship Manager"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7626c6] focus:border-transparent"
+                  />
+                </div>
+              )}
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -387,11 +502,18 @@ export function TeamManagement() {
                 </label>
                 <select
                   value={inviteAccess}
-                  onChange={(event) => setInviteAccess(event.target.value as InviteAccess)}
+                  onChange={(event) => {
+                    setInviteAccess(event.target.value);
+                    if (inviteError) setInviteError('');
+                  }}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7626c6] focus:border-transparent"
                 >
                   <option value="all">All events</option>
-                  <option value="specific">Specific events only</option>
+                  {availableEventOptions.map((eventName) => (
+                    <option key={eventName} value={eventName}>
+                      {eventName}
+                    </option>
+                  ))}
                 </select>
               </div>
 
@@ -427,10 +549,105 @@ export function TeamManagement() {
         </div>
       )}
 
+      {/* Edit Team Member Modal */}
+      {showEditModal && (
+        <div
+          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4 sm:px-6"
+          onClick={closeEditModal}
+        >
+          <div
+            ref={editDialogRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby={editTitleId}
+            aria-describedby={editDescriptionId}
+            tabIndex={-1}
+            className="bg-white rounded-xl p-6 max-w-md w-full"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <h2 id={editTitleId} className="text-xl font-semibold text-gray-900 mb-4">Edit Team Member</h2>
+            <p id={editDescriptionId} className="sr-only">Update member details and save changes.</p>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Full Name
+                </label>
+                <input
+                  type="text"
+                  value={editName}
+                  onChange={(event) => {
+                    setEditName(event.target.value);
+                    if (editError) setEditError('');
+                  }}
+                  placeholder="Member full name"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7626c6] focus:border-transparent"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Email Address
+                </label>
+                <input
+                  type="email"
+                  value={editEmail}
+                  onChange={(event) => {
+                    setEditEmail(event.target.value);
+                    if (editError) setEditError('');
+                  }}
+                  placeholder="member@example.com"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7626c6] focus:border-transparent"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Role
+                </label>
+                <select
+                  value={editRole}
+                  onChange={(event) => setEditRole(event.target.value as TeamMemberRole)}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7626c6] focus:border-transparent"
+                >
+                  <option value="Admin">Admin</option>
+                  <option value="Marketing">Marketing</option>
+                  <option value="Operations">Operations</option>
+                </select>
+              </div>
+
+              {editError && (
+                <p className="text-sm text-red-600" role="alert">{editError}</p>
+              )}
+
+              <div className="pt-4 flex gap-3">
+                <button
+                  type="button"
+                  onClick={closeEditModal}
+                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSaveMemberEdit}
+                  className="flex-1 px-4 py-2 bg-[#7626c6] text-white btn-glass rounded-lg hover:bg-[#5f1fa3] transition-colors"
+                >
+                  Save Changes
+                </button>
+              </div>
+            </div>
+            <div className="sr-only" aria-live="polite">
+              {editError}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Special Ticket Assignment Modal */}
       {showTicketModal && (
         <div
-          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4 sm:px-6"
           onClick={() => {
             setShowTicketModal(false);
             setSelectedMember(null);
@@ -443,7 +660,7 @@ export function TeamManagement() {
             aria-labelledby={ticketTitleId}
             aria-describedby={ticketDescriptionId}
             tabIndex={-1}
-            className="bg-white rounded-xl p-6 max-w-lg w-full mx-4"
+            className="bg-white rounded-xl p-6 max-w-lg w-full"
             onClick={(event) => event.stopPropagation()}
           >
             <div className="flex items-center gap-3 mb-4">
@@ -453,7 +670,7 @@ export function TeamManagement() {
               <div>
                 <h2 id={ticketTitleId} className="text-xl font-semibold text-gray-900">Assign Special Tickets</h2>
                 <p id={ticketDescriptionId} className="text-sm text-gray-600">
-                  {selectedMember && mockTeamMembers.find(m => m.id === selectedMember)?.name}
+                  {selectedMember && teamMembers.find(m => m.id === selectedMember)?.name}
                 </p>
               </div>
             </div>
@@ -565,7 +782,14 @@ export function TeamManagement() {
   );
 }
 
-const mockTeamMembers = [
+const defaultEventOptions = [
+  'Summer Music Festival 2026',
+  'Tech Conference 2026',
+  'Food & Wine Expo',
+  'Georim Founders Circle'
+];
+
+const mockTeamMembers: TeamMember[] = [
   {
     id: '1',
     name: 'John Doe',

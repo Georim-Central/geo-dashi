@@ -13,6 +13,12 @@ const ProfileSettings = lazy(() => import('./components/ProfileSettings').then((
 
 type View = 'dashboard' | 'create-event' | 'event-management' | 'analytics' | 'team' | 'finance' | 'profile';
 type EventManagementTab = 'details' | 'ticketing' | 'orders' | 'checked-in' | 'marketing' | 'reports' | 'settings';
+const defaultTeamEventOptions = [
+  'Summer Music Festival 2026',
+  'Tech Conference 2026',
+  'Food & Wine Expo',
+  'Georim Founders Circle'
+];
 
 export default function App() {
   const [currentView, setCurrentView] = useState<View>('dashboard');
@@ -20,10 +26,24 @@ export default function App() {
   const [selectedEventName, setSelectedEventName] = useState<string | null>(null);
   const [contextMode, setContextMode] = useState<'organization' | 'event'>('organization');
   const [eventManagementTab, setEventManagementTab] = useState<EventManagementTab>('details');
+  const [teamEventOptions, setTeamEventOptions] = useState<string[]>(defaultTeamEventOptions);
+
+  const addTeamEventOption = (eventName?: string) => {
+    const normalizedEventName = eventName?.trim();
+    if (!normalizedEventName) return;
+
+    setTeamEventOptions((previousOptions) => (
+      previousOptions.some((existing) => existing.toLowerCase() === normalizedEventName.toLowerCase())
+        ? previousOptions
+        : [...previousOptions, normalizedEventName]
+    ));
+  };
 
   const handleEventCreated = (eventId: string, eventName?: string) => {
     setSelectedEventId(eventId);
-    setSelectedEventName(eventName || 'Untitled Event');
+    const resolvedEventName = eventName || 'Untitled Event';
+    setSelectedEventName(resolvedEventName);
+    addTeamEventOption(resolvedEventName);
     setContextMode('event');
     setEventManagementTab('details');
     setCurrentView('event-management');
@@ -31,7 +51,9 @@ export default function App() {
 
   const handleEventSelect = (eventId: string, eventName?: string) => {
     setSelectedEventId(eventId);
-    setSelectedEventName(eventName || 'Selected Event');
+    const resolvedEventName = eventName || 'Selected Event';
+    setSelectedEventName(resolvedEventName);
+    addTeamEventOption(resolvedEventName);
     setContextMode('event');
     setEventManagementTab('details');
     setCurrentView('event-management');
@@ -112,7 +134,7 @@ export default function App() {
               <Analytics selectedEventId={selectedEventId} selectedEventName={selectedEventName} />
             )}
             {currentView === 'team' && (
-              <TeamManagement />
+              <TeamManagement eventOptions={teamEventOptions} />
             )}
             {currentView === 'finance' && (
               <Finance />
