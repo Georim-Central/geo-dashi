@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { TrendingUp, Users, DollarSign, Ticket, Download, Calendar, Eye, MousePointer } from 'lucide-react';
 import { LineChart, Line, BarChart, Bar, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { downloadReportPdf } from '../utils/reportExport';
+import { ContentState } from './ui/ContentState';
 
 interface AnalyticsProps {
   selectedEventId: string | null;
@@ -12,6 +13,8 @@ export function Analytics({ selectedEventId, selectedEventName }: AnalyticsProps
   const isEventView = !!selectedEventId;
   const [selectedRange, setSelectedRange] = useState('Last 7 days');
   const eventDisplayName = selectedEventName?.trim() || 'Selected Event';
+  const analyticsError: string | null = null;
+  const isLoading = false;
 
   const handleExportReport = () => {
     const metricLines = (isEventView ? eventMetrics : orgMetrics).map(
@@ -72,7 +75,7 @@ export function Analytics({ selectedEventId, selectedEventName }: AnalyticsProps
   };
 
   return (
-    <div className="min-h-full bg-gray-50 p-8">
+    <div className="min-h-full bg-gray-50 p-8" aria-busy={isLoading}>
       <div className="max-w-7xl mx-auto space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
@@ -98,6 +101,7 @@ export function Analytics({ selectedEventId, selectedEventName }: AnalyticsProps
             <option>All time</option>
           </select>
           <button
+            type="button"
             onClick={handleExportReport}
             className="flex items-center gap-2 px-4 py-2 bg-[#7626c6] text-white btn-glass rounded-lg hover:bg-[#5f1fa3] transition-colors"
           >
@@ -109,23 +113,31 @@ export function Analytics({ selectedEventId, selectedEventName }: AnalyticsProps
 
       {/* Key Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {(isEventView ? eventMetrics : orgMetrics).map((metric, index) => {
-          const Icon = metric.icon;
-          return (
-            <div key={index} className="bg-white rounded-xl p-6 border border-gray-200 hover:shadow-lg transition-shadow">
-              <div className="flex items-start justify-between mb-3">
-                <div className={`${metric.bg} ${metric.color} p-3 rounded-lg`}>
-                  <Icon className="w-5 h-5" />
+        <ContentState
+          isLoading={isLoading}
+          error={analyticsError}
+          isEmpty={(isEventView ? eventMetrics : orgMetrics).length === 0}
+          emptyMessage="No metrics available."
+          className="col-span-full py-14"
+        >
+          {(isEventView ? eventMetrics : orgMetrics).map((metric, index) => {
+            const Icon = metric.icon;
+            return (
+              <div key={index} className="bg-white rounded-xl p-6 border border-gray-200 hover:shadow-lg transition-shadow">
+                <div className="flex items-start justify-between mb-3">
+                  <div className={`${metric.bg} ${metric.color} p-3 rounded-lg`}>
+                    <Icon className="w-5 h-5" />
+                  </div>
+                  <span className={`text-sm font-medium ${metric.trend === 'up' ? 'text-green-600' : metric.trend === 'down' ? 'text-red-600' : 'text-gray-600'}`}>
+                    {metric.change}
+                  </span>
                 </div>
-                <span className={`text-sm font-medium ${metric.trend === 'up' ? 'text-green-600' : metric.trend === 'down' ? 'text-red-600' : 'text-gray-600'}`}>
-                  {metric.change}
-                </span>
+                <div className="text-sm text-gray-600 mb-1">{metric.label}</div>
+                <div className="text-2xl font-bold text-gray-900">{metric.value}</div>
               </div>
-              <div className="text-sm text-gray-600 mb-1">{metric.label}</div>
-              <div className="text-2xl font-bold text-gray-900">{metric.value}</div>
-            </div>
-          );
-        })}
+            );
+          })}
+        </ContentState>
       </div>
 
       {isEventView ? (
@@ -139,10 +151,10 @@ export function Analytics({ selectedEventId, selectedEventName }: AnalyticsProps
                 <p className="text-sm text-gray-600 mt-1">Daily ticket sales and revenue trends</p>
               </div>
               <div className="flex gap-2">
-                <button className="px-3 py-1.5 bg-[#7626c6] text-white btn-glass rounded-lg text-sm font-medium">
+                <button type="button" className="px-3 py-1.5 bg-[#7626c6] text-white btn-glass rounded-lg text-sm font-medium">
                   Sales
                 </button>
-                <button className="px-3 py-1.5 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200 transition-colors">
+                <button type="button" className="px-3 py-1.5 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200 transition-colors">
                   Revenue
                 </button>
               </div>
@@ -218,7 +230,14 @@ export function Analytics({ selectedEventId, selectedEventName }: AnalyticsProps
               <div>
                 <h3 className="text-sm font-medium text-gray-700 mb-4">Top Cities</h3>
                 <div className="space-y-3">
-                  {eventGeographyData.cities.map((city, index) => (
+                  <ContentState
+                    isLoading={isLoading}
+                    error={analyticsError}
+                    isEmpty={eventGeographyData.cities.length === 0}
+                    emptyMessage="No city data available."
+                    className="py-8"
+                  >
+                    {eventGeographyData.cities.map((city, index) => (
                     <div key={index} className="flex items-center justify-between">
                       <span className="text-gray-700">{city.name}</span>
                       <div className="flex items-center gap-3">
@@ -233,13 +252,21 @@ export function Analytics({ selectedEventId, selectedEventName }: AnalyticsProps
                         </span>
                       </div>
                     </div>
-                  ))}
+                    ))}
+                  </ContentState>
                 </div>
               </div>
               <div>
                 <h3 className="text-sm font-medium text-gray-700 mb-4">Top States</h3>
                 <div className="space-y-3">
-                  {eventGeographyData.states.map((state, index) => (
+                  <ContentState
+                    isLoading={isLoading}
+                    error={analyticsError}
+                    isEmpty={eventGeographyData.states.length === 0}
+                    emptyMessage="No state data available."
+                    className="py-8"
+                  >
+                    {eventGeographyData.states.map((state, index) => (
                     <div key={index} className="flex items-center justify-between">
                       <span className="text-gray-700">{state.name}</span>
                       <div className="flex items-center gap-3">
@@ -254,7 +281,8 @@ export function Analytics({ selectedEventId, selectedEventName }: AnalyticsProps
                         </span>
                       </div>
                     </div>
-                  ))}
+                    ))}
+                  </ContentState>
                 </div>
               </div>
             </div>
@@ -271,13 +299,13 @@ export function Analytics({ selectedEventId, selectedEventName }: AnalyticsProps
                 <p className="text-sm text-gray-600 mt-1">Performance across all events</p>
               </div>
               <div className="flex gap-2">
-                <button className="px-3 py-1.5 bg-[#7626c6] text-white btn-glass rounded-lg text-sm font-medium">
+                <button type="button" className="px-3 py-1.5 bg-[#7626c6] text-white btn-glass rounded-lg text-sm font-medium">
                   Both
                 </button>
-                <button className="px-3 py-1.5 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200 transition-colors">
+                <button type="button" className="px-3 py-1.5 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200 transition-colors">
                   Revenue Only
                 </button>
-                <button className="px-3 py-1.5 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200 transition-colors">
+                <button type="button" className="px-3 py-1.5 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200 transition-colors">
                   Tickets Only
                 </button>
               </div>
@@ -358,7 +386,14 @@ export function Analytics({ selectedEventId, selectedEventName }: AnalyticsProps
               <div>
                 <h3 className="text-sm font-medium text-gray-700 mb-4">Top Cities</h3>
                 <div className="space-y-3">
-                  {orgGeographyData.cities.map((city, index) => (
+                  <ContentState
+                    isLoading={isLoading}
+                    error={analyticsError}
+                    isEmpty={orgGeographyData.cities.length === 0}
+                    emptyMessage="No city data available."
+                    className="py-8"
+                  >
+                    {orgGeographyData.cities.map((city, index) => (
                     <div key={index} className="flex items-center justify-between">
                       <span className="text-gray-700">{city.name}</span>
                       <div className="flex items-center gap-3">
@@ -373,13 +408,21 @@ export function Analytics({ selectedEventId, selectedEventName }: AnalyticsProps
                         </span>
                       </div>
                     </div>
-                  ))}
+                    ))}
+                  </ContentState>
                 </div>
               </div>
               <div>
                 <h3 className="text-sm font-medium text-gray-700 mb-4">Top States</h3>
                 <div className="space-y-3">
-                  {orgGeographyData.states.map((state, index) => (
+                  <ContentState
+                    isLoading={isLoading}
+                    error={analyticsError}
+                    isEmpty={orgGeographyData.states.length === 0}
+                    emptyMessage="No state data available."
+                    className="py-8"
+                  >
+                    {orgGeographyData.states.map((state, index) => (
                     <div key={index} className="flex items-center justify-between">
                       <span className="text-gray-700">{state.name}</span>
                       <div className="flex items-center gap-3">
@@ -394,7 +437,8 @@ export function Analytics({ selectedEventId, selectedEventName }: AnalyticsProps
                         </span>
                       </div>
                     </div>
-                  ))}
+                    ))}
+                  </ContentState>
                 </div>
               </div>
             </div>

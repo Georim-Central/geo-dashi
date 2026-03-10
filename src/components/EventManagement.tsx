@@ -4,6 +4,7 @@ import { TicketingSection } from './event-management/TicketingSection';
 import { OrdersSection } from './event-management/OrdersSection';
 import { MarketingSection } from './event-management/MarketingSection';
 import { downloadReportPdf } from '../utils/reportExport';
+import { useModalA11y } from '../hooks/useModalA11y';
 
 interface EventManagementProps {
   eventId: string;
@@ -138,7 +139,7 @@ export function EventManagement({ eventId, eventName, activeTab: requestedTab, o
               <p className="text-gray-600 mt-1">June 15, 2026 • Central Park, New York</p>
             </div>
             <div className="flex items-center gap-3">
-              <button className="px-4 py-2 bg-[#7626c6] text-white btn-glass rounded-lg hover:bg-[#5f1fa3] transition-colors">
+              <button type="button" className="px-4 py-2 bg-[#7626c6] text-white btn-glass rounded-lg hover:bg-[#5f1fa3] transition-colors">
                 Publish
               </button>
             </div>
@@ -150,6 +151,7 @@ export function EventManagement({ eventId, eventName, activeTab: requestedTab, o
               const Icon = tab.icon;
               return (
                 <button
+                  type="button"
                   key={tab.id}
                   onClick={() => {
                     const nextTab = tab.id as Tab;
@@ -309,6 +311,8 @@ function CheckedInTab({
                   ? 'bg-yellow-50 text-yellow-700 border border-yellow-200'
                   : 'bg-red-50 text-red-700 border border-red-200'
             }`}
+            role="status"
+            aria-live="polite"
           >
             {scanFeedback.message}
           </div>
@@ -427,17 +431,17 @@ function EventDetailsTab({ eventName }: { eventName: string }) {
       <div className="bg-white rounded-xl border border-gray-200 p-6">
         <h2 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h2>
         <div className="grid grid-cols-3 gap-4">
-          <button className="p-4 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-left">
+          <button type="button" className="p-4 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-left">
             <div className="text-2xl mb-2">🎫</div>
             <div className="font-medium text-gray-900">Manage Tickets</div>
             <div className="text-sm text-gray-500">Configure ticket types</div>
           </button>
-          <button className="p-4 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-left">
+          <button type="button" className="p-4 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-left">
             <div className="text-2xl mb-2">✉️</div>
             <div className="font-medium text-gray-900">Send Email</div>
             <div className="text-sm text-gray-500">Email attendees</div>
           </button>
-          <button className="p-4 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-left">
+          <button type="button" className="p-4 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-left">
             <div className="text-2xl mb-2">📊</div>
             <div className="font-medium text-gray-900">View Reports</div>
             <div className="text-sm text-gray-500">Check analytics</div>
@@ -498,6 +502,7 @@ function ReportsTab({ eventName }: { eventName: string }) {
             <p className="text-gray-600 mt-1">Event attendee reports and analytics</p>
           </div>
           <button
+            type="button"
             onClick={handleExportReport}
             className="inline-flex items-center gap-2 px-4 py-2 bg-[#7626c6] text-white btn-glass rounded-lg text-sm font-medium hover:bg-[#5f1fa3] transition-colors"
           >
@@ -695,6 +700,14 @@ function SettingsTab() {
   const [cancellationPolicy, setCancellationPolicy] = useState('');
   const [cancellationDraft, setCancellationDraft] = useState('');
   const [policySavedNotice, setPolicySavedNotice] = useState('');
+  const {
+    dialogRef: cancellationDialogRef,
+    titleId: cancellationTitleId,
+    descriptionId: cancellationDescriptionId
+  } = useModalA11y({
+    isOpen: showCancellationModal,
+    onClose: () => setShowCancellationModal(false)
+  });
 
   const generatePrivateLink = () => {
     const token = Math.random().toString(36).slice(2, 10);
@@ -764,6 +777,7 @@ function SettingsTab() {
                   </p>
                 </div>
                 <button
+                  type="button"
                   onClick={() => setPrivateLink(generatePrivateLink())}
                   className="px-3 py-1.5 text-sm border border-purple-300 text-purple-700 rounded-lg hover:bg-purple-100 transition-colors"
                 >
@@ -778,6 +792,7 @@ function SettingsTab() {
                   className="flex-1 px-3 py-2 border border-purple-200 rounded-lg bg-white text-sm text-gray-700"
                 />
                 <button
+                  type="button"
                   onClick={handleCopyPrivateLink}
                   className="px-4 py-2 bg-[#7626c6] text-white btn-glass rounded-lg text-sm hover:bg-[#5f1fa3] transition-colors"
                 >
@@ -804,7 +819,10 @@ function SettingsTab() {
                 onChange={(e) => setWaitlistEnabled(e.target.checked)}
                 className="sr-only peer"
               />
-              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-[#7626c6]/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#7626c6]"></div>
+              <div
+                className="w-11 h-6 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-[#7626c6]/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all"
+                style={{ backgroundColor: waitlistEnabled ? '#7626c6' : '#e5e7eb' }}
+              ></div>
             </label>
           </div>
 
@@ -816,6 +834,7 @@ function SettingsTab() {
             </div>
             {!cancellationPolicy && (
               <button
+                type="button"
                 onClick={openCancellationPolicyModal}
                 className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
               >
@@ -829,6 +848,7 @@ function SettingsTab() {
               <div className="flex items-start justify-between gap-3 mb-3">
                 <h4 className="text-sm font-semibold text-gray-900">Policy Write-up</h4>
                 <button
+                  type="button"
                   onClick={openCancellationPolicyModal}
                   className="px-3 py-1.5 text-xs border border-gray-300 rounded-lg hover:bg-white transition-colors"
                 >
@@ -839,7 +859,7 @@ function SettingsTab() {
             </div>
           )}
 
-          {policySavedNotice && <p className="text-xs mt-1 text-[#7626c6]">{policySavedNotice}</p>}
+          {policySavedNotice && <p className="text-xs mt-1 text-[#7626c6]" aria-live="polite">{policySavedNotice}</p>}
         </div>
       </div>
 
@@ -849,9 +869,17 @@ function SettingsTab() {
             className="ticketing-modal-backdrop"
             onClick={() => setShowCancellationModal(false)}
           />
-          <div className="ticketing-modal-card bg-white rounded-2xl border border-gray-200 shadow-2xl p-6">
-            <h3 className="text-xl font-semibold text-gray-900 mb-1">Configure Cancellation Policy</h3>
-            <p className="text-sm text-gray-600 mb-5">Set your full refund and cancellation terms.</p>
+          <div
+            ref={cancellationDialogRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby={cancellationTitleId}
+            aria-describedby={cancellationDescriptionId}
+            tabIndex={-1}
+            className="ticketing-modal-card bg-white rounded-2xl border border-gray-200 shadow-2xl p-6"
+          >
+            <h3 id={cancellationTitleId} className="text-xl font-semibold text-gray-900 mb-1">Configure Cancellation Policy</h3>
+            <p id={cancellationDescriptionId} className="text-sm text-gray-600 mb-5">Set your full refund and cancellation terms.</p>
 
             <div className="ticketing-modal-body space-y-4">
               <div>

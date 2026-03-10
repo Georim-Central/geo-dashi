@@ -1,5 +1,7 @@
 import { Mail, Phone, Plus } from 'lucide-react';
 import { FormEvent, useState } from 'react';
+import { ContentState } from '../ui/ContentState';
+import { useModalA11y } from '../../hooks/useModalA11y';
 
 type ListingStatus = 'live' | 'paused';
 
@@ -38,6 +40,22 @@ export function MarketingSection() {
     sendAt: '',
     subject: '',
     message: ''
+  });
+  const {
+    dialogRef: campaignDialogRef,
+    titleId: campaignTitleId,
+    descriptionId: campaignDescriptionId
+  } = useModalA11y({
+    isOpen: showCampaignModal,
+    onClose: () => setShowCampaignModal(false)
+  });
+  const {
+    dialogRef: listingDialogRef,
+    titleId: listingTitleId,
+    descriptionId: listingDescriptionId
+  } = useModalA11y({
+    isOpen: showListingModal,
+    onClose: () => setShowListingModal(false)
   });
 
   const updateCampaignDraft = <T extends keyof typeof campaignDraft>(
@@ -197,10 +215,11 @@ export function MarketingSection() {
         </div>
 
         <div className="flex gap-3">
-          <button className="px-4 py-2 bg-white text-[#7626c6] rounded-lg hover:bg-white/90 transition-colors font-medium">
+          <button type="button" className="px-4 py-2 bg-white text-[#7626c6] rounded-lg hover:bg-white/90 transition-colors font-medium">
             View on Georim App
           </button>
           <button
+            type="button"
             onClick={toggleBoostVisibility}
             className={`px-4 py-2 backdrop-blur-sm rounded-lg transition-colors border ${
               isBoosted
@@ -211,6 +230,7 @@ export function MarketingSection() {
             {isBoosted ? 'Boosted Visibility' : 'Boost Visibility'}
           </button>
           <button
+            type="button"
             onClick={openManageListing}
             className="px-4 py-2 bg-white/20 backdrop-blur-sm text-white rounded-lg hover:bg-white/30 transition-colors border border-white/40"
           >
@@ -248,6 +268,7 @@ export function MarketingSection() {
             {/* Campaign Type Toggle */}
             <div className="flex items-center gap-2 p-1 bg-gray-100 rounded-lg">
               <button
+                type="button"
                 onClick={() => setCampaignType('email')}
                 className={`flex items-center gap-2 px-4 py-2 rounded-md transition-colors ${
                   campaignType === 'email'
@@ -259,6 +280,7 @@ export function MarketingSection() {
                 <span className="text-sm font-medium">Email</span>
               </button>
               <button
+                type="button"
                 onClick={() => setCampaignType('sms')}
                 className={`flex items-center gap-2 px-4 py-2 rounded-md transition-colors ${
                   campaignType === 'sms'
@@ -271,6 +293,7 @@ export function MarketingSection() {
               </button>
             </div>
             <button
+              type="button"
               onClick={openCampaignModal}
               className="flex items-center gap-2 bg-[#7626c6] text-white btn-glass px-4 py-2 rounded-lg hover:bg-[#5f1fa3] transition-colors"
             >
@@ -324,8 +347,13 @@ export function MarketingSection() {
         {/* Recent Campaigns */}
         <div className="space-y-3">
           <h3 className="font-medium text-gray-900">Recent Campaigns</h3>
-          {(campaignType === 'email' ? mockEmailCampaigns : mockSMSCampaigns).map(
-            (campaign) => (
+          <ContentState
+            isEmpty={(campaignType === 'email' ? mockEmailCampaigns : mockSMSCampaigns).length === 0}
+            emptyMessage="No campaign history yet."
+            className="py-14"
+          >
+            {(campaignType === 'email' ? mockEmailCampaigns : mockSMSCampaigns).map(
+              (campaign) => (
               <div key={campaign.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                 <div className="flex items-center gap-4">
                   {campaignType === 'email' ? (
@@ -367,8 +395,9 @@ export function MarketingSection() {
                   <div className="text-gray-500">{campaign.date}</div>
                 </div>
               </div>
-            )
-          )}
+              )
+            )}
+          </ContentState>
         </div>
       </div>
 
@@ -379,9 +408,17 @@ export function MarketingSection() {
             className="ticketing-modal-backdrop"
             onClick={closeCampaignModal}
           />
-          <div className="ticketing-modal-card ticketing-modal-card--code bg-white rounded-2xl border border-gray-200 shadow-2xl p-6">
-            <h3 className="text-xl font-semibold text-gray-900 mb-1">Create Campaign</h3>
-            <p className="text-sm text-gray-600 mb-5">Set up campaign details before sending.</p>
+          <div
+            ref={campaignDialogRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby={campaignTitleId}
+            aria-describedby={campaignDescriptionId}
+            tabIndex={-1}
+            className="ticketing-modal-card ticketing-modal-card--code bg-white rounded-2xl border border-gray-200 shadow-2xl p-6"
+          >
+            <h3 id={campaignTitleId} className="text-xl font-semibold text-gray-900 mb-1">Create Campaign</h3>
+            <p id={campaignDescriptionId} className="text-sm text-gray-600 mb-5">Set up campaign details before sending.</p>
 
             <form onSubmit={createCampaign} className="flex flex-col min-h-0">
               <div className="ticketing-modal-body space-y-4">
@@ -513,9 +550,17 @@ export function MarketingSection() {
             className="ticketing-modal-backdrop"
             onClick={closeManageListing}
           />
-          <div className="ticketing-modal-card ticketing-modal-card--code bg-white rounded-2xl border border-gray-200 shadow-2xl p-6">
-            <h3 className="text-xl font-semibold text-gray-900 mb-1">Manage Georim Listing</h3>
-            <p className="text-sm text-gray-600 mb-5">Control how your event appears on Georim Explore.</p>
+          <div
+            ref={listingDialogRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby={listingTitleId}
+            aria-describedby={listingDescriptionId}
+            tabIndex={-1}
+            className="ticketing-modal-card ticketing-modal-card--code bg-white rounded-2xl border border-gray-200 shadow-2xl p-6"
+          >
+            <h3 id={listingTitleId} className="text-xl font-semibold text-gray-900 mb-1">Manage Georim Listing</h3>
+            <p id={listingDescriptionId} className="text-sm text-gray-600 mb-5">Control how your event appears on Georim Explore.</p>
 
             <form onSubmit={saveListingSettings} className="flex flex-col min-h-0">
               <div className="ticketing-modal-body space-y-4">

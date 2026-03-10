@@ -2662,3 +2662,40 @@ button.btn-glass:focus-visible {
     padding: 12px;
   }
 }
+
+/* Shared accessibility and state primitives */
+:root {
+  --ui-focus-ring: rgba(118, 38, 198, 0.36);
+  --ui-state-surface: rgba(248, 250, 252, 0.9);
+  --ui-state-border: rgba(148, 163, 184, 0.35);
+  --ui-state-text: #475569;
+  --ui-state-icon: #64748b;
+}
+
+.app-shell :is(button, input, select, textarea, [role="button"], a, [tabindex]):focus-visible {
+  outline: 2px solid var(--ui-focus-ring);
+  outline-offset: 2px;
+}
+
+.ui-state-block {
+  border: 1px dashed var(--ui-state-border);
+  background: var(--ui-state-surface);
+  border-radius: 12px;
+  color: var(--ui-state-text);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  text-align: center;
+}
+
+.ui-state-icon {
+  width: 20px;
+  height: 20px;
+  color: var(--ui-state-icon);
+}
+
+.ui-state-message {
+  font-size: 0.9rem;
+}

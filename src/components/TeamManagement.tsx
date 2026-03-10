@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { Plus, Mail, Shield, Edit2, Trash2, QrCode, CreditCard as CreditCardIcon, Ticket } from 'lucide-react';
+import { ContentState } from './ui/ContentState';
+import { useModalA11y } from '../hooks/useModalA11y';
 
 type InviteRole = 'admin' | 'marketing' | 'operations';
 type InviteAccess = 'all' | 'specific';
@@ -12,6 +14,29 @@ export function TeamManagement() {
   const [inviteRole, setInviteRole] = useState<InviteRole>('admin');
   const [inviteAccess, setInviteAccess] = useState<InviteAccess>('all');
   const [inviteError, setInviteError] = useState('');
+  const [inviteLoading, setInviteLoading] = useState(false);
+  const {
+    dialogRef: inviteDialogRef,
+    titleId: inviteTitleId,
+    descriptionId: inviteDescriptionId
+  } = useModalA11y({
+    isOpen: showInviteModal,
+    onClose: () => {
+      setShowInviteModal(false);
+      setInviteError('');
+    }
+  });
+  const {
+    dialogRef: ticketDialogRef,
+    titleId: ticketTitleId,
+    descriptionId: ticketDescriptionId
+  } = useModalA11y({
+    isOpen: showTicketModal,
+    onClose: () => {
+      setShowTicketModal(false);
+      setSelectedMember(null);
+    }
+  });
 
   const openInviteModal = () => {
     setInviteEmail('');
@@ -42,6 +67,7 @@ export function TeamManagement() {
       return;
     }
 
+    setInviteLoading(true);
     const inviteLink = generateInviteLink();
     const roleLabel = getRoleLabel(inviteRole);
     const accessLabel = inviteAccess === 'all' ? 'all events' : 'specific events';
@@ -65,6 +91,7 @@ export function TeamManagement() {
     console.log('[Team] Invite mailto generated', { email, role: inviteRole, access: inviteAccess, inviteLink });
     setShowInviteModal(false);
     setInviteError('');
+    setInviteLoading(false);
   };
 
   return (
@@ -77,6 +104,7 @@ export function TeamManagement() {
           <p className="text-gray-600 mt-1">Manage team access and permissions</p>
         </div>
         <button
+          type="button"
           onClick={openInviteModal}
           className="flex items-center gap-2 bg-[#7626c6] text-white btn-glass px-4 py-2 rounded-lg hover:bg-[#5f1fa3] transition-colors"
         >
@@ -152,29 +180,34 @@ export function TeamManagement() {
           <span className="text-sm text-gray-600">Click ticket icon to assign special tickets</span>
         </div>
 
-        <table className="w-full">
-          <thead className="bg-gray-50 border-b border-gray-200">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Member
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Role
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Special Tickets
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Last Active
-              </th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Actions
-              </th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-200">
-            {mockTeamMembers.map((member) => (
-              <tr key={member.id} className="hover:bg-gray-50 transition-colors">
+        <ContentState
+          isEmpty={mockTeamMembers.length === 0}
+          emptyMessage="No team members found."
+          className="py-14 m-6"
+        >
+          <table className="w-full">
+            <thead className="bg-gray-50 border-b border-gray-200">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Member
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Role
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Special Tickets
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Last Active
+                </th>
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-200">
+              {mockTeamMembers.map((member) => (
+                <tr key={member.id} className="hover:bg-gray-50 transition-colors">
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="flex items-center">
                     <div className="w-10 h-10 bg-[#7626c6] rounded-full flex items-center justify-center text-white font-medium">
@@ -216,27 +249,31 @@ export function TeamManagement() {
                 <td className="px-6 py-4 whitespace-nowrap text-right">
                   <div className="flex items-center justify-end gap-2">
                     <button 
+                      type="button"
                       onClick={() => {
                         setSelectedMember(member.id);
                         setShowTicketModal(true);
                       }}
                       className="p-2 hover:bg-purple-50 rounded-lg transition-colors"
                       title="Assign Special Tickets"
+                      aria-haspopup="dialog"
+                      aria-expanded={showTicketModal && selectedMember === member.id}
                     >
                       <Ticket className="w-4 h-4 text-[#7626c6]" />
                     </button>
-                    <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                    <button type="button" className="p-2 hover:bg-gray-100 rounded-lg transition-colors" aria-label={`Edit ${member.name}`}>
                       <Edit2 className="w-4 h-4 text-gray-600" />
                     </button>
-                    <button className="p-2 hover:bg-red-50 rounded-lg transition-colors">
+                    <button type="button" className="p-2 hover:bg-red-50 rounded-lg transition-colors" aria-label={`Remove ${member.name}`}>
                       <Trash2 className="w-4 h-4 text-red-600" />
                     </button>
                   </div>
                 </td>
               </tr>
-            ))}
-          </tbody>
-        </table>
+              ))}
+            </tbody>
+          </table>
+        </ContentState>
       </div>
 
       {/* On-Site Tools */}
@@ -253,10 +290,10 @@ export function TeamManagement() {
               Mobile app for QR code scanning and live check-in counts
             </p>
             <div className="flex gap-2">
-              <button className="text-sm px-3 py-1 bg-gray-900 text-white rounded hover:bg-gray-800 transition-colors">
+              <button type="button" className="text-sm px-3 py-1 bg-gray-900 text-white rounded hover:bg-gray-800 transition-colors">
                 iOS
               </button>
-              <button className="text-sm px-3 py-1 bg-gray-900 text-white rounded hover:bg-gray-800 transition-colors">
+              <button type="button" className="text-sm px-3 py-1 bg-gray-900 text-white rounded hover:bg-gray-800 transition-colors">
                 Android
               </button>
             </div>
@@ -270,7 +307,7 @@ export function TeamManagement() {
             <p className="text-sm text-gray-600 mb-4">
               Accept payments on-site with card readers
             </p>
-            <button className="text-sm px-4 py-2 bg-[#7626c6] text-white btn-glass rounded hover:bg-[#5f1fa3] transition-colors">
+            <button type="button" className="text-sm px-4 py-2 bg-[#7626c6] text-white btn-glass rounded hover:bg-[#5f1fa3] transition-colors">
               Get Card Reader
             </button>
           </div>
@@ -283,7 +320,7 @@ export function TeamManagement() {
             <p className="text-sm text-gray-600 mb-4">
               Manage VIP lists and special access
             </p>
-            <button className="text-sm px-4 py-2 border border-gray-300 rounded hover:bg-gray-50 transition-colors">
+            <button type="button" className="text-sm px-4 py-2 border border-gray-300 rounded hover:bg-gray-50 transition-colors">
               Manage Lists
             </button>
           </div>
@@ -292,9 +329,25 @@ export function TeamManagement() {
 
       {/* Invite Modal */}
       {showInviteModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl p-6 max-w-md w-full mx-4">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">Invite Team Member</h2>
+        <div
+          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+          onClick={() => {
+            setShowInviteModal(false);
+            setInviteError('');
+          }}
+        >
+          <div
+            ref={inviteDialogRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby={inviteTitleId}
+            aria-describedby={inviteDescriptionId}
+            tabIndex={-1}
+            className="bg-white rounded-xl p-6 max-w-md w-full mx-4"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <h2 id={inviteTitleId} className="text-xl font-semibold text-gray-900 mb-4">Invite Team Member</h2>
+            <p id={inviteDescriptionId} className="sr-only">Add an email, role, and event access, then send invite.</p>
 
             <div className="space-y-4">
               <div>
@@ -343,11 +396,12 @@ export function TeamManagement() {
               </div>
 
               {inviteError && (
-                <p className="text-sm text-red-600">{inviteError}</p>
+                <p className="text-sm text-red-600" role="alert">{inviteError}</p>
               )}
 
               <div className="pt-4 flex gap-3">
                 <button
+                  type="button"
                   onClick={() => {
                     setShowInviteModal(false);
                     setInviteError('');
@@ -357,12 +411,17 @@ export function TeamManagement() {
                   Cancel
                 </button>
                 <button
+                  type="button"
                   onClick={handleSendInvite}
+                  disabled={inviteLoading}
                   className="flex-1 px-4 py-2 bg-[#7626c6] text-white btn-glass rounded-lg hover:bg-[#5f1fa3] transition-colors"
                 >
                   Send Invite
                 </button>
               </div>
+            </div>
+            <div className="sr-only" aria-live="polite">
+              {inviteError}
             </div>
           </div>
         </div>
@@ -370,15 +429,30 @@ export function TeamManagement() {
 
       {/* Special Ticket Assignment Modal */}
       {showTicketModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl p-6 max-w-lg w-full mx-4">
+        <div
+          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+          onClick={() => {
+            setShowTicketModal(false);
+            setSelectedMember(null);
+          }}
+        >
+          <div
+            ref={ticketDialogRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby={ticketTitleId}
+            aria-describedby={ticketDescriptionId}
+            tabIndex={-1}
+            className="bg-white rounded-xl p-6 max-w-lg w-full mx-4"
+            onClick={(event) => event.stopPropagation()}
+          >
             <div className="flex items-center gap-3 mb-4">
               <div className="p-2 bg-[#7626c6] rounded-lg">
                 <Ticket className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h2 className="text-xl font-semibold text-gray-900">Assign Special Tickets</h2>
-                <p className="text-sm text-gray-600">
+                <h2 id={ticketTitleId} className="text-xl font-semibold text-gray-900">Assign Special Tickets</h2>
+                <p id={ticketDescriptionId} className="text-sm text-gray-600">
                   {selectedMember && mockTeamMembers.find(m => m.id === selectedMember)?.name}
                 </p>
               </div>
@@ -462,6 +536,7 @@ export function TeamManagement() {
 
               <div className="pt-4 flex gap-3">
                 <button
+                  type="button"
                   onClick={() => {
                     setShowTicketModal(false);
                     setSelectedMember(null);
@@ -471,6 +546,7 @@ export function TeamManagement() {
                   Cancel
                 </button>
                 <button
+                  type="button"
                   onClick={() => {
                     setShowTicketModal(false);
                     setSelectedMember(null);

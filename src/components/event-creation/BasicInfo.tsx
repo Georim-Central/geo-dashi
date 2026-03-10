@@ -91,11 +91,12 @@ export function BasicInfo({ data, onUpdate }: BasicInfoProps) {
             type="text"
             value={tagInput}
             onChange={(e) => setTagInput(e.target.value)}
-            onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddTag())}
+            onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddTag())}
             placeholder="Add tags to help people find your event"
             className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7626c6] focus:border-transparent"
           />
           <button
+            type="button"
             onClick={handleAddTag}
             className="px-6 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-medium"
           >
@@ -111,8 +112,10 @@ export function BasicInfo({ data, onUpdate }: BasicInfoProps) {
               >
                 {tag}
                 <button
+                  type="button"
                   onClick={() => handleRemoveTag(tag)}
                   className="hover:bg-blue-100 rounded-full p-0.5 transition-colors"
+                  aria-label={`Remove ${tag}`}
                 >
                   <X className="w-3 h-3" />
                 </button>

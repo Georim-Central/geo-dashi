@@ -1,5 +1,6 @@
 import { Search, Bell, User } from 'lucide-react';
 import { useState } from 'react';
+import { useModalA11y } from '../hooks/useModalA11y';
 
 interface TopBarProps {
   contextMode: 'organization' | 'event';
@@ -17,9 +18,19 @@ export function TopBar({ contextMode, onOpenProfile }: TopBarProps) {
   ]);
 
   const unreadCount = notifications.filter((notification) => !notification.read).length;
+  const {
+    dialogRef: notificationsRef,
+    titleId: notificationsTitleId,
+    descriptionId: notificationsDescriptionId
+  } = useModalA11y({
+    isOpen: showNotifications,
+    onClose: () => setShowNotifications(false)
+  });
 
   const markAllAsRead = () => {
-    setNotifications(notifications.map((notification) => ({ ...notification, read: true })));
+    setNotifications((currentNotifications) =>
+      currentNotifications.map((notification) => ({ ...notification, read: true }))
+    );
   };
 
   return (
@@ -43,8 +54,12 @@ export function TopBar({ contextMode, onOpenProfile }: TopBarProps) {
 
           <div className="relative">
             <button
+              type="button"
               onClick={() => setShowNotifications(!showNotifications)}
               className="p-2 hover:bg-gray-100 rounded-lg transition-colors relative"
+              aria-expanded={showNotifications}
+              aria-controls="notifications-panel"
+              aria-label="Open notifications"
             >
               <span className="notification-wrapper">
                 <Bell className="bell-icon text-gray-600" />
@@ -60,11 +75,26 @@ export function TopBar({ contextMode, onOpenProfile }: TopBarProps) {
               <>
                 <div className="fixed inset-0 z-10" onClick={() => setShowNotifications(false)} />
 
-                <div className="absolute right-0 mt-2 w-96 bg-white rounded-xl shadow-2xl border border-gray-200 z-20 max-h-[500px] flex flex-col motion-pop">
+                <div
+                  id="notifications-panel"
+                  ref={notificationsRef}
+                  role="dialog"
+                  aria-modal="true"
+                  aria-labelledby={notificationsTitleId}
+                  aria-describedby={notificationsDescriptionId}
+                  tabIndex={-1}
+                  className="absolute right-0 mt-2 w-96 bg-white rounded-xl shadow-2xl border border-gray-200 z-20 max-h-[500px] flex flex-col motion-pop"
+                >
                   <div className="p-4 border-b border-gray-200 flex items-center justify-between">
-                    <h3 className="font-semibold text-gray-900">Notifications</h3>
+                    <div>
+                      <h3 id={notificationsTitleId} className="font-semibold text-gray-900">Notifications</h3>
+                      <p id={notificationsDescriptionId} className="sr-only">
+                        Notification updates and activity list
+                      </p>
+                    </div>
                     {unreadCount > 0 && (
                       <button
+                        type="button"
                         onClick={markAllAsRead}
                         className="text-sm text-[#7626c6] hover:text-[#5f1fa3] font-medium"
                       >
@@ -82,9 +112,10 @@ export function TopBar({ contextMode, onOpenProfile }: TopBarProps) {
                     ) : (
                       <div className="divide-y divide-gray-100">
                         {notifications.map((notification) => (
-                          <div
+                          <button
                             key={notification.id}
-                            className={`p-4 hover:bg-gray-50 transition-colors cursor-pointer ${
+                            type="button"
+                            className={`w-full text-left p-4 hover:bg-gray-50 transition-colors cursor-pointer ${
                               !notification.read ? 'bg-blue-50/50' : ''
                             }`}
                           >
@@ -122,14 +153,14 @@ export function TopBar({ contextMode, onOpenProfile }: TopBarProps) {
                                 </div>
                               </div>
                             </div>
-                          </div>
+                          </button>
                         ))}
                       </div>
                     )}
                   </div>
 
                   <div className="p-3 border-t border-gray-200 bg-gray-50">
-                    <button className="text-sm text-[#7626c6] hover:text-[#5f1fa3] font-medium w-full text-center">
+                    <button type="button" className="text-sm text-[#7626c6] hover:text-[#5f1fa3] font-medium w-full text-center">
                       View all notifications
                     </button>
                   </div>
@@ -139,6 +170,7 @@ export function TopBar({ contextMode, onOpenProfile }: TopBarProps) {
           </div>
 
           <button
+            type="button"
             onClick={onOpenProfile}
             className="flex items-center gap-2 hover:bg-gray-100 rounded-lg px-3 py-2 transition-colors"
           >

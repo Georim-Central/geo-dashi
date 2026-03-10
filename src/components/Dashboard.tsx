@@ -1,4 +1,6 @@
 import { Plus, Calendar, MapPin, Users, DollarSign, TrendingUp, MoreVertical, ArrowRight, Ticket } from 'lucide-react';
+import { KeyboardEvent } from 'react';
+import { ContentState } from './ui/ContentState';
 
 interface DashboardProps {
   onCreateEvent: () => void;
@@ -140,8 +142,18 @@ const recentActivity = [
 ];
 
 export function Dashboard({ onCreateEvent, onEventSelect }: DashboardProps) {
+  const isLoading = false;
+  const dataError: string | null = null;
+
+  const handleEventRowKeyDown = (event: KeyboardEvent<HTMLDivElement>, eventId: string, eventTitle: string) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      onEventSelect(eventId, eventTitle);
+    }
+  };
+
   return (
-    <div className="p-8 motion-page">
+    <div className="p-8 motion-page" aria-busy={isLoading}>
       {/* Header */}
       <div className="flex items-center justify-between mb-8 motion-row">
         <div>
@@ -149,6 +161,7 @@ export function Dashboard({ onCreateEvent, onEventSelect }: DashboardProps) {
           <p className="text-gray-600 mt-1">Manage and monitor all your events</p>
         </div>
         <button
+          type="button"
           onClick={onCreateEvent}
           className="flex items-center gap-2 bg-[#7626c6] text-white btn-glass px-6 py-3 rounded-lg hover:bg-[#5f1fa3] transition-colors font-medium"
         >
@@ -159,22 +172,30 @@ export function Dashboard({ onCreateEvent, onEventSelect }: DashboardProps) {
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8 motion-stagger">
-        {stats.map((stat, index) => {
-          const Icon = stat.icon;
-          return (
-            <div key={index} className="bg-white rounded-xl p-6 border border-gray-200 hover:shadow-lg transition-shadow">
-              <div className="flex items-start justify-between">
-                <div>
-                  <p className="text-sm text-gray-600 mb-1">{stat.label}</p>
-                  <p className="text-3xl font-bold text-gray-900">{stat.value}</p>
-                </div>
-                <div className={`${stat.bg} ${stat.color} p-3 rounded-lg`}>
-                  <Icon className="w-6 h-6" />
+        <ContentState
+          isLoading={isLoading}
+          error={dataError}
+          isEmpty={stats.length === 0}
+          emptyMessage="No metrics available."
+          className="col-span-full py-14"
+        >
+          {stats.map((stat, index) => {
+            const Icon = stat.icon;
+            return (
+              <div key={index} className="bg-white rounded-xl p-6 border border-gray-200 hover:shadow-lg transition-shadow">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <p className="text-sm text-gray-600 mb-1">{stat.label}</p>
+                    <p className="text-3xl font-bold text-gray-900">{stat.value}</p>
+                  </div>
+                  <div className={`${stat.bg} ${stat.color} p-3 rounded-lg`}>
+                    <Icon className="w-6 h-6" />
+                  </div>
                 </div>
               </div>
-            </div>
-          );
-        })}
+            );
+          })}
+        </ContentState>
       </div>
 
       {/* Platform Activity Summary */}
@@ -185,40 +206,48 @@ export function Dashboard({ onCreateEvent, onEventSelect }: DashboardProps) {
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 motion-stagger">
-          {platformActivity.map((activity, index) => {
-            const Icon = activity.icon;
-            return (
-              <div
-                key={index}
-                className="bg-white rounded-xl p-5 border border-gray-200 hover:shadow-md transition-all cursor-pointer group"
-              >
-                <div className="flex items-start gap-3 mb-3">
-                  <div className={`${activity.bg} ${activity.color} p-2.5 rounded-lg`}>
-                    <Icon className="w-5 h-5" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between mb-1">
-                      <h3 className="text-sm font-medium text-gray-700">{activity.title}</h3>
-                      <ArrowRight className="w-4 h-4 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+          <ContentState
+            isLoading={isLoading}
+            error={dataError}
+            isEmpty={platformActivity.length === 0}
+            emptyMessage="No platform activity available."
+            className="col-span-full py-14"
+          >
+            {platformActivity.map((activity, index) => {
+              const Icon = activity.icon;
+              return (
+                <div
+                  key={index}
+                  className="bg-white rounded-xl p-5 border border-gray-200 hover:shadow-md transition-all cursor-pointer group"
+                >
+                  <div className="flex items-start gap-3 mb-3">
+                    <div className={`${activity.bg} ${activity.color} p-2.5 rounded-lg`}>
+                      <Icon className="w-5 h-5" />
                     </div>
-                    <p className="text-lg font-bold text-gray-900">{activity.value}</p>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between mb-1">
+                        <h3 className="text-sm font-medium text-gray-700">{activity.title}</h3>
+                        <ArrowRight className="w-4 h-4 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+                      </div>
+                      <p className="text-lg font-bold text-gray-900">{activity.value}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs text-gray-600">{activity.description}</p>
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                      activity.badge === 'Action Needed'
+                        ? 'bg-red-100 text-red-700'
+                        : activity.badge === 'Live'
+                        ? 'bg-green-100 text-green-700'
+                        : 'bg-blue-100 text-blue-700'
+                    }`}>
+                      {activity.badge}
+                    </span>
                   </div>
                 </div>
-                <div className="flex items-center justify-between">
-                  <p className="text-xs text-gray-600">{activity.description}</p>
-                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                    activity.badge === 'Action Needed'
-                      ? 'bg-red-100 text-red-700'
-                      : activity.badge === 'Live'
-                      ? 'bg-green-100 text-green-700'
-                      : 'bg-blue-100 text-blue-700'
-                  }`}>
-                    {activity.badge}
-                  </span>
-                </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </ContentState>
         </div>
       </div>
 
@@ -232,11 +261,21 @@ export function Dashboard({ onCreateEvent, onEventSelect }: DashboardProps) {
             </div>
 
             <div className="divide-y divide-gray-200 motion-stagger">
-              {mockEvents.map((event) => (
+              <ContentState
+                isLoading={isLoading}
+                error={dataError}
+                isEmpty={mockEvents.length === 0}
+                emptyMessage="No events found."
+                className="py-14"
+              >
+                {mockEvents.map((event) => (
                 <div
                   key={event.id}
                   className="p-6 hover:bg-gray-50 transition-colors cursor-pointer"
                   onClick={() => onEventSelect(event.id, event.title)}
+                  onKeyDown={(keyEvent) => handleEventRowKeyDown(keyEvent, event.id, event.title)}
+                  role="button"
+                  tabIndex={0}
                 >
                   <div className="flex gap-6">
                     {/* Event Image */}
@@ -272,7 +311,7 @@ export function Dashboard({ onCreateEvent, onEventSelect }: DashboardProps) {
                           >
                             {event.status}
                           </span>
-                          <button className="p-2 hover:bg-gray-200 rounded-lg transition-colors">
+                          <button type="button" className="p-2 hover:bg-gray-200 rounded-lg transition-colors">
                             <MoreVertical className="w-4 h-4 text-gray-600" />
                           </button>
                         </div>
@@ -304,7 +343,8 @@ export function Dashboard({ onCreateEvent, onEventSelect }: DashboardProps) {
                     </div>
                   </div>
                 </div>
-              ))}
+                ))}
+              </ContentState>
             </div>
           </div>
         </div>
@@ -317,7 +357,14 @@ export function Dashboard({ onCreateEvent, onEventSelect }: DashboardProps) {
             </div>
 
             <div className="divide-y divide-gray-200 motion-stagger">
-              {recentActivity.map((activity, index) => (
+              <ContentState
+                isLoading={isLoading}
+                error={dataError}
+                isEmpty={recentActivity.length === 0}
+                emptyMessage="No recent activity."
+                className="py-14"
+              >
+                {recentActivity.map((activity, index) => (
                 <div key={index} className="p-4 hover:bg-gray-50 transition-colors">
                   <div className="flex items-start gap-3">
                     <div className="w-2 h-2 bg-[#7626c6] rounded-full mt-2 flex-shrink-0"></div>
@@ -338,11 +385,12 @@ export function Dashboard({ onCreateEvent, onEventSelect }: DashboardProps) {
                     </div>
                   </div>
                 </div>
-              ))}
+                ))}
+              </ContentState>
             </div>
 
             <div className="px-6 py-3 bg-gray-50 border-t border-gray-200">
-              <button className="text-sm text-[#7626c6] hover:text-[#5f1fa3] font-medium flex items-center gap-1">
+              <button type="button" className="text-sm text-[#7626c6] hover:text-[#5f1fa3] font-medium flex items-center gap-1">
                 View all activity
                 <ArrowRight className="w-4 h-4" />
               </button>

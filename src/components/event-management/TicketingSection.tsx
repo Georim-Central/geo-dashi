@@ -1,10 +1,28 @@
 import { useState } from 'react';
 import { Plus, Edit2, Trash2, Tag, Clock } from 'lucide-react';
+import { ContentState } from '../ui/ContentState';
+import { useModalA11y } from '../../hooks/useModalA11y';
 
 export function TicketingSection() {
   const [showAddTicketModal, setShowAddTicketModal] = useState(false);
   const [showCreateCodeModal, setShowCreateCodeModal] = useState(false);
   const [promoCodes, setPromoCodes] = useState(mockPromoCodes);
+  const {
+    dialogRef: addTicketDialogRef,
+    titleId: addTicketTitleId,
+    descriptionId: addTicketDescriptionId
+  } = useModalA11y({
+    isOpen: showAddTicketModal,
+    onClose: () => setShowAddTicketModal(false)
+  });
+  const {
+    dialogRef: createCodeDialogRef,
+    titleId: createCodeTitleId,
+    descriptionId: createCodeDescriptionId
+  } = useModalA11y({
+    isOpen: showCreateCodeModal,
+    onClose: () => setShowCreateCodeModal(false)
+  });
 
   const handleDeletePromoCode = (promoId: string, promoCode: string) => {
     setPromoCodes((currentPromoCodes) =>
@@ -22,6 +40,7 @@ export function TicketingSection() {
           <p className="text-gray-600 mt-1">Configure your event tickets and pricing</p>
         </div>
         <button
+          type="button"
           onClick={() => setShowAddTicketModal(true)}
           className="flex items-center gap-2 bg-[#7626c6] text-white btn-glass px-4 py-2 rounded-lg hover:bg-[#5f1fa3] transition-colors"
         >
@@ -32,7 +51,12 @@ export function TicketingSection() {
 
       {/* Existing Tickets */}
       <div className="space-y-4">
-        {mockTickets.map((ticket) => (
+        <ContentState
+          isEmpty={mockTickets.length === 0}
+          emptyMessage="No ticket types configured."
+          className="py-14"
+        >
+          {mockTickets.map((ticket) => (
           <div key={ticket.id} className="bg-white rounded-xl border border-gray-200 p-6">
             <div className="flex items-start justify-between mb-4">
               <div className="flex-1">
@@ -82,10 +106,10 @@ export function TicketingSection() {
                   )}
                 </div>
                 <div className="flex gap-2">
-                  <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                  <button type="button" className="p-2 hover:bg-gray-100 rounded-lg transition-colors" aria-label={`Edit ${ticket.name}`}>
                     <Edit2 className="w-4 h-4 text-gray-600" />
                   </button>
-                  <button className="p-2 hover:bg-red-50 rounded-lg transition-colors">
+                  <button type="button" className="p-2 hover:bg-red-50 rounded-lg transition-colors" aria-label={`Delete ${ticket.name}`}>
                     <Trash2 className="w-4 h-4 text-red-600" />
                   </button>
                 </div>
@@ -105,7 +129,8 @@ export function TicketingSection() {
               </div>
             )}
           </div>
-        ))}
+          ))}
+        </ContentState>
       </div>
 
       {/* Promo Codes Section */}
@@ -116,6 +141,7 @@ export function TicketingSection() {
             <h3 className="text-lg font-semibold text-gray-900">Promo Codes</h3>
           </div>
           <button
+            type="button"
             onClick={() => setShowCreateCodeModal(true)}
             className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
           >
@@ -125,7 +151,12 @@ export function TicketingSection() {
         </div>
 
         <div className="space-y-3">
-          {promoCodes.map((promo) => (
+          <ContentState
+            isEmpty={promoCodes.length === 0}
+            emptyMessage="No promo codes created yet."
+            className="py-14"
+          >
+            {promoCodes.map((promo) => (
             <div key={promo.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
               <div className="flex items-center gap-4">
                 <div className="bg-white px-4 py-2 rounded border border-gray-300 font-mono text-sm font-medium">
@@ -148,7 +179,8 @@ export function TicketingSection() {
                 </button>
               </div>
             </div>
-          ))}
+            ))}
+          </ContentState>
         </div>
       </div>
 
@@ -156,7 +188,7 @@ export function TicketingSection() {
       <div className="bg-white rounded-xl border border-gray-200 p-6">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold text-gray-900">Ticket Add-ons</h3>
-          <button className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+          <button type="button" className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
             <Plus className="w-4 h-4" />
             Add Item
           </button>
@@ -179,9 +211,17 @@ export function TicketingSection() {
             className="ticketing-modal-backdrop"
             onClick={() => setShowAddTicketModal(false)}
           />
-          <div className="ticketing-modal-card bg-white rounded-2xl border border-gray-200 shadow-2xl p-6">
-            <h3 className="text-xl font-semibold text-gray-900 mb-1">Add Ticket Type</h3>
-            <p className="text-sm text-gray-600 mb-5">Create a new ticket for this event.</p>
+          <div
+            ref={addTicketDialogRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby={addTicketTitleId}
+            aria-describedby={addTicketDescriptionId}
+            tabIndex={-1}
+            className="ticketing-modal-card bg-white rounded-2xl border border-gray-200 shadow-2xl p-6"
+          >
+            <h3 id={addTicketTitleId} className="text-xl font-semibold text-gray-900 mb-1">Add Ticket Type</h3>
+            <p id={addTicketDescriptionId} className="text-sm text-gray-600 mb-5">Create a new ticket for this event.</p>
 
             <div className="ticketing-modal-body space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -264,12 +304,14 @@ export function TicketingSection() {
 
             <div className="flex justify-end gap-3 pt-5 mt-5 border-t border-gray-200 bg-white">
               <button
+                type="button"
                 onClick={() => setShowAddTicketModal(false)}
                 className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
               >
                 Cancel
               </button>
               <button
+                type="button"
                 onClick={() => setShowAddTicketModal(false)}
                 className="px-4 py-2 bg-[#7626c6] text-white btn-glass rounded-lg hover:bg-[#5f1fa3] transition-colors"
               >
@@ -287,9 +329,17 @@ export function TicketingSection() {
             className="ticketing-modal-backdrop"
             onClick={() => setShowCreateCodeModal(false)}
           />
-          <div className="ticketing-modal-card ticketing-modal-card--code bg-white rounded-2xl border border-gray-200 shadow-2xl p-6">
-            <h3 className="text-xl font-semibold text-gray-900 mb-1">Create Promo Code</h3>
-            <p className="text-sm text-gray-600 mb-5">Set discount rules and availability.</p>
+          <div
+            ref={createCodeDialogRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby={createCodeTitleId}
+            aria-describedby={createCodeDescriptionId}
+            tabIndex={-1}
+            className="ticketing-modal-card ticketing-modal-card--code bg-white rounded-2xl border border-gray-200 shadow-2xl p-6"
+          >
+            <h3 id={createCodeTitleId} className="text-xl font-semibold text-gray-900 mb-1">Create Promo Code</h3>
+            <p id={createCodeDescriptionId} className="text-sm text-gray-600 mb-5">Set discount rules and availability.</p>
 
             <div className="ticketing-modal-body space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -359,12 +409,14 @@ export function TicketingSection() {
 
             <div className="flex justify-end gap-3 pt-6 mt-6 border-t border-gray-200">
               <button
+                type="button"
                 onClick={() => setShowCreateCodeModal(false)}
                 className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
               >
                 Cancel
               </button>
               <button
+                type="button"
                 onClick={() => setShowCreateCodeModal(false)}
                 className="px-4 py-2 bg-[#7626c6] text-white btn-glass rounded-lg hover:bg-[#5f1fa3] transition-colors"
               >

@@ -78,9 +78,9 @@ export function EventCreation({ onEventCreated }: EventCreationProps) {
         <div className="max-w-5xl mx-auto px-8 py-6">
           <h1 className="text-2xl font-bold text-gray-900 mb-6">Create New Event</h1>
           
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between" role="list" aria-label="Event creation progress">
             {steps.map((step, index) => (
-              <div key={step.id} className="flex items-center flex-1">
+              <div key={step.id} className="flex items-center flex-1" role="listitem" aria-current={currentStep === step.id ? 'step' : undefined}>
                 <div className="flex items-center gap-3">
                   <div
                     className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold transition-all ${
@@ -142,6 +142,7 @@ export function EventCreation({ onEventCreated }: EventCreationProps) {
           {/* Navigation Buttons */}
           <div className="flex items-center justify-between mt-8 pt-6 border-t border-gray-200">
             <button
+              type="button"
               onClick={handleBack}
               disabled={currentStep === 'basic'}
               className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
@@ -151,6 +152,7 @@ export function EventCreation({ onEventCreated }: EventCreationProps) {
 
             {currentStep === 'description' ? (
               <button
+                type="button"
                 onClick={handleFinish}
                 className="px-6 py-2 bg-[#7626c6] text-white btn-glass rounded-lg font-medium hover:bg-[#5f1fa3] transition-colors"
               >
@@ -158,6 +160,7 @@ export function EventCreation({ onEventCreated }: EventCreationProps) {
               </button>
             ) : (
               <button
+                type="button"
                 onClick={handleNext}
                 className="px-6 py-2 bg-[#7626c6] text-white btn-glass rounded-lg font-medium hover:bg-[#5f1fa3] transition-colors"
               >

@@ -56,6 +56,7 @@ export function DescriptionEditor({ data, onUpdate }: DescriptionEditorProps) {
         {/* Toolbar */}
         <div className="border border-gray-300 rounded-t-lg bg-gray-50 p-2 flex gap-1">
           <button
+            type="button"
             onClick={() => toggleFormat('bold')}
             className={`p-2 rounded hover:bg-gray-200 transition-colors ${
               activeFormat.includes('bold') ? 'bg-gray-200' : ''
@@ -65,6 +66,7 @@ export function DescriptionEditor({ data, onUpdate }: DescriptionEditorProps) {
             <Bold className="w-4 h-4 text-gray-700" />
           </button>
           <button
+            type="button"
             onClick={() => toggleFormat('italic')}
             className={`p-2 rounded hover:bg-gray-200 transition-colors ${
               activeFormat.includes('italic') ? 'bg-gray-200' : ''
@@ -75,6 +77,7 @@ export function DescriptionEditor({ data, onUpdate }: DescriptionEditorProps) {
           </button>
           <div className="w-px h-8 bg-gray-300 mx-1"></div>
           <button
+            type="button"
             onClick={() => toggleFormat('list')}
             className={`p-2 rounded hover:bg-gray-200 transition-colors ${
               activeFormat.includes('list') ? 'bg-gray-200' : ''
@@ -84,6 +87,7 @@ export function DescriptionEditor({ data, onUpdate }: DescriptionEditorProps) {
             <List className="w-4 h-4 text-gray-700" />
           </button>
           <button
+            type="button"
             onClick={() => toggleFormat('align')}
             className={`p-2 rounded hover:bg-gray-200 transition-colors ${
               activeFormat.includes('align') ? 'bg-gray-200' : ''
@@ -93,6 +97,7 @@ export function DescriptionEditor({ data, onUpdate }: DescriptionEditorProps) {
             <AlignLeft className="w-4 h-4 text-gray-700" />
           </button>
           <button
+            type="button"
             onClick={() => toggleFormat('link')}
             className={`p-2 rounded hover:bg-gray-200 transition-colors ${
               activeFormat.includes('link') ? 'bg-gray-200' : ''
@@ -124,22 +129,22 @@ Include:
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
         <h4 className="font-medium text-gray-900 mb-3">✍️ Suggested Sections to Include</h4>
         <div className="grid grid-cols-2 gap-3">
-          <button className="text-left px-3 py-2 bg-white border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors text-sm">
+          <button type="button" className="text-left px-3 py-2 bg-white border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors text-sm">
             📋 Event Overview
           </button>
-          <button className="text-left px-3 py-2 bg-white border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors text-sm">
+          <button type="button" className="text-left px-3 py-2 bg-white border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors text-sm">
             🎤 Speakers/Performers
           </button>
-          <button className="text-left px-3 py-2 bg-white border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors text-sm">
+          <button type="button" className="text-left px-3 py-2 bg-white border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors text-sm">
             📅 Agenda/Schedule
           </button>
-          <button className="text-left px-3 py-2 bg-white border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors text-sm">
+          <button type="button" className="text-left px-3 py-2 bg-white border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors text-sm">
             🎯 Who Should Attend
           </button>
-          <button className="text-left px-3 py-2 bg-white border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors text-sm">
+          <button type="button" className="text-left px-3 py-2 bg-white border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors text-sm">
             ℹ️ Additional Information
           </button>
-          <button className="text-left px-3 py-2 bg-white border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors text-sm">
+          <button type="button" className="text-left px-3 py-2 bg-white border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors text-sm">
             📍 Venue Details
           </button>
         </div>

@@ -1,6 +1,7 @@
 import { Suspense, lazy, useState } from 'react';
 import { Sidebar } from './components/Sidebar';
 import { TopBar } from './components/TopBar';
+import { ContentState } from './components/ui/ContentState';
 
 const Dashboard = lazy(() => import('./components/Dashboard').then((module) => ({ default: module.Dashboard })));
 const EventCreation = lazy(() => import('./components/EventCreation').then((module) => ({ default: module.EventCreation })));
@@ -69,8 +70,16 @@ export default function App() {
           onOpenProfile={() => setCurrentView('profile')}
         />
         
-        <main className="flex-1 overflow-y-auto">
-          <Suspense fallback={<div className="p-8 text-sm text-gray-500">Loading...</div>}>
+        <main className="flex-1 overflow-y-auto" aria-live="polite">
+          <Suspense
+            fallback={(
+              <div className="p-8">
+                <ContentState isLoading emptyMessage="" loadingMessage="Loading..." className="py-16">
+                  <div />
+                </ContentState>
+              </div>
+            )}
+          >
             {currentView === 'dashboard' && (
               <Dashboard
                 onCreateEvent={() => setCurrentView('create-event')}
@@ -80,14 +89,25 @@ export default function App() {
             {currentView === 'create-event' && (
               <EventCreation onEventCreated={handleEventCreated} />
             )}
-          {currentView === 'event-management' && selectedEventId && (
-            <EventManagement
-              eventId={selectedEventId}
-              eventName={selectedEventName}
-              activeTab={eventManagementTab}
-              onTabChange={setEventManagementTab}
-            />
-          )}
+            {currentView === 'event-management' && selectedEventId && (
+              <EventManagement
+                eventId={selectedEventId}
+                eventName={selectedEventName}
+                activeTab={eventManagementTab}
+                onTabChange={setEventManagementTab}
+              />
+            )}
+            {currentView === 'event-management' && !selectedEventId && (
+              <div className="p-8">
+                <ContentState
+                  isEmpty
+                  emptyMessage="No event is currently selected."
+                  className="py-20"
+                >
+                  <div />
+                </ContentState>
+              </div>
+            )}
             {currentView === 'analytics' && (
               <Analytics selectedEventId={selectedEventId} selectedEventName={selectedEventName} />
             )}

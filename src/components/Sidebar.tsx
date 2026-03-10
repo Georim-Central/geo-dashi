@@ -192,12 +192,14 @@ export function Sidebar({
     const Icon = item.icon;
     return (
       <button
+        type="button"
         key={item.id}
         onClick={item.onClick}
         className={`w-full flex items-center ${isCollapsed ? 'justify-center' : 'gap-3'} px-4 py-3 rounded-lg transition-colors ${
           item.active ? 'bg-[#7626c6] text-white btn-glass' : 'text-gray-300 hover:bg-white/10'
         }`}
         title={isCollapsed ? item.label : ''}
+        aria-current={item.active ? 'page' : undefined}
       >
         <Icon className="w-5 h-5" />
         {!isCollapsed && <span>{item.label}</span>}
@@ -221,13 +223,15 @@ export function Sidebar({
       </button>
 
       <button
+        type="button"
         onClick={() => setIsCollapsed(!isCollapsed)}
         className="absolute -right-3 top-20 bg-[#7626c6] text-white btn-glass p-1.5 rounded-full hover:bg-[#5f1fa3] transition-colors z-10 shadow-lg"
+        aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
       >
         {isCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
       </button>
 
-      <nav className="flex-1 p-4 overflow-y-auto">
+      <nav className="flex-1 p-4 overflow-y-auto" aria-label="Primary">
         {contextMode === 'organization' ? (
           <div className="space-y-2">
             {!isCollapsed && <div className="text-xs uppercase tracking-wide text-gray-400 px-4 py-2">Organization</div>}
@@ -238,6 +242,7 @@ export function Sidebar({
         ) : (
           <div className="space-y-2">
             <button
+              type="button"
               onClick={onBackToOrganization}
               className="w-full flex items-center gap-2 px-4 py-3 text-gray-300 hover:bg-white/10 rounded-lg transition-colors mb-4"
             >
@@ -266,6 +271,7 @@ export function Sidebar({
             <div className="text-white text-sm font-semibold leading-tight">Download our Mobile App</div>
             <p className="text-xs text-gray-300 mt-1">Get easy in another way</p>
             <button
+              type="button"
               onClick={() => console.log('[Sidebar] Download app clicked')}
               className="mt-3 w-full flex items-center justify-center gap-2 bg-[#7626c6] text-white btn-glass px-3 py-2 rounded-lg hover:bg-[#5f1fa3] transition-colors text-sm"
             >
@@ -280,6 +286,7 @@ export function Sidebar({
       {isCollapsed && (
         <div className="p-3 border-t border-white/10">
           <button
+            type="button"
             onClick={() => console.log('[Sidebar] Download app clicked')}
             className="w-full flex items-center justify-center p-3 rounded-lg text-gray-300 hover:bg-white/10 transition-colors"
             title="Download Mobile App"

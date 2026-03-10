@@ -1,5 +1,7 @@
 import { Search, Download, Filter, CheckCircle, XCircle, Clock, MoreVertical } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { ContentState } from '../ui/ContentState';
+import { useModalA11y } from '../../hooks/useModalA11y';
 
 export function OrdersSection() {
   const [showFilterOptions, setShowFilterOptions] = useState(false);
@@ -7,6 +9,16 @@ export function OrdersSection() {
   const [activeOrderActionId, setActiveOrderActionId] = useState<string | null>(null);
   const [showOrderDetailsModal, setShowOrderDetailsModal] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<(typeof mockOrders)[number] | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const actionMenuRef = useRef<HTMLDivElement | null>(null);
+  const {
+    dialogRef: orderDetailsDialogRef,
+    titleId: orderDetailsTitleId,
+    descriptionId: orderDetailsDescriptionId
+  } = useModalA11y({
+    isOpen: showOrderDetailsModal,
+    onClose: () => setShowOrderDetailsModal(false)
+  });
 
   const filterOptions = [
     'Status: Completed',
@@ -58,13 +70,79 @@ export function OrdersSection() {
     setActiveOrderActionId(null);
   };
 
+  const filteredOrders = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
+    const queryFilteredOrders = query
+      ? mockOrders.filter((order) =>
+          [
+            order.id,
+            order.customer.name,
+            order.customer.email,
+            order.customer.attendeeId,
+            order.ticketType
+          ].some((value) => value.toLowerCase().includes(query))
+        )
+      : mockOrders;
+
+    if (selectedFilters.length === 0) return queryFilteredOrders;
+
+    return queryFilteredOrders.filter((order) =>
+      selectedFilters.every((selectedFilter) => {
+        if (selectedFilter === 'Status: Completed') return order.status === 'completed';
+        if (selectedFilter === 'Status: Pending') return order.status === 'pending';
+        if (selectedFilter === 'Status: Refunded') return order.status === 'refunded';
+        if (selectedFilter === 'Ticket: Early Bird GA') return order.ticketType.includes('Early Bird GA');
+        if (selectedFilter === 'Ticket: VIP Access') return order.ticketType.includes('VIP Access');
+        if (selectedFilter === 'Ticket: Student Discount') return order.ticketType.includes('Student Discount');
+        if (selectedFilter === 'Amount: Under $50') return Number(order.amount) < 50;
+        if (selectedFilter === 'Amount: $50 - $150') {
+          const amount = Number(order.amount);
+          return amount >= 50 && amount <= 150;
+        }
+        if (selectedFilter === 'Amount: Over $150') return Number(order.amount) > 150;
+        if (selectedFilter === 'Quantity: 1') return order.quantity === 1;
+        if (selectedFilter === 'Quantity: 2') return order.quantity === 2;
+        if (selectedFilter === 'Quantity: 3+') return order.quantity >= 3;
+        if (selectedFilter === 'Date: Last 7 days') return true;
+        if (selectedFilter === 'Date: Last 30 days') return true;
+        return true;
+      })
+    );
+  }, [searchQuery, selectedFilters]);
+
+  useEffect(() => {
+    if (!activeOrderActionId) return;
+
+    const handleOutsideClick = (event: MouseEvent) => {
+      if (!actionMenuRef.current) return;
+      const targetNode = event.target as Node;
+      if (!actionMenuRef.current.contains(targetNode)) {
+        setActiveOrderActionId(null);
+      }
+    };
+
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setActiveOrderActionId(null);
+      }
+    };
+
+    document.addEventListener('mousedown', handleOutsideClick);
+    document.addEventListener('keydown', handleEscape);
+
+    return () => {
+      document.removeEventListener('mousedown', handleOutsideClick);
+      document.removeEventListener('keydown', handleEscape);
+    };
+  }, [activeOrderActionId]);
+
   return (
     <div className="space-y-6">
       {/* Header with Search and Filters */}
       <div className="bg-white rounded-xl border border-gray-200 p-6">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-semibold text-gray-900">Orders & Registration</h2>
-          <button className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+          <button type="button" className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
             <Download className="w-4 h-4" />
             Export CSV
           </button>
@@ -76,12 +154,17 @@ export function OrdersSection() {
             <input
               type="text"
               placeholder="Search by order ID, name, or email..."
+              value={searchQuery}
+              onChange={(event) => setSearchQuery(event.target.value)}
               className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7626c6] focus:border-transparent"
             />
           </div>
           <button
+            type="button"
             onClick={handleFilterClick}
             className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+            aria-expanded={showFilterOptions}
+            aria-controls="orders-filter-options"
           >
             <Filter className="w-4 h-4" />
             Filters
@@ -89,7 +172,7 @@ export function OrdersSection() {
         </div>
 
         {showFilterOptions && (
-          <div className="mt-4 rounded-lg border border-gray-200 bg-gray-50 p-4">
+          <div id="orders-filter-options" className="mt-4 rounded-lg border border-gray-200 bg-gray-50 p-4">
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-sm font-semibold text-gray-900">Filter Options</h3>
               <button
@@ -145,9 +228,14 @@ export function OrdersSection() {
 
       {/* Orders Table */}
       <div className="bg-white rounded-xl border border-gray-200 overflow-x-auto overflow-y-visible">
-        <table className="w-full">
-          <thead className="bg-gray-50 border-b border-gray-200">
-            <tr>
+        <ContentState
+          isEmpty={filteredOrders.length === 0}
+          emptyMessage="No orders match your current filters."
+          className="py-16 m-6"
+        >
+          <table className="w-full">
+            <thead className="bg-gray-50 border-b border-gray-200">
+              <tr>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Order ID
               </th>
@@ -169,10 +257,10 @@ export function OrdersSection() {
               <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Actions
               </th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-200">
-            {mockOrders.map((order) => (
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-200">
+              {filteredOrders.map((order) => (
               <tr key={order.id} className="hover:bg-gray-50 transition-colors">
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="font-mono text-sm text-gray-900">#{order.id}</div>
@@ -199,18 +287,26 @@ export function OrdersSection() {
                   {order.date}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-right">
-                  <div className="relative inline-block text-left">
+                  <div className="relative inline-block text-left" ref={activeOrderActionId === order.id ? actionMenuRef : null}>
                     <button
                       type="button"
                       aria-label={`Actions for order ${order.id}`}
                       onClick={() => handleRowActionClick(order)}
                       className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                      aria-haspopup="menu"
+                      aria-expanded={activeOrderActionId === order.id}
+                      aria-controls={activeOrderActionId === order.id ? `order-actions-${order.id}` : undefined}
                     >
                       <MoreVertical className="w-4 h-4 text-gray-600" />
                     </button>
 
                     {activeOrderActionId === order.id && (
-                      <div className="absolute right-0 mt-2 w-52 bg-white border border-gray-200 rounded-lg shadow-xl z-20 p-2">
+                      <div
+                        id={`order-actions-${order.id}`}
+                        role="menu"
+                        aria-label={`Order ${order.id} actions`}
+                        className="absolute right-0 mt-2 w-52 bg-white border border-gray-200 rounded-lg shadow-xl z-20 p-2"
+                      >
                         <button
                           type="button"
                           onClick={() => handleOrderActionSelect(order, 'More details')}
@@ -223,9 +319,10 @@ export function OrdersSection() {
                   </div>
                 </td>
               </tr>
-            ))}
-          </tbody>
-        </table>
+              ))}
+            </tbody>
+          </table>
+        </ContentState>
       </div>
 
       {showOrderDetailsModal && selectedOrder && (
@@ -234,9 +331,17 @@ export function OrdersSection() {
             className="ticketing-modal-backdrop"
             onClick={() => setShowOrderDetailsModal(false)}
           />
-          <div className="ticketing-modal-card bg-white rounded-2xl border border-gray-200 shadow-2xl p-6">
-            <h3 className="text-xl font-semibold text-gray-900 mb-1">Attendee & Order Details</h3>
-            <p className="text-sm text-gray-600 mb-5">Order #{selectedOrder.id}</p>
+          <div
+            ref={orderDetailsDialogRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby={orderDetailsTitleId}
+            aria-describedby={orderDetailsDescriptionId}
+            tabIndex={-1}
+            className="ticketing-modal-card bg-white rounded-2xl border border-gray-200 shadow-2xl p-6"
+          >
+            <h3 id={orderDetailsTitleId} className="text-xl font-semibold text-gray-900 mb-1">Attendee & Order Details</h3>
+            <p id={orderDetailsDescriptionId} className="text-sm text-gray-600 mb-5">Order #{selectedOrder.id}</p>
 
             <div className="ticketing-modal-body space-y-5">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -381,9 +486,9 @@ export function OrdersSection() {
             </div>
 
             <div className="flex justify-end gap-3 pt-5 mt-5 border-t border-gray-200">
-              <button
-                type="button"
-                onClick={() => setShowOrderDetailsModal(false)}
+                <button
+                  type="button"
+                  onClick={() => setShowOrderDetailsModal(false)}
                 className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
               >
                 Close
@@ -406,7 +511,12 @@ export function OrdersSection() {
         </div>
 
         <div className="space-y-3">
-          {mockWaitlist.map((person) => (
+          <ContentState
+            isEmpty={mockWaitlist.length === 0}
+            emptyMessage="No waitlist entries."
+            className="py-14"
+          >
+            {mockWaitlist.map((person) => (
             <div key={person.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
               <div className="flex items-center gap-4">
                 <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-700 font-medium">
@@ -419,12 +529,13 @@ export function OrdersSection() {
               </div>
               <div className="flex items-center gap-3">
                 <div className="text-sm text-gray-600">Wants {person.ticketsWanted} tickets</div>
-                <button className="px-3 py-1 bg-[#7626c6] text-white btn-glass rounded text-sm hover:bg-[#5f1fa3] transition-colors">
+                <button type="button" className="px-3 py-1 bg-[#7626c6] text-white btn-glass rounded text-sm hover:bg-[#5f1fa3] transition-colors">
                   Release Ticket
                 </button>
               </div>
             </div>
-          ))}
+            ))}
+          </ContentState>
         </div>
       </div>
 
@@ -478,7 +589,14 @@ function OrderStatus({ status }: { status: string }) {
     }
   };
 
-  const config = statusConfig[status as keyof typeof statusConfig];
+  const fallbackConfig = {
+    icon: Clock,
+    color: 'text-gray-700',
+    bg: 'bg-gray-100',
+    label: 'Unknown'
+  };
+
+  const config = statusConfig[status as keyof typeof statusConfig] ?? fallbackConfig;
   const Icon = config.icon;
 
   return (

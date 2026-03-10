@@ -31,6 +31,7 @@ export function MediaGallery({ data, onUpdate }: MediaGalleryProps) {
               className="w-full h-64 object-cover rounded-lg"
             />
             <button
+              type="button"
               onClick={() => onUpdate({ mainImage: '' })}
               className="absolute top-4 right-4 bg-red-500 text-white px-4 py-2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity"
             >
