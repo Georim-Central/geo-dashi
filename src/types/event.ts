@@ -11,6 +11,7 @@ export type EventDraft = {
   endTime: string;
   isRecurring: boolean;
   mainImage: string;
+  additionalImages: string[];
   videoUrl: string;
   summary: string;
   description: string;

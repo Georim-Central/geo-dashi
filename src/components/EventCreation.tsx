@@ -8,7 +8,7 @@ import { Check } from 'lucide-react';
 import { EventDraft, EventDraftUpdate } from '../types/event';
 
 interface EventCreationProps {
-  onEventCreated: (eventId: string, eventName?: string) => void;
+  onEventCreated: (eventId: string, eventData: EventDraft) => void;
 }
 
 type Step = 'basic' | 'location' | 'datetime' | 'media' | 'description';
@@ -37,6 +37,7 @@ export function EventCreation({ onEventCreated }: EventCreationProps) {
     endTime: '',
     isRecurring: false,
     mainImage: '',
+    additionalImages: [],
     videoUrl: '',
     summary: '',
     description: ''
@@ -63,8 +64,11 @@ export function EventCreation({ onEventCreated }: EventCreationProps) {
   const handleFinish = () => {
     // In a real app, this would save to a database
     const eventId = Math.random().toString(36).substring(7);
-    const eventName = eventData.title.trim() || 'Untitled Event';
-    onEventCreated(eventId, eventName);
+    const nextEventData: EventDraft = {
+      ...eventData,
+      title: eventData.title.trim() || 'Untitled Event'
+    };
+    onEventCreated(eventId, nextEventData);
   };
 
   const updateEventData = (data: EventDraftUpdate) => {

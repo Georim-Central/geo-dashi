@@ -1,14 +1,17 @@
-import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
+import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Calendar, Ticket, Mail, BarChart3, CreditCard, Download, Settings as SettingsIcon, QrCode, Search, Phone, CheckCircle } from 'lucide-react';
 import { TicketingSection } from './event-management/TicketingSection';
 import { OrdersSection } from './event-management/OrdersSection';
 import { MarketingSection } from './event-management/MarketingSection';
 import { downloadReportPdf } from '../utils/reportExport';
 import { useModalA11y } from '../hooks/useModalA11y';
+import { EventDraft, EventDraftUpdate } from '../types/event';
 
 interface EventManagementProps {
   eventId: string;
   eventName?: string | null;
+  eventDetails?: EventDraft;
+  onUpdateEventDetails?: (updates: EventDraftUpdate) => void;
   activeTab?: Tab;
   onTabChange?: (tab: Tab) => void;
 }
@@ -55,10 +58,24 @@ const initialCheckInRecords: CheckInRecord[] = [
   }
 ];
 
-export function EventManagement({ eventId, eventName, activeTab: requestedTab, onTabChange }: EventManagementProps) {
+export function EventManagement({
+  eventId,
+  eventName,
+  eventDetails,
+  onUpdateEventDetails,
+  activeTab: requestedTab,
+  onTabChange
+}: EventManagementProps) {
   const [activeTab, setActiveTab] = useState<Tab>('details');
   const [checkInRecords, setCheckInRecords] = useState<CheckInRecord[]>(initialCheckInRecords);
   const resolvedEventName = eventName?.trim() || 'Selected Event';
+  const eventHeaderDetails = useMemo(() => {
+    const dateLabel = eventDetails?.startDate
+      ? new Date(`${eventDetails.startDate}T00:00:00`).toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' })
+      : 'Date not set';
+    const locationLabel = eventDetails?.location?.trim() || 'Location not set';
+    return `${dateLabel} • ${locationLabel}`;
+  }, [eventDetails?.location, eventDetails?.startDate]);
 
   useEffect(() => {
     if (requestedTab) {
@@ -136,7 +153,7 @@ export function EventManagement({ eventId, eventName, activeTab: requestedTab, o
           <div className="flex items-center justify-between mb-6">
             <div>
               <h1 className="text-2xl font-bold text-gray-900">{resolvedEventName}</h1>
-              <p className="text-gray-600 mt-1">June 15, 2026 • Central Park, New York</p>
+              <p className="text-gray-600 mt-1">{eventHeaderDetails}</p>
             </div>
             <div className="flex items-center gap-3">
               <button type="button" className="px-4 py-2 bg-[#7626c6] text-white btn-glass rounded-lg hover:bg-[#5f1fa3] transition-colors">
@@ -175,7 +192,13 @@ export function EventManagement({ eventId, eventName, activeTab: requestedTab, o
 
       {/* Tab Content */}
       <div className="max-w-7xl mx-auto px-8 py-8">
-        {activeTab === 'details' && <EventDetailsTab eventName={resolvedEventName} />}
+        {activeTab === 'details' && (
+          <EventDetailsTab
+            eventName={resolvedEventName}
+            eventDetails={eventDetails}
+            onUpdateEventDetails={onUpdateEventDetails}
+          />
+        )}
         {activeTab === 'ticketing' && <TicketingSection />}
         {activeTab === 'orders' && <OrdersSection />}
         {activeTab === 'checked-in' && (
@@ -403,49 +426,388 @@ function CheckedInTab({
   );
 }
 
-function EventDetailsTab({ eventName }: { eventName: string }) {
+function EventDetailsTab({
+  eventName,
+  eventDetails,
+  onUpdateEventDetails
+}: {
+  eventName: string;
+  eventDetails?: EventDraft;
+  onUpdateEventDetails?: (updates: EventDraftUpdate) => void;
+}) {
+  const fallbackEventDetails = useMemo<EventDraft>(() => ({
+    title: eventName,
+    type: '',
+    category: '',
+    tags: [],
+    locationType: '',
+    location: '',
+    startDate: '',
+    startTime: '',
+    endDate: '',
+    endTime: '',
+    isRecurring: false,
+    mainImage: '',
+    additionalImages: [],
+    videoUrl: '',
+    summary: '',
+    description: ''
+  }), [eventName]);
+  const [isEditing, setIsEditing] = useState(false);
+  const [detailsForm, setDetailsForm] = useState<EventDraft>(eventDetails ?? fallbackEventDetails);
+  const [detailsNotice, setDetailsNotice] = useState('');
+  const mainImageInputRef = useRef<HTMLInputElement>(null);
+  const additionalImagesInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    setDetailsForm(eventDetails ?? fallbackEventDetails);
+    setIsEditing(false);
+    setDetailsNotice('');
+  }, [eventDetails, fallbackEventDetails]);
+
+  const updateDetailField = <K extends keyof EventDraft>(field: K, value: EventDraft[K]) => {
+    setDetailsForm((currentDetails) => ({
+      ...currentDetails,
+      [field]: value
+    }));
+  };
+
+  const handleTagChange = (tagsValue: string) => {
+    const nextTags = tagsValue
+      .split(',')
+      .map((tag) => tag.trim())
+      .filter(Boolean);
+    updateDetailField('tags', nextTags);
+  };
+
+  const handleMainImageUpload = (file: File | undefined) => {
+    if (!file) return;
+    const imageUrl = URL.createObjectURL(file);
+    updateDetailField('mainImage', imageUrl);
+  };
+
+  const handleAdditionalImagesUpload = (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+
+    const nextImages = Array.from(files).map((file) => URL.createObjectURL(file));
+    const mergedImages = [...(detailsForm.additionalImages || []), ...nextImages].slice(0, 10);
+    updateDetailField('additionalImages', mergedImages);
+  };
+
+  const removeAdditionalImage = (index: number) => {
+    updateDetailField(
+      'additionalImages',
+      (detailsForm.additionalImages || []).filter((_, imageIndex) => imageIndex !== index)
+    );
+  };
+
+  const handleCancelEdit = () => {
+    setDetailsForm(eventDetails ?? fallbackEventDetails);
+    setIsEditing(false);
+  };
+
+  const handleSaveDetails = () => {
+    const nextDetails: EventDraft = {
+      ...detailsForm,
+      title: detailsForm.title.trim() || 'Untitled Event',
+      tags: detailsForm.tags.map((tag) => tag.trim()).filter(Boolean),
+      additionalImages: (detailsForm.additionalImages || []).filter(Boolean)
+    };
+    setDetailsForm(nextDetails);
+    onUpdateEventDetails?.(nextDetails);
+    setDetailsNotice('Event details updated.');
+    setIsEditing(false);
+  };
+
+  const inputClassName = `w-full px-4 py-2 border border-gray-300 rounded-lg ${isEditing ? 'focus:ring-2 focus:ring-[#7626c6] focus:border-transparent bg-white' : 'bg-gray-50 text-gray-700'}`;
+
   return (
     <div className="space-y-6">
       <div className="bg-white rounded-xl border border-gray-200 p-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Event Information</h2>
-        <div className="grid grid-cols-2 gap-6">
+        <div className="flex items-center justify-between gap-3 mb-4">
+          <h2 className="text-lg font-semibold text-gray-900">Event Information</h2>
+          <div className="flex items-center gap-2">
+            {isEditing ? (
+              <>
+                <button
+                  type="button"
+                  onClick={handleCancelEdit}
+                  className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSaveDetails}
+                  className="px-4 py-2 bg-[#7626c6] text-white btn-glass rounded-lg hover:bg-[#5f1fa3] transition-colors"
+                >
+                  Save Changes
+                </button>
+              </>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setIsEditing(true)}
+                className="px-4 py-2 bg-[#7626c6] text-white btn-glass rounded-lg hover:bg-[#5f1fa3] transition-colors"
+              >
+                Edit Details
+              </button>
+            )}
+          </div>
+        </div>
+
+        {detailsNotice && (
+          <p className="text-sm text-[#7626c6] mb-4" aria-live="polite">{detailsNotice}</p>
+        )}
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Event Title</label>
             <input
               type="text"
-              defaultValue={eventName}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+              value={detailsForm.title}
+              onChange={(event) => updateDetailField('title', event.target.value)}
+              disabled={!isEditing}
+              className={inputClassName}
+              placeholder="Not provided"
             />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Event Type</label>
-            <select className="w-full px-4 py-2 border border-gray-300 rounded-lg">
-              <option>Festival</option>
-              <option>Concert</option>
-              <option>Conference</option>
-            </select>
+            <input
+              type="text"
+              value={detailsForm.type}
+              onChange={(event) => updateDetailField('type', event.target.value)}
+              disabled={!isEditing}
+              className={inputClassName}
+              placeholder="Not provided"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Category</label>
+            <input
+              type="text"
+              value={detailsForm.category}
+              onChange={(event) => updateDetailField('category', event.target.value)}
+              disabled={!isEditing}
+              className={inputClassName}
+              placeholder="Not provided"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Tags</label>
+            <input
+              type="text"
+              value={detailsForm.tags.join(', ')}
+              onChange={(event) => handleTagChange(event.target.value)}
+              disabled={!isEditing}
+              className={inputClassName}
+              placeholder="music, networking, vip"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Location Type</label>
+            <input
+              type="text"
+              value={detailsForm.locationType}
+              onChange={(event) => updateDetailField('locationType', event.target.value)}
+              disabled={!isEditing}
+              className={inputClassName}
+              placeholder="in-person or online"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Location</label>
+            <input
+              type="text"
+              value={detailsForm.location}
+              onChange={(event) => updateDetailField('location', event.target.value)}
+              disabled={!isEditing}
+              className={inputClassName}
+              placeholder="Not provided"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Start Date</label>
+            <input
+              type="date"
+              value={detailsForm.startDate}
+              onChange={(event) => updateDetailField('startDate', event.target.value)}
+              disabled={!isEditing}
+              className={inputClassName}
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Start Time</label>
+            <input
+              type="time"
+              value={detailsForm.startTime}
+              onChange={(event) => updateDetailField('startTime', event.target.value)}
+              disabled={!isEditing}
+              className={inputClassName}
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">End Date</label>
+            <input
+              type="date"
+              value={detailsForm.endDate}
+              onChange={(event) => updateDetailField('endDate', event.target.value)}
+              disabled={!isEditing}
+              className={inputClassName}
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">End Time</label>
+            <input
+              type="time"
+              value={detailsForm.endTime}
+              onChange={(event) => updateDetailField('endTime', event.target.value)}
+              disabled={!isEditing}
+              className={inputClassName}
+            />
+          </div>
+          <div className="md:col-span-2">
+            <div className="flex items-center justify-between mb-2">
+              <label className="block text-sm font-medium text-gray-700">Main Event Image</label>
+              {isEditing && (
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => mainImageInputRef.current?.click()}
+                    className="px-3 py-1.5 text-xs border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                  >
+                    {detailsForm.mainImage ? 'Replace Image' : 'Upload Image'}
+                  </button>
+                  {detailsForm.mainImage && (
+                    <button
+                      type="button"
+                      onClick={() => updateDetailField('mainImage', '')}
+                      className="px-3 py-1.5 text-xs border border-red-200 text-red-700 rounded-lg hover:bg-red-50 transition-colors"
+                    >
+                      Remove
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+            <input
+              ref={mainImageInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={(event) => {
+                handleMainImageUpload(event.target.files?.[0]);
+                event.currentTarget.value = '';
+              }}
+            />
+            {detailsForm.mainImage ? (
+              <img
+                src={detailsForm.mainImage}
+                alt="Main event"
+                className="w-full h-56 object-cover border border-gray-200 rounded-lg"
+              />
+            ) : (
+              <div className="h-56 border border-dashed border-gray-300 rounded-lg bg-gray-50 flex items-center justify-center text-sm text-gray-500">
+                No main image uploaded
+              </div>
+            )}
+          </div>
+
+          <div className="md:col-span-2">
+            <div className="flex items-center justify-between mb-2">
+              <label className="block text-sm font-medium text-gray-700">Additional Uploaded Images</label>
+              {isEditing && (
+                <button
+                  type="button"
+                  onClick={() => additionalImagesInputRef.current?.click()}
+                  className="px-3 py-1.5 text-xs border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  Add Images
+                </button>
+              )}
+            </div>
+            <input
+              ref={additionalImagesInputRef}
+              type="file"
+              accept="image/*"
+              multiple
+              className="hidden"
+              onChange={(event) => {
+                handleAdditionalImagesUpload(event.target.files);
+                event.currentTarget.value = '';
+              }}
+            />
+            {(detailsForm.additionalImages || []).length > 0 ? (
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                {(detailsForm.additionalImages || []).map((image, index) => (
+                  <div key={`${image}-${index}`} className="relative rounded-lg overflow-hidden border border-gray-200 group">
+                    <img src={image} alt={`Event gallery ${index + 1}`} className="w-full h-28 object-cover" />
+                    {isEditing && (
+                      <button
+                        type="button"
+                        onClick={() => removeAdditionalImage(index)}
+                        className="absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        Remove
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="h-24 border border-dashed border-gray-300 rounded-lg bg-gray-50 flex items-center justify-center text-sm text-gray-500">
+                No additional images uploaded
+              </div>
+            )}
+          </div>
+
+          <div className="md:col-span-2">
+            <label className="block text-sm font-medium text-gray-700 mb-2">Event Video URL</label>
+            <input
+              type="url"
+              value={detailsForm.videoUrl}
+              onChange={(event) => updateDetailField('videoUrl', event.target.value)}
+              disabled={!isEditing}
+              className={inputClassName}
+              placeholder="https://..."
+            />
+          </div>
+          <div className="md:col-span-2">
+            <label className="block text-sm font-medium text-gray-700 mb-2">Summary</label>
+            <textarea
+              rows={2}
+              value={detailsForm.summary}
+              onChange={(event) => updateDetailField('summary', event.target.value)}
+              disabled={!isEditing}
+              className={`${inputClassName} resize-none`}
+              placeholder="Not provided"
+            />
+          </div>
+          <div className="md:col-span-2">
+            <label className="block text-sm font-medium text-gray-700 mb-2">Full Description</label>
+            <textarea
+              rows={8}
+              value={detailsForm.description}
+              onChange={(event) => updateDetailField('description', event.target.value)}
+              disabled={!isEditing}
+              className={`${inputClassName} resize-y`}
+              placeholder="Not provided"
+            />
           </div>
         </div>
-      </div>
 
-      <div className="bg-white rounded-xl border border-gray-200 p-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h2>
-        <div className="grid grid-cols-3 gap-4">
-          <button type="button" className="p-4 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-left">
-            <div className="text-2xl mb-2">🎫</div>
-            <div className="font-medium text-gray-900">Manage Tickets</div>
-            <div className="text-sm text-gray-500">Configure ticket types</div>
-          </button>
-          <button type="button" className="p-4 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-left">
-            <div className="text-2xl mb-2">✉️</div>
-            <div className="font-medium text-gray-900">Send Email</div>
-            <div className="text-sm text-gray-500">Email attendees</div>
-          </button>
-          <button type="button" className="p-4 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-left">
-            <div className="text-2xl mb-2">📊</div>
-            <div className="font-medium text-gray-900">View Reports</div>
-            <div className="text-sm text-gray-500">Check analytics</div>
-          </button>
+        <div className="mt-4">
+          <label className="inline-flex items-center gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={detailsForm.isRecurring}
+              onChange={(event) => updateDetailField('isRecurring', event.target.checked)}
+              disabled={!isEditing}
+              className="rounded"
+            />
+            <span className="text-sm text-gray-700">Recurring event</span>
+          </label>
         </div>
       </div>
     </div>

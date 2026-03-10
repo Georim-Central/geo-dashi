@@ -2,6 +2,7 @@ import { Suspense, lazy, useState } from 'react';
 import { Sidebar } from './components/Sidebar';
 import { TopBar } from './components/TopBar';
 import { ContentState } from './components/ui/ContentState';
+import { EventDraft, EventDraftUpdate } from './types/event';
 
 const Dashboard = lazy(() => import('./components/Dashboard').then((module) => ({ default: module.Dashboard })));
 const EventCreation = lazy(() => import('./components/EventCreation').then((module) => ({ default: module.EventCreation })));
@@ -21,6 +22,81 @@ const defaultTeamEventOptions = [
   'Georim Founders Circle'
 ];
 
+const createEmptyEventDraft = (overrides: Partial<EventDraft> = {}): EventDraft => ({
+  title: '',
+  type: '',
+  category: '',
+  tags: [],
+  locationType: '',
+  location: '',
+  startDate: '',
+  startTime: '',
+  endDate: '',
+  endTime: '',
+  isRecurring: false,
+  mainImage: '',
+  additionalImages: [],
+  videoUrl: '',
+  summary: '',
+  description: '',
+  ...overrides
+});
+
+const seededEventDetails: Record<string, EventDraft> = {
+  '1': createEmptyEventDraft({
+    title: 'Summer Music Festival 2026',
+    type: 'Festival',
+    category: 'Music',
+    tags: ['music', 'outdoor', 'summer'],
+    locationType: 'in-person',
+    location: 'Central Park, New York',
+    startDate: '2026-06-15',
+    startTime: '18:00',
+    endDate: '2026-06-15',
+    endTime: '23:00',
+    summary: 'A one-day summer music experience in Central Park.'
+  }),
+  '2': createEmptyEventDraft({
+    title: 'Tech Conference 2026',
+    type: 'Conference',
+    category: 'Technology',
+    tags: ['tech', 'conference', 'innovation'],
+    locationType: 'online',
+    location: 'Online Event',
+    startDate: '2026-07-22',
+    startTime: '09:00',
+    endDate: '2026-07-24',
+    endTime: '17:00',
+    summary: 'Three days of keynotes, workshops, and networking.'
+  }),
+  '3': createEmptyEventDraft({
+    title: 'Food & Wine Expo',
+    type: 'Expo',
+    category: 'Food',
+    tags: ['food', 'wine', 'expo'],
+    locationType: 'in-person',
+    location: 'Downtown Convention Center',
+    startDate: '2026-08-10',
+    startTime: '11:00',
+    endDate: '2026-08-10',
+    endTime: '20:00',
+    summary: 'Taste and explore top culinary brands and local chefs.'
+  }),
+  '4': createEmptyEventDraft({
+    title: 'Georim Founders Circle',
+    type: 'Private Event',
+    category: 'Networking',
+    tags: ['private', 'founders', 'networking'],
+    locationType: 'in-person',
+    location: 'Private Rooftop Venue, Chicago',
+    startDate: '2026-09-03',
+    startTime: '19:00',
+    endDate: '2026-09-03',
+    endTime: '22:00',
+    summary: 'Invite-only networking for founders and community partners.'
+  })
+};
+
 export default function App() {
   const [currentView, setCurrentView] = useState<View>('dashboard');
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
@@ -28,6 +104,7 @@ export default function App() {
   const [contextMode, setContextMode] = useState<'organization' | 'event'>('organization');
   const [eventManagementTab, setEventManagementTab] = useState<EventManagementTab>('details');
   const [teamEventOptions, setTeamEventOptions] = useState<string[]>(defaultTeamEventOptions);
+  const [eventDetailsById, setEventDetailsById] = useState<Record<string, EventDraft>>(seededEventDetails);
 
   const addTeamEventOption = (eventName?: string) => {
     const normalizedEventName = eventName?.trim();
@@ -40,10 +117,17 @@ export default function App() {
     ));
   };
 
-  const handleEventCreated = (eventId: string, eventName?: string) => {
+  const handleEventCreated = (eventId: string, eventData: EventDraft) => {
     setSelectedEventId(eventId);
-    const resolvedEventName = eventName || 'Untitled Event';
+    const resolvedEventName = eventData.title.trim() || 'Untitled Event';
     setSelectedEventName(resolvedEventName);
+    setEventDetailsById((currentEventDetails) => ({
+      ...currentEventDetails,
+      [eventId]: {
+        ...eventData,
+        title: resolvedEventName
+      }
+    }));
     addTeamEventOption(resolvedEventName);
     setContextMode('event');
     setEventManagementTab('details');
@@ -51,13 +135,43 @@ export default function App() {
   };
 
   const handleEventSelect = (eventId: string, eventName?: string) => {
+    const selectedEventDetails = eventDetailsById[eventId];
+    const resolvedEventName = selectedEventDetails?.title || eventName || 'Selected Event';
+
     setSelectedEventId(eventId);
-    const resolvedEventName = eventName || 'Selected Event';
     setSelectedEventName(resolvedEventName);
+    if (!selectedEventDetails) {
+      setEventDetailsById((currentEventDetails) => ({
+        ...currentEventDetails,
+        [eventId]: createEmptyEventDraft({ title: resolvedEventName })
+      }));
+    }
     addTeamEventOption(resolvedEventName);
     setContextMode('event');
     setEventManagementTab('details');
     setCurrentView('event-management');
+  };
+
+  const handleEventDetailsUpdate = (eventId: string, updates: EventDraftUpdate) => {
+    setEventDetailsById((currentEventDetails) => {
+      const existingDetails = currentEventDetails[eventId] || createEmptyEventDraft({ title: selectedEventName || 'Selected Event' });
+      const mergedDetails: EventDraft = {
+        ...existingDetails,
+        ...updates
+      };
+      mergedDetails.title = mergedDetails.title.trim() || 'Untitled Event';
+
+      return {
+        ...currentEventDetails,
+        [eventId]: mergedDetails
+      };
+    });
+
+    if (typeof updates.title === 'string') {
+      const nextTitle = updates.title.trim() || 'Untitled Event';
+      setSelectedEventName(nextTitle);
+      addTeamEventOption(nextTitle);
+    }
   };
 
   const handleEventTabSelect = (tab: EventManagementTab) => {
@@ -116,6 +230,8 @@ export default function App() {
               <EventManagement
                 eventId={selectedEventId}
                 eventName={selectedEventName}
+                eventDetails={eventDetailsById[selectedEventId]}
+                onUpdateEventDetails={(updates) => handleEventDetailsUpdate(selectedEventId, updates)}
                 activeTab={eventManagementTab}
                 onTabChange={setEventManagementTab}
               />

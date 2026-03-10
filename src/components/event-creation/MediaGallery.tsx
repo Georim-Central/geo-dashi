@@ -7,6 +7,28 @@ interface MediaGalleryProps {
 }
 
 export function MediaGallery({ data, onUpdate }: MediaGalleryProps) {
+  const additionalImages = data.additionalImages || [];
+
+  const handleMainImageUpload = (file: File | undefined) => {
+    if (!file) return;
+    const url = URL.createObjectURL(file);
+    onUpdate({ mainImage: url });
+  };
+
+  const handleAdditionalImagesUpload = (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+
+    const nextImages = Array.from(files).map((file) => URL.createObjectURL(file));
+    const mergedImages = [...additionalImages, ...nextImages].slice(0, 10);
+    onUpdate({ additionalImages: mergedImages });
+  };
+
+  const handleRemoveAdditionalImage = (index: number) => {
+    onUpdate({
+      additionalImages: additionalImages.filter((_, imageIndex) => imageIndex !== index)
+    });
+  };
+
   return (
     <div className="space-y-6">
       <div>
@@ -46,11 +68,8 @@ export function MediaGallery({ data, onUpdate }: MediaGalleryProps) {
               className="hidden"
               id="main-image-upload"
               onChange={(e) => {
-                // In a real app, this would upload the file
-                if (e.target.files?.[0]) {
-                  const url = URL.createObjectURL(e.target.files[0]);
-                  onUpdate({ mainImage: url });
-                }
+                handleMainImageUpload(e.target.files?.[0]);
+                e.currentTarget.value = '';
               }}
             />
             <label htmlFor="main-image-upload" className="cursor-pointer">
@@ -73,15 +92,39 @@ export function MediaGallery({ data, onUpdate }: MediaGalleryProps) {
           Add more images to showcase your event (up to 10)
         </p>
 
-        <div className="grid grid-cols-4 gap-4">
-          {[1, 2, 3, 4].map((i) => (
-            <div
-              key={i}
-              className="aspect-square border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center hover:border-[#7626c6] transition-colors cursor-pointer"
-            >
-              <ImageIcon className="w-8 h-8 text-gray-400" />
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {additionalImages.map((image, index) => (
+            <div key={`${image}-${index}`} className="relative aspect-square rounded-lg overflow-hidden border border-gray-200 group">
+              <img src={image} alt={`Event gallery ${index + 1}`} className="w-full h-full object-cover" />
+              <button
+                type="button"
+                onClick={() => handleRemoveAdditionalImage(index)}
+                className="absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity"
+              >
+                Remove
+              </button>
             </div>
           ))}
+
+          {additionalImages.length < 10 && (
+            <div className="aspect-square border-2 border-dashed border-gray-300 rounded-lg hover:border-[#7626c6] transition-colors">
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                className="hidden"
+                id="additional-images-upload"
+                onChange={(event) => {
+                  handleAdditionalImagesUpload(event.target.files);
+                  event.currentTarget.value = '';
+                }}
+              />
+              <label htmlFor="additional-images-upload" className="w-full h-full flex flex-col items-center justify-center cursor-pointer p-3 text-center">
+                <ImageIcon className="w-8 h-8 text-gray-400 mb-2" />
+                <p className="text-xs text-gray-600">Add images</p>
+              </label>
+            </div>
+          )}
         </div>
       </div>
 
