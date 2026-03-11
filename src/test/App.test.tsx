@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import App from '../App';
 import { EventManagement } from '../components/EventManagement';
@@ -19,7 +19,7 @@ describe('App core flows', () => {
 
     await user.click(await screen.findByRole('tab', { name: /^settings$/i }));
 
-    const visibilitySelect = await screen.findByRole('combobox');
+    const visibilitySelect = await screen.findByRole('combobox', { name: /event visibility/i });
     await user.selectOptions(visibilitySelect, 'Private');
 
     const privateLinkInput = await screen.findByDisplayValue(/https:\/\/georim\.app\/private\//i);
@@ -61,5 +61,174 @@ describe('App core flows', () => {
 
     expect(await screen.findByRole('heading', { name: /help center/i })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: /faqs/i })).toBeInTheDocument();
+  });
+
+  it('opens the notification center from the bell and routes into linked organizer workflows', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.click(screen.getByRole('button', { name: /open notifications/i }));
+    await user.click(await screen.findByRole('button', { name: /view all notifications/i }));
+
+    expect(await screen.findByRole('heading', { name: /notification center/i })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /activity feed/i })).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: /open orders/i }));
+
+    expect(await screen.findByRole('heading', { name: /summer music festival 2026/i })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /orders & registration/i })).toBeInTheDocument();
+  });
+
+  it('navigates from global search results into organizer event operations', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.type(screen.getByLabelText(/search events, orders, attendees, and team/i), '5847239');
+    await user.click(await screen.findByRole('button', { name: /order #5847239/i }));
+
+    expect(await screen.findByRole('heading', { name: /summer music festival 2026/i })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /orders & registration/i })).toBeInTheDocument();
+  });
+
+  it('duplicates events from the dashboard and updates lifecycle in event management', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.click(screen.getByRole('button', { name: /quick actions for tech conference 2026/i }));
+    await user.click(screen.getByRole('button', { name: /duplicate tech conference 2026/i }));
+
+    expect(await screen.findByText(/tech conference 2026 copy/i)).toBeInTheDocument();
+
+    await user.click(screen.getAllByText(/summer music festival 2026/i)[0]);
+    const lifecycleSelect = await screen.findByRole('combobox', { name: /lifecycle status/i });
+    await user.selectOptions(lifecycleSelect, 'archived');
+
+    expect(await screen.findByText(/event status updated to archived/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/archived/i).length).toBeGreaterThan(0);
+  });
+
+  it('opens the organization settings profile page from the sidebar', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.click(screen.getByRole('button', { name: /^settings$/i }));
+    await user.click(await screen.findByRole('button', { name: /^profile$/i }));
+
+    expect(await screen.findByRole('heading', { name: /^profile$/i })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /your profile/i })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /account options/i })).toBeInTheDocument();
+  });
+
+  it('opens the team management workspace with permissions and invite tracking', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.click(screen.getByRole('button', { name: /^team$/i }));
+
+    expect(await screen.findByRole('heading', { name: /team management/i })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /pending invites/i })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /on-site tools/i })).toBeInTheDocument();
+  });
+
+  it('routes dashboard support buttons into live organizer workflows', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.click(screen.getByRole('button', { name: /add member/i }));
+    expect(await screen.findByRole('dialog', { name: /invite team member/i })).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: /cancel/i }));
+    await user.click(screen.getByRole('button', { name: /^dashboard$/i }));
+    await user.click(screen.getByRole('button', { name: /view all activity/i }));
+
+    expect(await screen.findByRole('heading', { name: /notification center/i })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /activity feed/i })).toBeInTheDocument();
+  });
+
+  it('updates profile details, avatar, and email actions from the profile settings page', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.click(screen.getByRole('button', { name: /^settings$/i }));
+    await user.click(await screen.findByRole('button', { name: /^profile$/i }));
+
+    await user.click(screen.getByRole('button', { name: /^edit$/i }));
+    const nameInput = await screen.findByDisplayValue(/maksudur rahman/i);
+    await user.clear(nameInput);
+    await user.type(nameInput, 'Cyril Kups');
+    await user.click(screen.getByRole('button', { name: /save changes/i }));
+
+    expect(await screen.findByText(/cyril kups/i)).toBeInTheDocument();
+
+    const avatarFile = new File(['avatar'], 'avatar.png', { type: 'image/png' });
+    await user.upload(screen.getByLabelText(/profile image uploader/i), avatarFile);
+
+    await waitFor(() => {
+      expect(screen.getByAltText(/cyril kups profile/i)).toBeInTheDocument();
+    });
+
+    await user.click(screen.getByRole('button', { name: /email actions for maksud\.design7@gmail\.com/i }));
+    await user.click(screen.getByRole('menuitem', { name: /edit email/i }));
+    const emailInput = await screen.findByDisplayValue(/maksud\.design7@gmail\.com/i);
+    await user.clear(emailInput);
+    await user.type(emailInput, 'team@georim.com');
+    await user.click(screen.getByRole('button', { name: /save email/i }));
+
+    expect(await screen.findByText(/team@georim\.com/i)).toBeInTheDocument();
+  });
+
+  it('renders the security settings page with password fields', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.click(screen.getByRole('button', { name: /^settings$/i }));
+    await user.click(await screen.findByRole('button', { name: /^security$/i }));
+
+    expect(await screen.findByRole('heading', { name: /^security$/i })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /password & access/i })).toBeInTheDocument();
+    expect(screen.getByText(/previous password/i)).toBeInTheDocument();
+    expect(screen.getByText(/current password/i)).toBeInTheDocument();
+    expect(screen.getByText(/confirm password/i)).toBeInTheDocument();
+  });
+
+  it('renders the payment method selector in settings payments', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.click(screen.getByRole('button', { name: /^settings$/i }));
+    await user.click(await screen.findByRole('button', { name: /^payments$/i }));
+
+    expect(await screen.findByRole('heading', { name: /^payments$/i })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /choose how to pay/i })).toBeInTheDocument();
+    expect(screen.getByText(/visa \*\*\*\* 0912/i)).toBeInTheDocument();
+    expect(screen.getByText(/recent transactions/i)).toBeInTheDocument();
+  });
+
+  it('renders the pricing table in premium subscriptions', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.click(screen.getByRole('button', { name: /^settings$/i }));
+    await user.click(await screen.findByRole('button', { name: /premium subscriptions/i }));
+
+    expect(await screen.findByRole('heading', { name: /premium subscriptions/i })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /choose your plan/i })).toBeInTheDocument();
+    expect(screen.getAllByText(/professional/i).length).toBeGreaterThan(0);
+    expect(screen.getByRole('switch', { name: /billing cycle/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /^monthly$/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /yearly/i })).toBeInTheDocument();
+  });
+
+  it('renders the notifications settings page with alert controls', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.click(screen.getByRole('button', { name: /^settings$/i }));
+    await user.click(await screen.findByRole('button', { name: /^notifications$/i }));
+
+    expect(await screen.findByRole('heading', { name: /^notifications$/i })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /delivery channels/i })).toBeInTheDocument();
+    expect(screen.getByRole('switch', { name: /email notifications/i })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /quiet hours/i })).toBeInTheDocument();
   });
 });

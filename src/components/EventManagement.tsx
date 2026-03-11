@@ -5,13 +5,16 @@ import { OrdersSection } from './event-management/OrdersSection';
 import { MarketingSection } from './event-management/MarketingSection';
 import { downloadReportPdf } from '../utils/reportExport';
 import { useModalA11y } from '../hooks/useModalA11y';
-import { EventDraft, EventDraftUpdate } from '../types/event';
+import { EventDraft, EventDraftUpdate, EventLifecycleStatus } from '../types/event';
 
 interface EventManagementProps {
   eventId: string;
   eventName?: string | null;
   eventDetails?: EventDraft;
+  eventStatus?: EventLifecycleStatus;
   onUpdateEventDetails?: (updates: EventDraftUpdate) => void;
+  onUpdateEventStatus?: (status: EventLifecycleStatus) => void;
+  onDuplicateEvent?: () => void;
   activeTab?: Tab;
   onTabChange?: (tab: Tab) => void;
 }
@@ -62,12 +65,17 @@ export function EventManagement({
   eventId: _eventId,
   eventName,
   eventDetails,
+  eventStatus = 'draft',
   onUpdateEventDetails,
+  onUpdateEventStatus,
+  onDuplicateEvent,
   activeTab: requestedTab,
   onTabChange
 }: EventManagementProps) {
   const [activeTab, setActiveTab] = useState<Tab>('details');
   const [checkInRecords, setCheckInRecords] = useState<CheckInRecord[]>(initialCheckInRecords);
+  const [showPreviewModal, setShowPreviewModal] = useState(false);
+  const [statusNotice, setStatusNotice] = useState('');
   const resolvedEventName = eventName?.trim() || 'Selected Event';
   const eventHeaderDetails = useMemo(() => {
     const dateLabel = eventDetails?.startDate
@@ -82,6 +90,25 @@ export function EventManagement({
       setActiveTab(requestedTab);
     }
   }, [requestedTab]);
+
+  const {
+    dialogRef: previewDialogRef,
+    titleId: previewTitleId,
+    descriptionId: previewDescriptionId
+  } = useModalA11y({
+    isOpen: showPreviewModal,
+    onClose: () => setShowPreviewModal(false)
+  });
+
+  const eventStatusLabel = eventStatus.charAt(0).toUpperCase() + eventStatus.slice(1);
+  const eventStatusBadgeClass =
+    eventStatus === 'published'
+      ? 'bg-green-100 text-green-700'
+      : eventStatus === 'private'
+        ? 'bg-[#f1e5fb] text-[#7626c6]'
+        : eventStatus === 'archived'
+          ? 'bg-amber-100 text-amber-700'
+          : 'bg-gray-100 text-gray-700';
 
   const handleAttendeeScan = useCallback((rawScanCode: string, source: string): ScanResult => {
     const normalizedCode = rawScanCode.trim().toUpperCase();
@@ -150,6 +177,11 @@ export function EventManagement({
     onTabChange?.(nextTab);
   };
 
+  const handleLifecycleChange = (nextStatus: EventLifecycleStatus) => {
+    onUpdateEventStatus?.(nextStatus);
+    setStatusNotice(`Event status updated to ${nextStatus}.`);
+  };
+
   const handleTabKeyDown = (event: KeyboardEvent<HTMLButtonElement>, currentIndex: number) => {
     if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) {
       return;
@@ -181,10 +213,47 @@ export function EventManagement({
             <div>
               <h1 className="text-2xl font-bold text-gray-900">{resolvedEventName}</h1>
               <p className="text-gray-600 mt-1">{eventHeaderDetails}</p>
+              {statusNotice ? (
+                <p className="mt-2 text-sm font-medium capitalize text-[#7626c6]" aria-live="polite">
+                  {statusNotice}
+                </p>
+              ) : null}
             </div>
             <div className="flex items-center gap-3">
-              <button type="button" className="px-4 py-2 bg-[#7626c6] text-white btn-glass rounded-lg hover:bg-[#5f1fa3] transition-colors">
-                Publish
+              <span className={`inline-flex rounded-full px-3 py-1.5 text-sm font-medium ${eventStatusBadgeClass}`}>
+                {eventStatusLabel}
+              </span>
+              <button
+                type="button"
+                onClick={() => setShowPreviewModal(true)}
+                className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                Preview Event
+              </button>
+              <button
+                type="button"
+                onClick={onDuplicateEvent}
+                className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                Duplicate
+              </button>
+              <select
+                aria-label="Lifecycle status"
+                value={eventStatus}
+                onChange={(event) => handleLifecycleChange(event.target.value as EventLifecycleStatus)}
+                className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm text-gray-700"
+              >
+                <option value="draft">Draft</option>
+                <option value="published">Published</option>
+                <option value="private">Private</option>
+                <option value="archived">Archived</option>
+              </select>
+              <button
+                type="button"
+                onClick={() => handleLifecycleChange(eventStatus === 'published' ? 'draft' : 'published')}
+                className="px-4 py-2 bg-[#7626c6] text-white btn-glass rounded-lg hover:bg-[#5f1fa3] transition-colors"
+              >
+                {eventStatus === 'published' ? 'Unpublish' : 'Publish'}
               </button>
             </div>
           </div>
@@ -243,6 +312,83 @@ export function EventManagement({
           {activeTab === 'settings' && <SettingsTab />}
         </section>
       </div>
+
+      {showPreviewModal && (
+        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/40 p-6">
+          <div
+            ref={previewDialogRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby={previewTitleId}
+            aria-describedby={previewDescriptionId}
+            tabIndex={-1}
+            className="w-full max-w-3xl rounded-[28px] border border-gray-200 bg-white p-8 shadow-2xl"
+          >
+            <div className="mb-6 flex items-start justify-between gap-4">
+              <div>
+                <h2 id={previewTitleId} className="text-2xl font-semibold text-gray-900">Event Preview</h2>
+                <p id={previewDescriptionId} className="mt-1 text-sm text-gray-500">
+                  Quick organizer preview for title, summary, imagery, and launch readiness.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowPreviewModal(false)}
+                className="rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+              >
+                Close
+              </button>
+            </div>
+
+            <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
+              <div className="space-y-4">
+                {eventDetails?.mainImage ? (
+                  <img src={eventDetails.mainImage} alt={`${resolvedEventName} preview`} className="h-72 w-full rounded-2xl object-cover" />
+                ) : (
+                  <div className="flex h-72 items-center justify-center rounded-2xl border border-dashed border-gray-300 bg-gray-50 text-sm text-gray-500">
+                    No event hero image uploaded yet.
+                  </div>
+                )}
+                <div>
+                  <h3 className="text-2xl font-semibold text-gray-900">{resolvedEventName}</h3>
+                  <p className="mt-2 text-sm leading-6 text-gray-600">{eventDetails?.summary?.trim() || 'Add a short event summary to improve the organizer preview.'}</p>
+                </div>
+              </div>
+
+              <div className="space-y-4 rounded-2xl border border-gray-200 bg-gray-50 p-5">
+                <div>
+                  <div className="text-xs font-semibold uppercase tracking-[0.14em] text-gray-500">Lifecycle</div>
+                  <div className={`mt-2 inline-flex rounded-full px-3 py-1.5 text-sm font-medium ${eventStatusBadgeClass}`}>
+                    {eventStatusLabel}
+                  </div>
+                </div>
+                <div>
+                  <div className="text-xs font-semibold uppercase tracking-[0.14em] text-gray-500">Date</div>
+                  <div className="mt-2 text-sm text-gray-900">{eventHeaderDetails.split(' • ')[0]}</div>
+                </div>
+                <div>
+                  <div className="text-xs font-semibold uppercase tracking-[0.14em] text-gray-500">Location</div>
+                  <div className="mt-2 text-sm text-gray-900">{eventDetails?.location?.trim() || 'Location not set'}</div>
+                </div>
+                <div>
+                  <div className="text-xs font-semibold uppercase tracking-[0.14em] text-gray-500">Tags</div>
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {(eventDetails?.tags || []).length > 0 ? (
+                      eventDetails?.tags.map((tag) => (
+                        <span key={tag} className="rounded-full bg-white px-3 py-1 text-xs font-medium text-gray-700">
+                          {tag}
+                        </span>
+                      ))
+                    ) : (
+                      <span className="text-sm text-gray-500">No tags added yet.</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -1209,6 +1355,7 @@ function SettingsTab() {
             <select
               value={eventVisibility}
               onChange={(e) => handleVisibilityChange(e.target.value as 'Public' | 'Private' | 'Draft')}
+              aria-label="Event visibility"
               className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7626c6] focus:border-transparent"
             >
               <option value="Public">Public</option>

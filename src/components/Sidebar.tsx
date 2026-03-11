@@ -11,7 +11,7 @@ import {
   createOrganizationSidebarGroups,
   isSidebarParentItem,
 } from '@/components/sidebar/sidebar-config';
-import { AppView, EventManagementTab } from '@/types/navigation';
+import { AppView, EventManagementTab, SettingsSection } from '@/types/navigation';
 
 interface SidebarProps {
   currentView: AppView;
@@ -21,6 +21,8 @@ interface SidebarProps {
   selectedEventName?: string | null;
   activeEventTab: EventManagementTab;
   onEventTabSelect: (tab: EventManagementTab) => void;
+  activeSettingsSection: SettingsSection;
+  onSettingsSectionSelect: (section: SettingsSection) => void;
 }
 
 const PRIMARY_WIDTH_EXPANDED = 16;
@@ -43,6 +45,8 @@ export function Sidebar({
   selectedEventName,
   activeEventTab,
   onEventTabSelect,
+  activeSettingsSection,
+  onSettingsSectionSelect,
 }: SidebarProps) {
   const [isManuallyCollapsed, setIsManuallyCollapsed] = useState(false);
 
@@ -54,13 +58,14 @@ export function Sidebar({
         ? createOrganizationSidebarGroups({
             onViewChange,
             onBackToOrganization,
+            onSettingsSectionSelect,
           })
         : createEventSidebarGroups({
             onViewChange,
             onBackToOrganization,
             selectedEventName,
           }),
-    [contextMode, onBackToOrganization, onViewChange, selectedEventName]
+    [contextMode, onBackToOrganization, onSettingsSectionSelect, onViewChange, selectedEventName]
   );
 
   const primaryItems = useMemo(() => collectParentItems(navGroups), [navGroups]);
@@ -70,12 +75,16 @@ export function Sidebar({
       return action.view === currentView;
     }
 
+    if (action.kind === 'settings-section') {
+      return currentView === 'settings' && activeSettingsSection === action.section;
+    }
+
     if (action.kind === 'event-tab') {
       return currentView === 'event-management' && activeEventTab === action.tab;
     }
 
     return false;
-  }, [activeEventTab, currentView]);
+  }, [activeEventTab, activeSettingsSection, currentView]);
 
   const hasActiveChild = useCallback(function checkActiveChild(item: SidebarNavParentItem): boolean {
     return item.children.some((group) =>
@@ -114,6 +123,12 @@ export function Sidebar({
   const executeAction = (action: SidebarNavAction) => {
     if (action.kind === 'view') {
       onViewChange(action.view);
+      return;
+    }
+
+    if (action.kind === 'settings-section') {
+      onSettingsSectionSelect(action.section);
+      onViewChange('settings');
       return;
     }
 
@@ -258,8 +273,11 @@ export function Sidebar({
         {openParent && (
           <>
             <div className="georim-sidebar-secondary__header">
+              {openParent.id === 'settings' && openParent.description && (
+                <div className="georim-sidebar-secondary__eyebrow">{openParent.description}</div>
+              )}
               <h2 className="georim-sidebar-secondary__title">{openParent.label}</h2>
-              {openParent.description && (
+              {openParent.description && openParent.id !== 'settings' && (
                 <p className="georim-sidebar-secondary__description">{openParent.description}</p>
               )}
             </div>

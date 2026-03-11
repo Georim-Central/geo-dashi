@@ -1,70 +1,22 @@
-import { Plus, Calendar, MapPin, Users, DollarSign, TrendingUp, MoreVertical, ArrowRight, Ticket } from 'lucide-react';
-import { KeyboardEvent } from 'react';
+import { Plus, Calendar, MapPin, Users, DollarSign, TrendingUp, MoreVertical, ArrowRight, Ticket, Copy, Archive, Eye } from 'lucide-react';
+import { KeyboardEvent, useMemo, useState } from 'react';
 import { ContentState } from './ui/ContentState';
 import { Avatar, AvatarFallback } from './ui/avatar';
 import { Button } from './ui/button';
+import { EventLifecycleStatus, EventSummary } from '../types/event';
 
 interface DashboardProps {
+  events: EventSummary[];
   onCreateEvent: () => void;
   onEventSelect: (eventId: string, eventName?: string) => void;
   onViewTeam: () => void;
+  onInviteTeamMember: () => void;
+  onViewActivity: () => void;
+  onDuplicateEvent: (eventId: string) => void;
+  onArchiveEvent: (eventId: string) => void;
+  onUpdateEventStatus: (eventId: string, status: EventLifecycleStatus) => void;
   firstName: string;
 }
-
-// Mock data
-const mockEvents = [
-  {
-    id: '1',
-    title: 'Summer Music Festival 2026',
-    date: 'June 15, 2026',
-    location: 'Central Park, New York',
-    status: 'Published',
-    ticketsSold: 847,
-    totalTickets: 1000,
-    revenue: 25410,
-    image: 'https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=400&h=300&fit=crop'
-  },
-  {
-    id: '2',
-    title: 'Tech Conference 2026',
-    date: 'July 22-24, 2026',
-    location: 'Online Event',
-    status: 'Draft',
-    ticketsSold: 234,
-    totalTickets: 500,
-    revenue: 11700,
-    image: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=400&h=300&fit=crop'
-  },
-  {
-    id: '3',
-    title: 'Food & Wine Expo',
-    date: 'August 10, 2026',
-    location: 'Downtown Convention Center',
-    status: 'Published',
-    ticketsSold: 512,
-    totalTickets: 800,
-    revenue: 15360,
-    image: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=400&h=300&fit=crop'
-  },
-  {
-    id: '4',
-    title: 'Georim Founders Circle',
-    date: 'September 3, 2026',
-    location: 'Private Rooftop Venue, Chicago',
-    status: 'Private',
-    ticketsSold: 64,
-    totalTickets: 120,
-    revenue: 9600,
-    image: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=400&h=300&fit=crop'
-  }
-];
-
-const stats = [
-  { label: 'Total Events', value: '12', icon: Calendar, color: 'text-blue-600', bg: 'bg-blue-50' },
-  { label: 'Total Attendees', value: '2.4K', icon: Users, color: 'text-green-600', bg: 'bg-green-50' },
-  { label: 'Total Revenue', value: '$89.2K', icon: DollarSign, color: 'text-purple-600', bg: 'bg-purple-50' },
-  { label: 'Avg. Growth', value: '+23%', icon: TrendingUp, color: 'text-orange-600', bg: 'bg-orange-50' }
-];
 
 // Platform Activity Data
 const platformActivity = [
@@ -179,12 +131,25 @@ function getTeamRoleBadgeClass(role: string) {
   return 'bg-amber-100 text-amber-700';
 }
 
-function TeamCollaborationCard({ onViewTeam }: { onViewTeam: () => void }) {
+function getEventStatusBadgeClass(status: EventLifecycleStatus) {
+  if (status === 'published') return 'bg-green-100 text-green-700';
+  if (status === 'private') return 'bg-[#f1e5fb] text-[#7626c6]';
+  if (status === 'archived') return 'bg-amber-100 text-amber-700';
+  return 'bg-gray-100 text-gray-700';
+}
+
+function TeamCollaborationCard({
+  onViewTeam,
+  onInviteTeamMember,
+}: {
+  onViewTeam: () => void;
+  onInviteTeamMember: () => void;
+}) {
   return (
     <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
       <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between gap-3">
         <h2 className="text-lg font-semibold text-gray-900">Team Collaboration</h2>
-        <Button type="button" variant="outline" size="sm" className="gap-1.5 text-sm">
+        <Button type="button" variant="outline" size="sm" className="gap-1.5 text-sm" onClick={onInviteTeamMember}>
           <Plus className="w-4 h-4" />
           Add Member
         </Button>
@@ -225,9 +190,23 @@ function TeamCollaborationCard({ onViewTeam }: { onViewTeam: () => void }) {
   );
 }
 
-export function Dashboard({ onCreateEvent, onEventSelect, onViewTeam, firstName }: DashboardProps) {
+export function Dashboard({
+  events,
+  onCreateEvent,
+  onEventSelect,
+  onViewTeam,
+  onInviteTeamMember,
+  onViewActivity,
+  onDuplicateEvent,
+  onArchiveEvent,
+  onUpdateEventStatus,
+  firstName
+}: DashboardProps) {
   const isLoading = false;
   const dataError: string | null = null;
+  const [selectedStatus, setSelectedStatus] = useState<'all' | EventLifecycleStatus>('all');
+  const [sortMode, setSortMode] = useState<'recent' | 'revenue' | 'tickets'>('recent');
+  const [activeMenuEventId, setActiveMenuEventId] = useState<string | null>(null);
 
   const handleEventRowKeyDown = (event: KeyboardEvent<HTMLDivElement>, eventId: string, eventTitle: string) => {
     if (event.key === 'Enter' || event.key === ' ') {
@@ -235,6 +214,28 @@ export function Dashboard({ onCreateEvent, onEventSelect, onViewTeam, firstName 
       onEventSelect(eventId, eventTitle);
     }
   };
+
+  const filteredEvents = useMemo(() => {
+    const statusFiltered = selectedStatus === 'all'
+      ? events
+      : events.filter((eventSummary) => eventSummary.status === selectedStatus);
+
+    return [...statusFiltered].sort((left, right) => {
+      if (sortMode === 'revenue') return right.revenue - left.revenue;
+      if (sortMode === 'tickets') return right.ticketsSold - left.ticketsSold;
+      return right.id.localeCompare(left.id);
+    });
+  }, [events, selectedStatus, sortMode]);
+
+  const totalRevenue = events.reduce((sum, eventSummary) => sum + eventSummary.revenue, 0);
+  const totalAttendees = events.reduce((sum, eventSummary) => sum + eventSummary.ticketsSold, 0);
+  const publishedCount = events.filter((eventSummary) => eventSummary.status === 'published').length;
+  const stats = [
+    { label: 'Total Events', value: String(events.length), icon: Calendar, color: 'text-blue-600', bg: 'bg-blue-50' },
+    { label: 'Total Attendees', value: totalAttendees.toLocaleString(), icon: Users, color: 'text-green-600', bg: 'bg-green-50' },
+    { label: 'Total Revenue', value: `$${(totalRevenue / 1000).toFixed(1)}K`, icon: DollarSign, color: 'text-purple-600', bg: 'bg-purple-50' },
+    { label: 'Published', value: String(publishedCount), icon: TrendingUp, color: 'text-orange-600', bg: 'bg-orange-50' }
+  ];
 
   return (
     <div className="p-8 motion-page" aria-busy={isLoading}>
@@ -340,19 +341,56 @@ export function Dashboard({ onCreateEvent, onEventSelect, onViewTeam, firstName 
         {/* Events List - Takes 2 columns */}
         <div className="lg:col-span-2">
           <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-200">
-              <h2 className="text-lg font-semibold text-gray-900">Your Events</h2>
+            <div className="border-b border-gray-200 px-6 py-4">
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                <div>
+                  <h2 className="text-lg font-semibold text-gray-900">Your Events</h2>
+                  <p className="mt-1 text-sm text-gray-600">Manage lifecycle, track sales, and jump into event operations.</p>
+                </div>
+                <div className="flex flex-wrap items-center gap-2">
+                  {[
+                    { id: 'all', label: 'All' },
+                    { id: 'published', label: 'Published' },
+                    { id: 'draft', label: 'Draft' },
+                    { id: 'private', label: 'Private' },
+                    { id: 'archived', label: 'Archived' }
+                  ].map((filter) => (
+                    <button
+                      key={filter.id}
+                      type="button"
+                      onClick={() => setSelectedStatus(filter.id as 'all' | EventLifecycleStatus)}
+                      className={`rounded-full px-3 py-1.5 text-sm font-medium transition ${
+                        selectedStatus === filter.id
+                          ? 'bg-[#7626c6] text-white'
+                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      }`}
+                    >
+                      {filter.label}
+                    </button>
+                  ))}
+                  <select
+                    value={sortMode}
+                    onChange={(event) => setSortMode(event.target.value as 'recent' | 'revenue' | 'tickets')}
+                    className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700"
+                    aria-label="Sort events"
+                  >
+                    <option value="recent">Sort: Recent</option>
+                    <option value="revenue">Sort: Revenue</option>
+                    <option value="tickets">Sort: Tickets Sold</option>
+                  </select>
+                </div>
+              </div>
             </div>
 
             <div className="divide-y divide-gray-200 motion-stagger">
               <ContentState
                 isLoading={isLoading}
                 error={dataError}
-                isEmpty={mockEvents.length === 0}
+                isEmpty={filteredEvents.length === 0}
                 emptyMessage="No events found."
                 className="py-14"
               >
-                {mockEvents.map((event) => (
+                {filteredEvents.map((event) => (
                 <div
                   key={event.id}
                   className="p-6 hover:bg-gray-50 transition-colors cursor-pointer"
@@ -385,19 +423,78 @@ export function Dashboard({ onCreateEvent, onEventSelect, onViewTeam, firstName 
                         </div>
                         <div className="flex items-center gap-2">
                           <span
-                            className={`px-3 py-1 rounded-full text-xs font-medium ${
-                              event.status === 'Published'
-                                ? 'bg-green-100 text-green-700'
-                                : event.status === 'Private'
-                                ? 'bg-purple-100 text-purple-700'
-                                : 'bg-gray-100 text-gray-700'
-                            }`}
+                            className={`px-3 py-1 rounded-full text-xs font-medium capitalize ${getEventStatusBadgeClass(event.status)}`}
                           >
                             {event.status}
                           </span>
-                          <button type="button" className="p-2 hover:bg-gray-200 rounded-lg transition-colors">
-                            <MoreVertical className="w-4 h-4 text-gray-600" />
-                          </button>
+                          <div className="relative">
+                            <button
+                              type="button"
+                              aria-label={`Quick actions for ${event.title}`}
+                              onClick={(clickEvent) => {
+                                clickEvent.stopPropagation();
+                                setActiveMenuEventId((current) => current === event.id ? null : event.id);
+                              }}
+                              className="p-2 hover:bg-gray-200 rounded-lg transition-colors"
+                            >
+                              <MoreVertical className="w-4 h-4 text-gray-600" />
+                            </button>
+                            {activeMenuEventId === event.id && (
+                              <div
+                                className="absolute right-0 top-11 z-10 min-w-[210px] rounded-2xl border border-gray-200 bg-white p-2 shadow-xl"
+                                onClick={(clickEvent) => clickEvent.stopPropagation()}
+                              >
+                                <button
+                                  type="button"
+                                  aria-label={`Open ${event.title}`}
+                                  onClick={() => {
+                                    setActiveMenuEventId(null);
+                                    onEventSelect(event.id, event.title);
+                                  }}
+                                  className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium text-gray-700 transition hover:bg-gray-50"
+                                >
+                                  <Eye className="h-4 w-4" />
+                                  Open Event
+                                </button>
+                                <button
+                                  type="button"
+                                  aria-label={event.status === 'published' ? `Move ${event.title} to draft` : `Publish ${event.title}`}
+                                  onClick={() => {
+                                    setActiveMenuEventId(null);
+                                    onUpdateEventStatus(event.id, event.status === 'published' ? 'draft' : 'published');
+                                  }}
+                                  className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium text-gray-700 transition hover:bg-gray-50"
+                                >
+                                  <Calendar className="h-4 w-4" />
+                                  {event.status === 'published' ? 'Move to Draft' : 'Publish Event'}
+                                </button>
+                                <button
+                                  type="button"
+                                  aria-label={`Duplicate ${event.title}`}
+                                  onClick={() => {
+                                    setActiveMenuEventId(null);
+                                    onDuplicateEvent(event.id);
+                                  }}
+                                  className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium text-gray-700 transition hover:bg-gray-50"
+                                >
+                                  <Copy className="h-4 w-4" />
+                                  Duplicate Event
+                                </button>
+                                <button
+                                  type="button"
+                                  aria-label={`Archive ${event.title}`}
+                                  onClick={() => {
+                                    setActiveMenuEventId(null);
+                                    onArchiveEvent(event.id);
+                                  }}
+                                  className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium text-amber-700 transition hover:bg-amber-50"
+                                >
+                                  <Archive className="h-4 w-4" />
+                                  Archive Event
+                                </button>
+                              </div>
+                            )}
+                          </div>
                         </div>
                       </div>
 
@@ -422,6 +519,10 @@ export function Dashboard({ onCreateEvent, onEventSelect, onViewTeam, firstName 
                           <p className="text-lg font-semibold text-gray-900">
                             ${event.revenue.toLocaleString()}
                           </p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-gray-500 mb-1">Lifecycle</p>
+                          <p className="text-sm font-semibold capitalize text-gray-900">{event.status}</p>
                         </div>
                       </div>
                     </div>
@@ -475,14 +576,18 @@ export function Dashboard({ onCreateEvent, onEventSelect, onViewTeam, firstName 
               </div>
 
               <div className="px-6 py-3 bg-gray-50 border-t border-gray-200">
-                <button type="button" className="text-sm text-[#7626c6] hover:text-[#5f1fa3] font-medium flex items-center gap-1">
+                <button
+                  type="button"
+                  onClick={onViewActivity}
+                  className="text-sm text-[#7626c6] hover:text-[#5f1fa3] font-medium flex items-center gap-1"
+                >
                   View all activity
                   <ArrowRight className="w-4 h-4" />
                 </button>
               </div>
             </div>
 
-            <TeamCollaborationCard onViewTeam={onViewTeam} />
+            <TeamCollaborationCard onViewTeam={onViewTeam} onInviteTeamMember={onInviteTeamMember} />
           </div>
         </div>
       </div>

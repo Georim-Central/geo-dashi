@@ -1,3 +1,5 @@
+export type EventLifecycleStatus = 'draft' | 'published' | 'private' | 'archived';
+
 export type EventDraft = {
   title: string;
   type: string;
@@ -18,3 +20,15 @@ export type EventDraft = {
 };
 
 export type EventDraftUpdate = Partial<EventDraft>;
+
+export type EventSummary = {
+  id: string;
+  title: string;
+  date: string;
+  location: string;
+  status: EventLifecycleStatus;
+  ticketsSold: number;
+  totalTickets: number;
+  revenue: number;
+  image: string;
+};

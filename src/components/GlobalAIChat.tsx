@@ -15,15 +15,7 @@ import {
   ExpandableChatFooter,
   ExpandableChatHeader,
 } from '@/components/ui/expandable-chat';
-
-type AppView =
-  | 'dashboard'
-  | 'create-event'
-  | 'event-management'
-  | 'analytics'
-  | 'team'
-  | 'finance'
-  | 'help';
+import { AppView } from '@/types/navigation';
 
 interface GlobalAIChatProps {
   currentView: AppView;
@@ -72,6 +64,8 @@ const viewTitles: Record<AppView, string> = {
   analytics: 'analytics',
   team: 'team management',
   finance: 'finance',
+  'notification-center': 'notification center',
+  settings: 'settings',
   help: 'help center',
 };
 

@@ -1,115 +1,363 @@
-import { useId, useState } from 'react';
-import { Plus, Mail, Shield, Edit2, Trash2, QrCode, CreditCard as CreditCardIcon, Ticket } from 'lucide-react';
-import { ContentState } from './ui/ContentState';
-import { useModalA11y } from '../hooks/useModalA11y';
+import type { ReactNode } from 'react';
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
+import {
+  Edit2,
+  Mail,
+  Plus,
+  QrCode,
+  Shield,
+  Sparkles,
+  Ticket,
+  Trash2,
+  Users,
+} from 'lucide-react';
 
-type InviteRole = 'admin' | 'marketing' | 'operations' | 'custom';
-type InviteAccess = 'all' | string;
+import { useModalA11y } from '../hooks/useModalA11y';
+import { ContentState } from './ui/ContentState';
+
+type PermissionPreset = 'admin' | 'marketing' | 'operations' | 'custom';
+type InviteStatus = 'pending' | 'sent' | 'expired';
+type AccessScope = 'all' | string[];
 
 interface TeamManagementProps {
   eventOptions?: string[];
+  inviteRequestId?: number;
 }
-
-type TeamMemberRole = 'Admin' | 'Marketing' | 'Operations';
 
 type TeamMember = {
   id: string;
   name: string;
   email: string;
-  role: TeamMemberRole;
-  events: string[];
+  preset: PermissionPreset;
+  customRoleName?: string;
+  events: AccessScope;
   specialTickets: string[];
   lastActive: string;
+  status: 'owner' | 'active';
 };
 
-export function TeamManagement({ eventOptions = defaultEventOptions }: TeamManagementProps) {
+type PendingInvite = {
+  id: string;
+  email: string;
+  preset: PermissionPreset;
+  customRoleName?: string;
+  access: AccessScope;
+  status: InviteStatus;
+  sentAt: string;
+};
+
+const presetDefinitions: Record<
+  PermissionPreset,
+  {
+    label: string;
+    description: string;
+    bullets: string[];
+    badgeClass: string;
+    cardTone: string;
+  }
+> = {
+  admin: {
+    label: 'Admin',
+    description: 'Full control of events, team access, payouts, and settings.',
+    bullets: ['Create and edit events', 'Manage finance and payouts', 'Invite and remove team members'],
+    badgeClass: 'bg-violet-100 text-violet-700',
+    cardTone: 'bg-violet-50',
+  },
+  marketing: {
+    label: 'Marketing',
+    description: 'Campaign creation, audience targeting, and performance review.',
+    bullets: ['Launch email and SMS campaigns', 'Review analytics and engagement', 'No payout permissions'],
+    badgeClass: 'bg-blue-100 text-blue-700',
+    cardTone: 'bg-blue-50',
+  },
+  operations: {
+    label: 'Operations',
+    description: 'On-site attendee management, check-in, and guest support.',
+    bullets: ['Run check-in and QR scanning', 'Handle attendee support queues', 'No event publishing rights'],
+    badgeClass: 'bg-emerald-100 text-emerald-700',
+    cardTone: 'bg-emerald-50',
+  },
+  custom: {
+    label: 'Custom',
+    description: 'Flexible access for specialized roles and temporary coverage.',
+    bullets: ['Scope access per event', 'Match access to workflow needs', 'Use for contractors and partners'],
+    badgeClass: 'bg-amber-100 text-amber-700',
+    cardTone: 'bg-amber-50',
+  },
+};
+
+const defaultEventOptions = [
+  'Summer Music Festival 2026',
+  'Tech Conference 2026',
+  'Food & Wine Expo',
+  'Georim Founders Circle',
+];
+
+const initialTeamMembers: TeamMember[] = [
+  {
+    id: 'member-1',
+    name: 'John Doe',
+    email: 'john@eventcompany.com',
+    preset: 'admin',
+    events: 'all',
+    specialTickets: ['VIP Access', 'All Access Pass'],
+    lastActive: '2 hours ago',
+    status: 'owner',
+  },
+  {
+    id: 'member-2',
+    name: 'Sarah Miller',
+    email: 'sarah.m@eventcompany.com',
+    preset: 'admin',
+    events: 'all',
+    specialTickets: ['All Access Pass'],
+    lastActive: 'Yesterday',
+    status: 'active',
+  },
+  {
+    id: 'member-3',
+    name: 'Mike Johnson',
+    email: 'mike.j@eventcompany.com',
+    preset: 'marketing',
+    events: ['Summer Music Festival 2026', 'Tech Conference 2026'],
+    specialTickets: ['Media Pass'],
+    lastActive: '3 hours ago',
+    status: 'active',
+  },
+  {
+    id: 'member-4',
+    name: 'Emma Wilson',
+    email: 'emma.w@eventcompany.com',
+    preset: 'operations',
+    events: ['Tech Conference 2026', 'Food & Wine Expo'],
+    specialTickets: ['Staff Pass'],
+    lastActive: 'Today',
+    status: 'active',
+  },
+];
+
+const initialPendingInvites: PendingInvite[] = [
+  {
+    id: 'invite-1',
+    email: 'alexandra@eventcompany.com',
+    preset: 'operations',
+    access: ['Summer Music Festival 2026'],
+    status: 'pending',
+    sentAt: 'Sent 20 minutes ago',
+  },
+  {
+    id: 'invite-2',
+    email: 'finance@eventcompany.com',
+    preset: 'custom',
+    customRoleName: 'Finance Reviewer',
+    access: 'all',
+    status: 'sent',
+    sentAt: 'Resent yesterday',
+  },
+];
+
+const availableSpecialTickets = [
+  'VIP Access',
+  'All Access Pass',
+  'Staff Pass',
+  'Media Pass',
+  'Comp Ticket',
+];
+
+const getPresetLabel = (preset: PermissionPreset, customRoleName?: string) =>
+  preset === 'custom' ? customRoleName || 'Custom Role' : presetDefinitions[preset].label;
+
+const getAccessLabel = (access: AccessScope) => (access === 'all' ? 'All events' : access.join(', '));
+
+export function TeamManagement({ eventOptions = defaultEventOptions, inviteRequestId = 0 }: TeamManagementProps) {
   const fieldIdPrefix = useId();
-  const [teamMembers, setTeamMembers] = useState<TeamMember[]>(mockTeamMembers);
+  const previousInviteRequestIdRef = useRef(0);
+  const availableEventOptions = Array.from(new Set(eventOptions.map((eventName) => eventName.trim()).filter(Boolean)));
+
+  const [teamMembers, setTeamMembers] = useState<TeamMember[]>(initialTeamMembers);
+  const [pendingInvites, setPendingInvites] = useState<PendingInvite[]>(initialPendingInvites);
+  const [selectedMemberId, setSelectedMemberId] = useState<string>(initialTeamMembers[0].id);
+  const [notice, setNotice] = useState<string | null>(null);
+
   const [showInviteModal, setShowInviteModal] = useState(false);
-  const [selectedMember, setSelectedMember] = useState<string | null>(null);
-  const [showTicketModal, setShowTicketModal] = useState(false);
+  const [inviteEmail, setInviteEmail] = useState('');
+  const [invitePreset, setInvitePreset] = useState<PermissionPreset>('admin');
+  const [inviteCustomRole, setInviteCustomRole] = useState('');
+  const [inviteAccessMode, setInviteAccessMode] = useState<'all' | 'selected'>('all');
+  const [inviteSelectedEvents, setInviteSelectedEvents] = useState<string[]>([]);
+  const [inviteError, setInviteError] = useState('');
+
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingMemberId, setEditingMemberId] = useState<string | null>(null);
   const [editName, setEditName] = useState('');
   const [editEmail, setEditEmail] = useState('');
-  const [editRole, setEditRole] = useState<TeamMemberRole>('Admin');
+  const [editPreset, setEditPreset] = useState<PermissionPreset>('admin');
+  const [editCustomRole, setEditCustomRole] = useState('');
+  const [editAccessMode, setEditAccessMode] = useState<'all' | 'selected'>('all');
+  const [editSelectedEvents, setEditSelectedEvents] = useState<string[]>([]);
   const [editError, setEditError] = useState('');
-  const [inviteEmail, setInviteEmail] = useState('');
-  const [inviteRole, setInviteRole] = useState<InviteRole>('admin');
-  const [inviteCustomRole, setInviteCustomRole] = useState('');
-  const [inviteAccess, setInviteAccess] = useState<InviteAccess>('all');
-  const [inviteError, setInviteError] = useState('');
-  const [inviteLoading, setInviteLoading] = useState(false);
-  const getFieldId = (field: string) => `${fieldIdPrefix}-${field}`;
-  const availableEventOptions = Array.from(new Set(eventOptions.map((eventName) => eventName.trim()).filter(Boolean)));
-  const {
-    dialogRef: inviteDialogRef,
-    titleId: inviteTitleId,
-    descriptionId: inviteDescriptionId
-  } = useModalA11y({
-    isOpen: showInviteModal,
-    onClose: () => {
-      setShowInviteModal(false);
-      setInviteError('');
-    }
-  });
-  const {
-    dialogRef: ticketDialogRef,
-    titleId: ticketTitleId,
-    descriptionId: ticketDescriptionId
-  } = useModalA11y({
-    isOpen: showTicketModal,
-    onClose: () => {
-      setShowTicketModal(false);
-      setSelectedMember(null);
-    }
-  });
-  const {
-    dialogRef: editDialogRef,
-    titleId: editTitleId,
-    descriptionId: editDescriptionId
-  } = useModalA11y({
-    isOpen: showEditModal,
-    onClose: () => {
-      closeEditModal();
-    }
-  });
 
-  const closeEditModal = () => {
+  const [showTicketModal, setShowTicketModal] = useState(false);
+  const [ticketSelections, setTicketSelections] = useState<string[]>([]);
+
+  const getFieldId = (field: string) => `${fieldIdPrefix}-${field}`;
+
+  const selectedMember = teamMembers.find((member) => member.id === selectedMemberId) ?? null;
+
+  const presetCounts = useMemo(
+    () => ({
+      admin: teamMembers.filter((member) => member.preset === 'admin').length,
+      marketing: teamMembers.filter((member) => member.preset === 'marketing').length,
+      operations: teamMembers.filter((member) => member.preset === 'operations').length,
+      custom: teamMembers.filter((member) => member.preset === 'custom').length + pendingInvites.filter((invite) => invite.preset === 'custom').length,
+    }),
+    [pendingInvites, teamMembers]
+  );
+
+  const closeInviteModal = useCallback(() => {
+    setShowInviteModal(false);
+    setInviteError('');
+  }, []);
+
+  const closeEditModal = useCallback(() => {
     setShowEditModal(false);
     setEditingMemberId(null);
     setEditName('');
     setEditEmail('');
-    setEditRole('Admin');
+    setEditPreset('admin');
+    setEditCustomRole('');
+    setEditAccessMode('all');
+    setEditSelectedEvents([]);
     setEditError('');
+  }, []);
+
+  const closeTicketModal = useCallback(() => {
+    setShowTicketModal(false);
+    setTicketSelections([]);
+  }, []);
+
+  const {
+    dialogRef: inviteDialogRef,
+    titleId: inviteTitleId,
+    descriptionId: inviteDescriptionId,
+  } = useModalA11y({
+    isOpen: showInviteModal,
+    onClose: closeInviteModal,
+  });
+
+  const {
+    dialogRef: editDialogRef,
+    titleId: editTitleId,
+    descriptionId: editDescriptionId,
+  } = useModalA11y({
+    isOpen: showEditModal,
+    onClose: closeEditModal,
+  });
+
+  const {
+    dialogRef: ticketDialogRef,
+    titleId: ticketTitleId,
+    descriptionId: ticketDescriptionId,
+  } = useModalA11y({
+    isOpen: showTicketModal,
+    onClose: closeTicketModal,
+  });
+
+  const openInviteModal = useCallback(() => {
+    setInviteEmail('');
+    setInvitePreset('admin');
+    setInviteCustomRole('');
+    setInviteAccessMode('all');
+    setInviteSelectedEvents([]);
+    setInviteError('');
+    setShowInviteModal(true);
+  }, []);
+
+  useEffect(() => {
+    if (inviteRequestId > 0 && inviteRequestId !== previousInviteRequestIdRef.current) {
+      openInviteModal();
+    }
+
+    previousInviteRequestIdRef.current = inviteRequestId;
+  }, [inviteRequestId, openInviteModal]);
+
+  const toggleEventSelection = (currentValues: string[], eventName: string) =>
+    currentValues.includes(eventName)
+      ? currentValues.filter((currentValue) => currentValue !== eventName)
+      : [...currentValues, eventName];
+
+  const handleSendInvite = () => {
+    const normalizedEmail = inviteEmail.trim();
+    const isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail);
+
+    if (!isValidEmail) {
+      setInviteError('Please enter a valid email address.');
+      return;
+    }
+
+    if (invitePreset === 'custom' && !inviteCustomRole.trim()) {
+      setInviteError('Please enter a custom role name.');
+      return;
+    }
+
+    if (inviteAccessMode === 'selected' && inviteSelectedEvents.length === 0) {
+      setInviteError('Choose at least one event for limited access.');
+      return;
+    }
+
+    const nextInvite: PendingInvite = {
+      id: `invite-${Date.now()}`,
+      email: normalizedEmail,
+      preset: invitePreset,
+      customRoleName: invitePreset === 'custom' ? inviteCustomRole.trim() : undefined,
+      access: inviteAccessMode === 'all' ? 'all' : inviteSelectedEvents,
+      status: 'pending',
+      sentAt: 'Sent just now',
+    };
+
+    setPendingInvites((currentInvites) => [nextInvite, ...currentInvites]);
+    setShowInviteModal(false);
+    setNotice(`Invite created for ${normalizedEmail}. Pending acceptance.`);
+  };
+
+  const handleResendInvite = (inviteId: string) => {
+    setPendingInvites((currentInvites) =>
+      currentInvites.map((invite) =>
+        invite.id === inviteId ? { ...invite, status: 'sent', sentAt: 'Resent just now' } : invite
+      )
+    );
+    setNotice('Invite resent with updated status tracking.');
+  };
+
+  const handleExpireInvite = (inviteId: string) => {
+    setPendingInvites((currentInvites) =>
+      currentInvites.map((invite) =>
+        invite.id === inviteId ? { ...invite, status: 'expired', sentAt: 'Expired just now' } : invite
+      )
+    );
+    setNotice('Invite marked as expired.');
   };
 
   const openEditModal = (member: TeamMember) => {
     setEditingMemberId(member.id);
     setEditName(member.name);
     setEditEmail(member.email);
-    setEditRole(member.role);
+    setEditPreset(member.preset);
+    setEditCustomRole(member.customRoleName || '');
+    setEditAccessMode(member.events === 'all' ? 'all' : 'selected');
+    setEditSelectedEvents(member.events === 'all' ? [] : member.events);
     setEditError('');
     setShowEditModal(true);
-  };
-
-  const openInviteModal = () => {
-    setInviteEmail('');
-    setInviteRole('admin');
-    setInviteCustomRole('');
-    setInviteAccess('all');
-    setInviteError('');
-    setShowInviteModal(true);
   };
 
   const handleSaveMemberEdit = () => {
     if (!editingMemberId) return;
 
-    const name = editName.trim();
-    const email = editEmail.trim();
-    const isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    const normalizedName = editName.trim();
+    const normalizedEmail = editEmail.trim();
+    const isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail);
 
-    if (!name) {
+    if (!normalizedName) {
       setEditError('Please enter a member name.');
       return;
     }
@@ -119,728 +367,736 @@ export function TeamManagement({ eventOptions = defaultEventOptions }: TeamManag
       return;
     }
 
-    setTeamMembers((previousMembers) => previousMembers.map((member) => (
-      member.id === editingMemberId
-        ? { ...member, name, email, role: editRole }
-        : member
-    )));
+    if (editPreset === 'custom' && !editCustomRole.trim()) {
+      setEditError('Please enter a custom role name.');
+      return;
+    }
+
+    if (editAccessMode === 'selected' && editSelectedEvents.length === 0) {
+      setEditError('Choose at least one event for limited access.');
+      return;
+    }
+
+    setTeamMembers((currentMembers) =>
+      currentMembers.map((member) =>
+        member.id === editingMemberId
+          ? {
+              ...member,
+              name: normalizedName,
+              email: normalizedEmail,
+              preset: editPreset,
+              customRoleName: editPreset === 'custom' ? editCustomRole.trim() : undefined,
+              events: editAccessMode === 'all' ? 'all' : editSelectedEvents,
+            }
+          : member
+      )
+    );
+
+    setSelectedMemberId(editingMemberId);
     closeEditModal();
+    setNotice(`Permissions updated for ${normalizedName}.`);
   };
 
-  const generateInviteLink = (roleValue: string, accessValue: InviteAccess) => {
-    const token = Math.random().toString(36).slice(2, 12);
-    const access = accessValue === 'all' ? 'all-events' : accessValue;
-    return `https://georim.app/team-invite/${token}?role=${encodeURIComponent(roleValue)}&access=${encodeURIComponent(access)}`;
-  };
-
-  const getRoleLabel = (role: InviteRole, customRoleName: string) => {
-    if (role === 'admin') return 'Admin';
-    if (role === 'marketing') return 'Marketing';
-    if (role === 'operations') return 'Operations';
-    return customRoleName;
-  };
-
-  const handleSendInvite = () => {
-    const email = inviteEmail.trim();
-    const isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-
-    if (!isValidEmail) {
-      setInviteError('Please enter a valid email address.');
-      return;
+  const handleRemoveMember = (memberId: string) => {
+    setTeamMembers((currentMembers) => currentMembers.filter((member) => member.id !== memberId));
+    if (selectedMemberId === memberId && teamMembers.length > 1) {
+      const fallbackMember = teamMembers.find((member) => member.id !== memberId);
+      if (fallbackMember) setSelectedMemberId(fallbackMember.id);
     }
+    setNotice('Team member removed from organizer access.');
+  };
 
-    const customRoleName = inviteCustomRole.trim();
-    if (inviteRole === 'custom' && !customRoleName) {
-      setInviteError('Please enter a custom role name.');
-      return;
-    }
+  const openTicketModal = (member: TeamMember) => {
+    setSelectedMemberId(member.id);
+    setTicketSelections(member.specialTickets);
+    setShowTicketModal(true);
+  };
 
-    setInviteLoading(true);
-    const roleLabel = getRoleLabel(inviteRole, customRoleName);
-    const inviteLink = generateInviteLink(roleLabel, inviteAccess);
-    const accessLabel = inviteAccess === 'all' ? 'all events' : inviteAccess;
-    const subject = 'You are invited to join Georim Team Management';
-    const body = [
-      'Hi there,',
-      '',
-      `You have been invited to join our Georim team as ${roleLabel} with access to ${accessLabel}.`,
-      '',
-      `Accept your invite here: ${inviteLink}`,
-      '',
-      'This invite link is unique to you.',
-      '',
-      'Best regards,',
-      'Georim Team'
-    ].join('\n');
+  const saveTicketAssignments = () => {
+    if (!selectedMember) return;
 
-    const mailtoUrl = `mailto:${encodeURIComponent(email)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-    window.location.href = mailtoUrl;
-
-    setShowInviteModal(false);
-    setInviteError('');
-    setInviteLoading(false);
+    setTeamMembers((currentMembers) =>
+      currentMembers.map((member) =>
+        member.id === selectedMember.id ? { ...member, specialTickets: ticketSelections } : member
+      )
+    );
+    closeTicketModal();
+    setNotice(`Special ticket access updated for ${selectedMember.name}.`);
   };
 
   return (
-    <div className="min-h-full bg-gray-50 p-8">
-      <div className="max-w-7xl mx-auto space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Team Management</h1>
-          <p className="text-gray-600 mt-1">Manage team access and permissions</p>
-        </div>
-        <button
-          type="button"
-          onClick={openInviteModal}
-          className="flex items-center gap-2 bg-[#7626c6] text-white btn-glass px-4 py-2 rounded-lg hover:bg-[#5f1fa3] transition-colors"
-        >
-          <Plus className="w-4 h-4" />
-          Invite Team Member
-        </button>
-      </div>
-
-      {/* Permission Roles Overview */}
-      <div className="grid grid-cols-3 gap-6">
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
-          <div className="flex items-start justify-between mb-4">
-            <div className="p-3 bg-purple-100 rounded-lg">
-              <Shield className="w-6 h-6 text-purple-600" />
-            </div>
-            <span className="text-sm text-gray-600">3 members</span>
-          </div>
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">Admin</h3>
-          <p className="text-sm text-gray-600 mb-4">
-            Full access to all events, settings, and team management
-          </p>
-          <ul className="space-y-1 text-sm text-gray-700">
-            <li>✓ Create & edit events</li>
-            <li>✓ Manage tickets & orders</li>
-            <li>✓ View financials</li>
-            <li>✓ Invite team members</li>
-          </ul>
-        </div>
-
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
-          <div className="flex items-start justify-between mb-4">
-            <div className="p-3 bg-blue-100 rounded-lg">
-              <Mail className="w-6 h-6 text-blue-600" />
-            </div>
-            <span className="text-sm text-gray-600">2 members</span>
-          </div>
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">Marketing</h3>
-          <p className="text-sm text-gray-600 mb-4">
-            Access to marketing tools and email campaigns
-          </p>
-          <ul className="space-y-1 text-sm text-gray-700">
-            <li>✓ Send email campaigns</li>
-            <li>✓ View analytics</li>
-            <li>✓ Manage social media</li>
-            <li>✗ Financial access</li>
-          </ul>
-        </div>
-
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
-          <div className="flex items-start justify-between mb-4">
-            <div className="p-3 bg-green-100 rounded-lg">
-              <QrCode className="w-6 h-6 text-green-600" />
-            </div>
-            <span className="text-sm text-gray-600">5 members</span>
-          </div>
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">Operations</h3>
-          <p className="text-sm text-gray-600 mb-4">
-            On-site check-in and attendee management
-          </p>
-          <ul className="space-y-1 text-sm text-gray-700">
-            <li>✓ Check-in attendees</li>
-            <li>✓ Scan QR codes</li>
-            <li>✓ View attendee lists</li>
-            <li>✗ Edit event details</li>
-          </ul>
-        </div>
-      </div>
-
-      {/* Team Members List */}
-      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-gray-900">Team Members</h2>
-          <span className="text-sm text-gray-600">Click ticket icon to assign special tickets</span>
-        </div>
-
-        <ContentState
-          isEmpty={teamMembers.length === 0}
-          emptyMessage="No team members found."
-          className="py-14 m-6"
-        >
-          <table className="w-full">
-            <thead className="bg-gray-50 border-b border-gray-200">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Member
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Role
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Special Tickets
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Last Active
-                </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {teamMembers.map((member) => (
-                <tr key={member.id} className="hover:bg-gray-50 transition-colors">
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="flex items-center">
-                    <div className="w-10 h-10 bg-[#7626c6] rounded-full flex items-center justify-center text-white font-medium">
-                      {member.name.split(' ').map(n => n[0]).join('')}
-                    </div>
-                    <div className="ml-4">
-                      <div className="font-medium text-gray-900">{member.name}</div>
-                      <div className="text-sm text-gray-500">{member.email}</div>
-                    </div>
-                  </div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                    member.role === 'Admin'
-                      ? 'bg-purple-100 text-purple-700'
-                      : member.role === 'Marketing'
-                      ? 'bg-blue-100 text-blue-700'
-                      : 'bg-green-100 text-green-700'
-                  }`}>
-                    {member.role}
-                  </span>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  {member.specialTickets && member.specialTickets.length > 0 ? (
-                    <div className="flex flex-wrap gap-1">
-                      {member.specialTickets.map((ticket, idx) => (
-                        <span key={idx} className="px-2 py-1 bg-[#7626c6] text-white text-xs rounded">
-                          {ticket}
-                        </span>
-                      ))}
-                    </div>
-                  ) : (
-                    <span className="text-sm text-gray-400">No tickets assigned</span>
-                  )}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {member.lastActive}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-right">
-                  <div className="flex items-center justify-end gap-2">
-                    <button 
-                      type="button"
-                      onClick={() => {
-                        setSelectedMember(member.id);
-                        setShowTicketModal(true);
-                      }}
-                      className="p-2 hover:bg-purple-50 rounded-lg transition-colors"
-                      title="Assign Special Tickets"
-                      aria-haspopup="dialog"
-                      aria-expanded={showTicketModal && selectedMember === member.id}
-                    >
-                      <Ticket className="w-4 h-4 text-[#7626c6]" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => openEditModal(member)}
-                      className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                      aria-label={`Edit ${member.name}`}
-                      aria-haspopup="dialog"
-                      aria-expanded={showEditModal && editingMemberId === member.id}
-                    >
-                      <Edit2 className="w-4 h-4 text-gray-600" />
-                    </button>
-                    <button type="button" className="p-2 hover:bg-red-50 rounded-lg transition-colors" aria-label={`Remove ${member.name}`}>
-                      <Trash2 className="w-4 h-4 text-red-600" />
-                    </button>
-                  </div>
-                </td>
-              </tr>
-              ))}
-            </tbody>
-          </table>
-        </ContentState>
-      </div>
-
-      {/* On-Site Tools */}
-      <div className="bg-white rounded-xl border border-gray-200 p-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-6">On-Site Event Tools</h2>
-
-        <div className="grid grid-cols-3 gap-6">
-          <div className="p-6 border border-gray-300 rounded-lg hover:border-[#7626c6] transition-colors">
-            <div className="p-3 bg-blue-100 rounded-lg w-fit mb-4">
-              <QrCode className="w-6 h-6 text-blue-600" />
-            </div>
-            <h3 className="font-semibold text-gray-900 mb-2">Organizer App</h3>
-            <p className="text-sm text-gray-600 mb-4">
-              Mobile app for QR code scanning and live check-in counts
+    <div className="min-h-full bg-[#f7f5fb] p-6 md:p-8">
+      <div className="mx-auto flex max-w-7xl flex-col gap-6">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+          <div>
+            <h1 className="text-3xl font-semibold tracking-tight text-gray-950">Team Management</h1>
+            <p className="mt-2 max-w-2xl text-sm text-gray-600 md:text-base">
+              Clarify organizer permissions, review event-by-event access, and track every pending invite from one workspace.
             </p>
-            <div className="flex gap-2">
-              <button type="button" className="text-sm px-3 py-1 bg-gray-900 text-white rounded hover:bg-gray-800 transition-colors">
-                iOS
-              </button>
-              <button type="button" className="text-sm px-3 py-1 bg-gray-900 text-white rounded hover:bg-gray-800 transition-colors">
-                Android
-              </button>
-            </div>
           </div>
-
-          <div className="p-6 border border-gray-300 rounded-lg hover:border-[#7626c6] transition-colors">
-            <div className="p-3 bg-green-100 rounded-lg w-fit mb-4">
-              <CreditCardIcon className="w-6 h-6 text-green-600" />
-            </div>
-            <h3 className="font-semibold text-gray-900 mb-2">At-the-Door Sales</h3>
-            <p className="text-sm text-gray-600 mb-4">
-              Accept payments on-site with card readers
-            </p>
-            <button type="button" className="text-sm px-4 py-2 bg-[#7626c6] text-white btn-glass rounded hover:bg-[#5f1fa3] transition-colors">
-              Get Card Reader
-            </button>
-          </div>
-
-          <div className="p-6 border border-gray-300 rounded-lg hover:border-[#7626c6] transition-colors">
-            <div className="p-3 bg-purple-100 rounded-lg w-fit mb-4">
-              <Shield className="w-6 h-6 text-purple-600" />
-            </div>
-            <h3 className="font-semibold text-gray-900 mb-2">Guest List Manager</h3>
-            <p className="text-sm text-gray-600 mb-4">
-              Manage VIP lists and special access
-            </p>
-            <button type="button" className="text-sm px-4 py-2 border border-gray-300 rounded hover:bg-gray-50 transition-colors">
-              Manage Lists
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Invite Modal */}
-      {showInviteModal && (
-        <div
-          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4 sm:px-6"
-          onClick={() => {
-            setShowInviteModal(false);
-            setInviteError('');
-          }}
-        >
-          <div
-            ref={inviteDialogRef}
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby={inviteTitleId}
-            aria-describedby={inviteDescriptionId}
-            tabIndex={-1}
-            className="bg-white rounded-xl p-6 max-w-md w-full"
-            onClick={(event) => event.stopPropagation()}
+          <button
+            type="button"
+            onClick={openInviteModal}
+            className="inline-flex w-fit items-center gap-2 self-start rounded-xl bg-[#7626c6] px-4 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-[#5f1fa3] lg:self-auto"
           >
-            <h2 id={inviteTitleId} className="text-xl font-semibold text-gray-900 mb-4">Invite Team Member</h2>
-            <p id={inviteDescriptionId} className="sr-only">Add an email, role, and event access, then send invite.</p>
+            <Plus className="h-4 w-4" />
+            Invite Team Member
+          </button>
+        </div>
 
-            <div className="space-y-4">
-              <div>
-                <label htmlFor={getFieldId('invite-email')} className="block text-sm font-medium text-gray-700 mb-2">
-                  Email Address
-                </label>
-                <input
-                  id={getFieldId('invite-email')}
-                  type="email"
-                  value={inviteEmail}
-                  onChange={(event) => {
-                    setInviteEmail(event.target.value);
-                    if (inviteError) setInviteError('');
-                  }}
-                  placeholder="colleague@example.com"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7626c6] focus:border-transparent"
+        {notice ? (
+          <div className="rounded-2xl border border-[#7626c6]/20 bg-[#f5ecfd] px-4 py-3 text-sm font-medium text-[#7626c6]" aria-live="polite">
+            {notice}
+          </div>
+        ) : null}
+
+        <div className="grid grid-cols-4 gap-4">
+          {(['admin', 'marketing', 'operations', 'custom'] as const).map((preset) => (
+            <PresetCard
+              key={preset}
+              preset={preset}
+              memberCount={presetCounts[preset]}
+            />
+          ))}
+        </div>
+
+        <div className="grid gap-6 xl:grid-cols-[minmax(0,1.55fr)_380px]">
+          <div className="space-y-6">
+            <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+              <div className="mb-5 flex items-start justify-between gap-3 border-b border-gray-100 pb-4">
+                <div>
+                  <h2 className="text-xl font-semibold text-gray-900">Pending Invites</h2>
+                  <p className="mt-1 text-sm text-gray-500">
+                    Track invite delivery, resend pending access, and expire outdated links.
+                  </p>
+                </div>
+                <div className="rounded-full bg-[#f5ecfd] px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-[#7626c6]">
+                  {pendingInvites.length} pending
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <ContentState isEmpty={pendingInvites.length === 0} emptyMessage="No pending invites." className="py-14">
+                  {pendingInvites.map((invite) => (
+                    <div key={invite.id} className="rounded-2xl border border-gray-200 p-4">
+                      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                        <div>
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="text-sm font-semibold text-gray-900">{invite.email}</span>
+                            <StatusBadge status={invite.status} />
+                            <RoleBadge preset={invite.preset} customRoleName={invite.customRoleName} />
+                          </div>
+                          <p className="mt-2 text-sm text-gray-600">
+                            Access: {getAccessLabel(invite.access)}
+                          </p>
+                          <p className="mt-1 text-xs uppercase tracking-[0.18em] text-gray-500">{invite.sentAt}</p>
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          <button
+                            type="button"
+                            onClick={() => handleResendInvite(invite.id)}
+                            aria-label={`Resend invite for ${invite.email}`}
+                            className="rounded-lg border border-gray-300 px-3 py-2 text-sm transition hover:bg-gray-50"
+                          >
+                            Resend Invite
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleExpireInvite(invite.id)}
+                            aria-label={`Expire invite for ${invite.email}`}
+                            className="rounded-lg border border-red-200 px-3 py-2 text-sm text-red-600 transition hover:bg-red-50"
+                          >
+                            Expire
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </ContentState>
+              </div>
+            </section>
+
+            <section className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
+              <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4">
+                <div>
+                  <h2 className="text-xl font-semibold text-gray-900">Team Members</h2>
+                  <p className="mt-1 text-sm text-gray-500">Review role preset, event access scope, and special tickets per teammate.</p>
+                </div>
+              </div>
+
+              <ContentState isEmpty={teamMembers.length === 0} emptyMessage="No team members found." className="m-6 py-14">
+                <table className="w-full">
+                  <thead className="border-b border-gray-200 bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Member</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Preset</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Event Access</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Special Tickets</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Last Active</th>
+                      <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200">
+                    {teamMembers.map((member) => (
+                      <tr
+                        key={member.id}
+                        className={`transition hover:bg-gray-50 ${selectedMemberId === member.id ? 'bg-[#faf5ff]' : ''}`}
+                      >
+                        <td className="whitespace-nowrap px-6 py-4">
+                          <button
+                            type="button"
+                            onClick={() => setSelectedMemberId(member.id)}
+                            className="flex items-center text-left"
+                            aria-label={`Select ${member.name}`}
+                          >
+                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#7626c6] font-medium text-white">
+                              {member.name
+                                .split(' ')
+                                .map((token) => token[0])
+                                .join('')}
+                            </div>
+                            <div className="ml-4">
+                              <div className="font-medium text-gray-900">{member.name}</div>
+                              <div className="text-sm text-gray-500">{member.email}</div>
+                            </div>
+                          </button>
+                        </td>
+                        <td className="whitespace-nowrap px-6 py-4">
+                          <RoleBadge preset={member.preset} customRoleName={member.customRoleName} />
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-600">
+                          {getAccessLabel(member.events)}
+                        </td>
+                        <td className="px-6 py-4">
+                          {member.specialTickets.length > 0 ? (
+                            <div className="flex flex-wrap gap-1.5">
+                              {member.specialTickets.map((ticketName) => (
+                                <span key={ticketName} className="rounded-full bg-[#f5ecfd] px-2.5 py-1 text-xs font-medium text-[#7626c6]">
+                                  {ticketName}
+                                </span>
+                              ))}
+                            </div>
+                          ) : (
+                            <span className="text-sm text-gray-400">No tickets assigned</span>
+                          )}
+                        </td>
+                        <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">{member.lastActive}</td>
+                        <td className="whitespace-nowrap px-6 py-4">
+                          <div className="flex items-center justify-end gap-2">
+                            <button
+                              type="button"
+                              onClick={() => openTicketModal(member)}
+                              className="rounded-lg p-2 transition hover:bg-violet-50"
+                              aria-label={`Assign tickets for ${member.name}`}
+                            >
+                              <Ticket className="h-4 w-4 text-[#7626c6]" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => openEditModal(member)}
+                              className="rounded-lg p-2 transition hover:bg-gray-100"
+                              aria-label={`Edit ${member.name}`}
+                            >
+                              <Edit2 className="h-4 w-4 text-gray-600" />
+                            </button>
+                            {member.status !== 'owner' ? (
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveMember(member.id)}
+                                className="rounded-lg p-2 transition hover:bg-red-50"
+                                aria-label={`Remove ${member.name}`}
+                              >
+                                <Trash2 className="h-4 w-4 text-red-600" />
+                              </button>
+                            ) : null}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </ContentState>
+            </section>
+          </div>
+
+          <aside className="space-y-6">
+            <PanelCard
+              title="On-Site Tools"
+              description="Operational tools tied to organizer permissions."
+              badge="Ops"
+            >
+              <div className="grid gap-3 md:grid-cols-3">
+                <ToolRow
+                  icon={QrCode}
+                  title="Organizer App"
+                  description="QR scanning, check-in counts, and live attendee flow."
+                />
+                <ToolRow
+                  icon={Ticket}
+                  title="Guest List Manager"
+                  description="Assign special access, staff comps, and VIP guest handling."
+                />
+                <ToolRow
+                  icon={Users}
+                  title="Coverage Planning"
+                  description="Match roles and event access before doors open."
                 />
               </div>
+            </PanelCard>
+          </aside>
+        </div>
 
-              <div>
-                <label htmlFor={getFieldId('invite-role')} className="block text-sm font-medium text-gray-700 mb-2">
-                  Role
-                </label>
-                <select
-                  id={getFieldId('invite-role')}
-                  value={inviteRole}
-                  onChange={(event) => {
-                    setInviteRole(event.target.value as InviteRole);
-                    if (inviteError) setInviteError('');
-                  }}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7626c6] focus:border-transparent"
-                >
-                  <option value="admin">Admin - Full access</option>
-                  <option value="marketing">Marketing - Marketing tools only</option>
-                  <option value="operations">Operations - Check-in access</option>
-                  <option value="custom">Custom role</option>
-                </select>
-              </div>
+        {showInviteModal ? (
+          <ModalShell onClose={closeInviteModal}>
+            <div
+              ref={inviteDialogRef}
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby={inviteTitleId}
+              aria-describedby={inviteDescriptionId}
+              tabIndex={-1}
+              className="w-full max-w-2xl rounded-2xl bg-white p-6 shadow-2xl"
+            >
+              <h2 id={inviteTitleId} className="text-xl font-semibold text-gray-900">Invite Team Member</h2>
+              <p id={inviteDescriptionId} className="mt-1 text-sm text-gray-600">
+                Assign a permission preset and event scope before sending access.
+              </p>
 
-              {inviteRole === 'custom' && (
-                <div>
-                  <label htmlFor={getFieldId('invite-custom-role')} className="block text-sm font-medium text-gray-700 mb-2">
-                    Custom Role Name
-                  </label>
+              <div className="mt-5 grid gap-4 md:grid-cols-2">
+                <Field label="Email Address" htmlFor={getFieldId('invite-email')}>
                   <input
-                    id={getFieldId('invite-custom-role')}
-                    type="text"
-                    value={inviteCustomRole}
+                    id={getFieldId('invite-email')}
+                    type="email"
+                    value={inviteEmail}
                     onChange={(event) => {
-                      setInviteCustomRole(event.target.value);
+                      setInviteEmail(event.target.value);
                       if (inviteError) setInviteError('');
                     }}
-                    placeholder="e.g. Sponsorship Manager"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7626c6] focus:border-transparent"
+                    placeholder="colleague@example.com"
+                    className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-transparent focus:ring-2 focus:ring-[#7626c6]"
                   />
-                </div>
-              )}
-
-              <div>
-                <label htmlFor={getFieldId('invite-access')} className="block text-sm font-medium text-gray-700 mb-2">
-                  Event Access
-                </label>
-                <select
-                  id={getFieldId('invite-access')}
-                  value={inviteAccess}
-                  onChange={(event) => {
-                    setInviteAccess(event.target.value);
-                    if (inviteError) setInviteError('');
-                  }}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7626c6] focus:border-transparent"
-                >
-                  <option value="all">All events</option>
-                  {availableEventOptions.map((eventName) => (
-                    <option key={eventName} value={eventName}>
-                      {eventName}
-                    </option>
-                  ))}
-                </select>
+                </Field>
+                <Field label="Permission Preset" htmlFor={getFieldId('invite-preset')}>
+                  <select
+                    id={getFieldId('invite-preset')}
+                    value={invitePreset}
+                    onChange={(event) => setInvitePreset(event.target.value as PermissionPreset)}
+                    className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-transparent focus:ring-2 focus:ring-[#7626c6]"
+                  >
+                    <option value="admin">Admin</option>
+                    <option value="marketing">Marketing</option>
+                    <option value="operations">Operations</option>
+                    <option value="custom">Custom</option>
+                  </select>
+                </Field>
               </div>
 
-              {inviteError && (
-                <p className="text-sm text-red-600" role="alert">{inviteError}</p>
-              )}
+              {invitePreset === 'custom' ? (
+                <div className="mt-4">
+                  <Field label="Custom Role Name" htmlFor={getFieldId('invite-custom-role')}>
+                    <input
+                      id={getFieldId('invite-custom-role')}
+                      type="text"
+                      value={inviteCustomRole}
+                      onChange={(event) => setInviteCustomRole(event.target.value)}
+                      placeholder="e.g. Finance Reviewer"
+                      className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-transparent focus:ring-2 focus:ring-[#7626c6]"
+                    />
+                  </Field>
+                </div>
+              ) : null}
 
-              <div className="pt-4 flex gap-3">
+              <div className="mt-4">
+                <div className="mb-2 text-sm font-medium text-gray-700">Event Access</div>
+                <div className="flex items-center gap-2 rounded-lg bg-gray-100 p-1">
+                  <button
+                    type="button"
+                    onClick={() => setInviteAccessMode('all')}
+                    className={`rounded-md px-3 py-2 text-sm font-medium transition ${inviteAccessMode === 'all' ? 'bg-white text-[#7626c6] shadow-sm' : 'text-gray-600'}`}
+                  >
+                    All Events
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setInviteAccessMode('selected')}
+                    className={`rounded-md px-3 py-2 text-sm font-medium transition ${inviteAccessMode === 'selected' ? 'bg-white text-[#7626c6] shadow-sm' : 'text-gray-600'}`}
+                  >
+                    Selected Events
+                  </button>
+                </div>
+              </div>
+
+              {inviteAccessMode === 'selected' ? (
+                <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                  {availableEventOptions.map((eventName) => (
+                    <label
+                      key={eventName}
+                      htmlFor={getFieldId(`invite-event-${eventName}`)}
+                      className={`cursor-pointer rounded-xl border p-3 transition ${
+                        inviteSelectedEvents.includes(eventName)
+                          ? 'border-[#7626c6]/30 bg-[#faf5ff]'
+                          : 'border-gray-200 hover:border-[#7626c6]/20'
+                      }`}
+                    >
+                      <div className="flex items-start gap-3">
+                        <input
+                          id={getFieldId(`invite-event-${eventName}`)}
+                          type="checkbox"
+                          checked={inviteSelectedEvents.includes(eventName)}
+                          onChange={() => setInviteSelectedEvents((currentValues) => toggleEventSelection(currentValues, eventName))}
+                          className="mt-1 rounded"
+                        />
+                        <span className="text-sm font-medium text-gray-900">{eventName}</span>
+                      </div>
+                    </label>
+                  ))}
+                </div>
+              ) : null}
+
+              {inviteError ? <p className="mt-4 text-sm text-red-600" role="alert">{inviteError}</p> : null}
+
+              <div className="mt-6 flex justify-end gap-3 border-t border-gray-200 pt-5">
                 <button
                   type="button"
-                  onClick={() => {
-                    setShowInviteModal(false);
-                    setInviteError('');
-                  }}
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                  onClick={closeInviteModal}
+                  className="rounded-lg border border-gray-300 px-4 py-2 transition hover:bg-gray-50"
                 >
                   Cancel
                 </button>
                 <button
                   type="button"
                   onClick={handleSendInvite}
-                  disabled={inviteLoading}
-                  className="flex-1 px-4 py-2 bg-[#7626c6] text-white btn-glass rounded-lg hover:bg-[#5f1fa3] transition-colors"
+                  className="inline-flex items-center gap-2 rounded-lg bg-[#7626c6] px-4 py-2 text-white transition hover:bg-[#5f1fa3]"
                 >
+                  <Mail className="h-4 w-4" />
                   Send Invite
                 </button>
               </div>
             </div>
-            <div className="sr-only" aria-live="polite">
-              {inviteError}
-            </div>
-          </div>
-        </div>
-      )}
+          </ModalShell>
+        ) : null}
 
-      {/* Edit Team Member Modal */}
-      {showEditModal && (
-        <div
-          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4 sm:px-6"
-          onClick={closeEditModal}
-        >
-          <div
-            ref={editDialogRef}
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby={editTitleId}
-            aria-describedby={editDescriptionId}
-            tabIndex={-1}
-            className="bg-white rounded-xl p-6 max-w-md w-full"
-            onClick={(event) => event.stopPropagation()}
-          >
-            <h2 id={editTitleId} className="text-xl font-semibold text-gray-900 mb-4">Edit Team Member</h2>
-            <p id={editDescriptionId} className="sr-only">Update member details and save changes.</p>
+        {showEditModal ? (
+          <ModalShell onClose={closeEditModal}>
+            <div
+              ref={editDialogRef}
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby={editTitleId}
+              aria-describedby={editDescriptionId}
+              tabIndex={-1}
+              className="w-full max-w-2xl rounded-2xl bg-white p-6 shadow-2xl"
+            >
+              <h2 id={editTitleId} className="text-xl font-semibold text-gray-900">Edit Team Member</h2>
+              <p id={editDescriptionId} className="mt-1 text-sm text-gray-600">
+                Update role preset and event access for this teammate.
+              </p>
 
-            <div className="space-y-4">
-              <div>
-                <label htmlFor={getFieldId('edit-full-name')} className="block text-sm font-medium text-gray-700 mb-2">
-                  Full Name
-                </label>
-                <input
-                  id={getFieldId('edit-full-name')}
-                  type="text"
-                  value={editName}
-                  onChange={(event) => {
-                    setEditName(event.target.value);
-                    if (editError) setEditError('');
-                  }}
-                  placeholder="Member full name"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7626c6] focus:border-transparent"
-                />
+              <div className="mt-5 grid gap-4 md:grid-cols-2">
+                <Field label="Full Name" htmlFor={getFieldId('edit-name')}>
+                  <input
+                    id={getFieldId('edit-name')}
+                    type="text"
+                    value={editName}
+                    onChange={(event) => setEditName(event.target.value)}
+                    className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-transparent focus:ring-2 focus:ring-[#7626c6]"
+                  />
+                </Field>
+                <Field label="Email Address" htmlFor={getFieldId('edit-email')}>
+                  <input
+                    id={getFieldId('edit-email')}
+                    type="email"
+                    value={editEmail}
+                    onChange={(event) => setEditEmail(event.target.value)}
+                    className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-transparent focus:ring-2 focus:ring-[#7626c6]"
+                  />
+                </Field>
               </div>
 
-              <div>
-                <label htmlFor={getFieldId('edit-email')} className="block text-sm font-medium text-gray-700 mb-2">
-                  Email Address
-                </label>
-                <input
-                  id={getFieldId('edit-email')}
-                  type="email"
-                  value={editEmail}
-                  onChange={(event) => {
-                    setEditEmail(event.target.value);
-                    if (editError) setEditError('');
-                  }}
-                  placeholder="member@example.com"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7626c6] focus:border-transparent"
-                />
+              <div className="mt-4 grid gap-4 md:grid-cols-2">
+                <Field label="Permission Preset" htmlFor={getFieldId('edit-preset')}>
+                  <select
+                    id={getFieldId('edit-preset')}
+                    value={editPreset}
+                    onChange={(event) => setEditPreset(event.target.value as PermissionPreset)}
+                    className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-transparent focus:ring-2 focus:ring-[#7626c6]"
+                  >
+                    <option value="admin">Admin</option>
+                    <option value="marketing">Marketing</option>
+                    <option value="operations">Operations</option>
+                    <option value="custom">Custom</option>
+                  </select>
+                </Field>
+                {editPreset === 'custom' ? (
+                  <Field label="Custom Role Name" htmlFor={getFieldId('edit-custom-role')}>
+                    <input
+                      id={getFieldId('edit-custom-role')}
+                      type="text"
+                      value={editCustomRole}
+                      onChange={(event) => setEditCustomRole(event.target.value)}
+                      className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-transparent focus:ring-2 focus:ring-[#7626c6]"
+                    />
+                  </Field>
+                ) : <div />}
               </div>
 
-              <div>
-                <label htmlFor={getFieldId('edit-role')} className="block text-sm font-medium text-gray-700 mb-2">
-                  Role
-                </label>
-                <select
-                  id={getFieldId('edit-role')}
-                  value={editRole}
-                  onChange={(event) => setEditRole(event.target.value as TeamMemberRole)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7626c6] focus:border-transparent"
-                >
-                  <option value="Admin">Admin</option>
-                  <option value="Marketing">Marketing</option>
-                  <option value="Operations">Operations</option>
-                </select>
+              <div className="mt-4">
+                <div className="mb-2 text-sm font-medium text-gray-700">Event Access</div>
+                <div className="flex items-center gap-2 rounded-lg bg-gray-100 p-1">
+                  <button
+                    type="button"
+                    onClick={() => setEditAccessMode('all')}
+                    className={`rounded-md px-3 py-2 text-sm font-medium transition ${editAccessMode === 'all' ? 'bg-white text-[#7626c6] shadow-sm' : 'text-gray-600'}`}
+                  >
+                    All Events
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setEditAccessMode('selected')}
+                    className={`rounded-md px-3 py-2 text-sm font-medium transition ${editAccessMode === 'selected' ? 'bg-white text-[#7626c6] shadow-sm' : 'text-gray-600'}`}
+                  >
+                    Selected Events
+                  </button>
+                </div>
               </div>
 
-              {editError && (
-                <p className="text-sm text-red-600" role="alert">{editError}</p>
-              )}
+              {editAccessMode === 'selected' ? (
+                <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                  {availableEventOptions.map((eventName) => (
+                    <label
+                      key={eventName}
+                      htmlFor={getFieldId(`edit-event-${eventName}`)}
+                      className={`cursor-pointer rounded-xl border p-3 transition ${
+                        editSelectedEvents.includes(eventName)
+                          ? 'border-[#7626c6]/30 bg-[#faf5ff]'
+                          : 'border-gray-200 hover:border-[#7626c6]/20'
+                      }`}
+                    >
+                      <div className="flex items-start gap-3">
+                        <input
+                          id={getFieldId(`edit-event-${eventName}`)}
+                          type="checkbox"
+                          checked={editSelectedEvents.includes(eventName)}
+                          onChange={() => setEditSelectedEvents((currentValues) => toggleEventSelection(currentValues, eventName))}
+                          className="mt-1 rounded"
+                        />
+                        <span className="text-sm font-medium text-gray-900">{eventName}</span>
+                      </div>
+                    </label>
+                  ))}
+                </div>
+              ) : null}
 
-              <div className="pt-4 flex gap-3">
+              {editError ? <p className="mt-4 text-sm text-red-600" role="alert">{editError}</p> : null}
+
+              <div className="mt-6 flex justify-end gap-3 border-t border-gray-200 pt-5">
                 <button
                   type="button"
                   onClick={closeEditModal}
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                  className="rounded-lg border border-gray-300 px-4 py-2 transition hover:bg-gray-50"
                 >
                   Cancel
                 </button>
                 <button
                   type="button"
                   onClick={handleSaveMemberEdit}
-                  className="flex-1 px-4 py-2 bg-[#7626c6] text-white btn-glass rounded-lg hover:bg-[#5f1fa3] transition-colors"
+                  className="rounded-lg bg-[#7626c6] px-4 py-2 text-white transition hover:bg-[#5f1fa3]"
                 >
                   Save Changes
                 </button>
               </div>
             </div>
-            <div className="sr-only" aria-live="polite">
-              {editError}
-            </div>
-          </div>
-        </div>
-      )}
+          </ModalShell>
+        ) : null}
 
-      {/* Special Ticket Assignment Modal */}
-      {showTicketModal && (
-        <div
-          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4 sm:px-6"
-          onClick={() => {
-            setShowTicketModal(false);
-            setSelectedMember(null);
-          }}
-        >
-          <div
-            ref={ticketDialogRef}
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby={ticketTitleId}
-            aria-describedby={ticketDescriptionId}
-            tabIndex={-1}
-            className="bg-white rounded-xl p-6 max-w-lg w-full"
-            onClick={(event) => event.stopPropagation()}
-          >
-            <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 bg-[#7626c6] rounded-lg">
-                <Ticket className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <h2 id={ticketTitleId} className="text-xl font-semibold text-gray-900">Assign Special Tickets</h2>
-                <p id={ticketDescriptionId} className="text-sm text-gray-600">
-                  {selectedMember && teamMembers.find(m => m.id === selectedMember)?.name}
-                </p>
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              <div>
-                <label htmlFor={getFieldId('ticket-event')} className="block text-sm font-medium text-gray-700 mb-2">
-                  Select Event
-                </label>
-                <select id={getFieldId('ticket-event')} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7626c6] focus:border-transparent">
-                  <option>Summer Music Festival 2026</option>
-                  <option>Tech Conference 2026</option>
-                  <option>Food & Wine Expo</option>
-                  <option>Art Gallery Opening</option>
-                </select>
-              </div>
-
-              <div>
-                <p className="block text-sm font-medium text-gray-700 mb-3">
-                  Available Ticket Types
-                </p>
-                <div className="space-y-2">
-                  <label className="flex items-center p-3 border border-gray-200 rounded-lg hover:bg-purple-50 cursor-pointer transition-colors">
-                    <input type="checkbox" className="w-4 h-4 text-[#7626c6] rounded focus:ring-[#7626c6]" />
-                    <div className="ml-3 flex-1">
-                      <div className="font-medium text-gray-900">VIP Access</div>
-                      <div className="text-xs text-gray-500">Backstage + front row seating</div>
-                    </div>
-                    <span className="text-sm text-gray-600">$250</span>
-                  </label>
-
-                  <label className="flex items-center p-3 border border-gray-200 rounded-lg hover:bg-purple-50 cursor-pointer transition-colors">
-                    <input type="checkbox" className="w-4 h-4 text-[#7626c6] rounded focus:ring-[#7626c6]" />
-                    <div className="ml-3 flex-1">
-                      <div className="font-medium text-gray-900">All Access Pass</div>
-                      <div className="text-xs text-gray-500">Complete event access</div>
-                    </div>
-                    <span className="text-sm text-gray-600">$500</span>
-                  </label>
-
-                  <label className="flex items-center p-3 border border-gray-200 rounded-lg hover:bg-purple-50 cursor-pointer transition-colors">
-                    <input type="checkbox" className="w-4 h-4 text-[#7626c6] rounded focus:ring-[#7626c6]" />
-                    <div className="ml-3 flex-1">
-                      <div className="font-medium text-gray-900">Staff Pass</div>
-                      <div className="text-xs text-gray-500">Working crew access</div>
-                    </div>
-                    <span className="text-sm text-gray-600">Free</span>
-                  </label>
-
-                  <label className="flex items-center p-3 border border-gray-200 rounded-lg hover:bg-purple-50 cursor-pointer transition-colors">
-                    <input type="checkbox" className="w-4 h-4 text-[#7626c6] rounded focus:ring-[#7626c6]" />
-                    <div className="ml-3 flex-1">
-                      <div className="font-medium text-gray-900">Media Pass</div>
-                      <div className="text-xs text-gray-500">Press & photographer access</div>
-                    </div>
-                    <span className="text-sm text-gray-600">Free</span>
-                  </label>
-
-                  <label className="flex items-center p-3 border border-gray-200 rounded-lg hover:bg-purple-50 cursor-pointer transition-colors">
-                    <input type="checkbox" className="w-4 h-4 text-[#7626c6] rounded focus:ring-[#7626c6]" />
-                    <div className="ml-3 flex-1">
-                      <div className="font-medium text-gray-900">Comp Ticket</div>
-                      <div className="text-xs text-gray-500">Complimentary general admission</div>
-                    </div>
-                    <span className="text-sm text-gray-600">Free</span>
-                  </label>
+        {showTicketModal && selectedMember ? (
+          <ModalShell onClose={closeTicketModal}>
+            <div
+              ref={ticketDialogRef}
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby={ticketTitleId}
+              aria-describedby={ticketDescriptionId}
+              tabIndex={-1}
+              className="w-full max-w-xl rounded-2xl bg-white p-6 shadow-2xl"
+            >
+              <div className="mb-4 flex items-center gap-3">
+                <div className="rounded-xl bg-[#7626c6] p-2">
+                  <Ticket className="h-5 w-5 text-white" />
+                </div>
+                <div>
+                  <h2 id={ticketTitleId} className="text-xl font-semibold text-gray-900">Assign Special Tickets</h2>
+                  <p id={ticketDescriptionId} className="text-sm text-gray-600">{selectedMember.name}</p>
                 </div>
               </div>
 
-              <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
-                <div className="flex items-start gap-3">
-                  <svg className="w-5 h-5 text-purple-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  <p className="text-sm text-purple-800">
-                    Special tickets assigned to team members will be automatically generated and sent to their email.
-                  </p>
-                </div>
+              <div className="space-y-3">
+                {availableSpecialTickets.map((ticketName) => (
+                  <label
+                    key={ticketName}
+                    htmlFor={getFieldId(`ticket-${ticketName}`)}
+                    className={`flex cursor-pointer items-center justify-between rounded-xl border p-3 transition ${
+                      ticketSelections.includes(ticketName)
+                        ? 'border-[#7626c6]/30 bg-[#faf5ff]'
+                        : 'border-gray-200 hover:border-[#7626c6]/20'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <input
+                        id={getFieldId(`ticket-${ticketName}`)}
+                        type="checkbox"
+                        checked={ticketSelections.includes(ticketName)}
+                        onChange={() =>
+                          setTicketSelections((currentSelections) => toggleEventSelection(currentSelections, ticketName))
+                        }
+                        className="rounded"
+                      />
+                      <span className="text-sm font-medium text-gray-900">{ticketName}</span>
+                    </div>
+                  </label>
+                ))}
               </div>
 
-              <div className="pt-4 flex gap-3">
+              <div className="mt-6 flex justify-end gap-3 border-t border-gray-200 pt-5">
                 <button
                   type="button"
-                  onClick={() => {
-                    setShowTicketModal(false);
-                    setSelectedMember(null);
-                  }}
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                  onClick={closeTicketModal}
+                  className="rounded-lg border border-gray-300 px-4 py-2 transition hover:bg-gray-50"
                 >
                   Cancel
                 </button>
                 <button
                   type="button"
-                  onClick={() => {
-                    setShowTicketModal(false);
-                    setSelectedMember(null);
-                  }}
-                  className="flex-1 px-4 py-2 bg-[#7626c6] text-white btn-glass rounded-lg hover:bg-[#5f1fa3] transition-colors"
+                  onClick={saveTicketAssignments}
+                  className="rounded-lg bg-[#7626c6] px-4 py-2 text-white transition hover:bg-[#5f1fa3]"
                 >
                   Assign Tickets
                 </button>
               </div>
             </div>
-          </div>
-        </div>
-      )}
+          </ModalShell>
+        ) : null}
       </div>
     </div>
   );
 }
 
-const defaultEventOptions = [
-  'Summer Music Festival 2026',
-  'Tech Conference 2026',
-  'Food & Wine Expo',
-  'Georim Founders Circle'
-];
+function PresetCard({ preset, memberCount }: { preset: PermissionPreset; memberCount: number }) {
+  const definition = presetDefinitions[preset];
+  const Icon = preset === 'admin' ? Shield : preset === 'marketing' ? Mail : preset === 'operations' ? QrCode : Sparkles;
 
-const mockTeamMembers: TeamMember[] = [
-  {
-    id: '1',
-    name: 'John Doe',
-    email: 'john@eventcompany.com',
-    role: 'Admin',
-    events: [],
-    specialTickets: ['VIP Access', 'All Access Pass'],
-    lastActive: '2 hours ago'
-  },
-  {
-    id: '2',
-    name: 'Sarah Miller',
-    email: 'sarah.m@eventcompany.com',
-    role: 'Admin',
-    events: [],
-    specialTickets: ['All Access Pass'],
-    lastActive: 'Yesterday'
-  },
-  {
-    id: '3',
-    name: 'Mike Johnson',
-    email: 'mike.j@eventcompany.com',
-    role: 'Marketing',
-    events: ['Summer Music Festival'],
-    specialTickets: ['Staff Pass', 'Media Pass'],
-    lastActive: '3 hours ago'
-  },
-  {
-    id: '4',
-    name: 'Emma Wilson',
-    email: 'emma.w@eventcompany.com',
-    role: 'Marketing',
-    events: ['Tech Conference', 'Food Expo'],
-    specialTickets: [],
-    lastActive: 'Today'
-  },
-  {
-    id: '5',
-    name: 'Chris Brown',
-    email: 'chris.b@eventcompany.com',
-    role: 'Operations',
-    events: ['Summer Music Festival'],
-    specialTickets: ['Staff Pass'],
-    lastActive: '5 mins ago'
-  }
-];
+  return (
+    <div className="h-full rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+      <div className="mb-4 flex items-start justify-between">
+        <div className={`rounded-2xl p-3 ${definition.cardTone}`}>
+          <Icon className="h-5 w-5 text-gray-900" />
+        </div>
+        <span className="text-sm text-gray-500">{memberCount} assigned</span>
+      </div>
+      <h3 className="text-lg font-semibold text-gray-900">{definition.label}</h3>
+      <p className="mt-2 text-sm text-gray-600">{definition.description}</p>
+      <div className="mt-4 space-y-2">
+        {definition.bullets.map((bullet) => (
+          <div key={bullet} className="flex items-start gap-2 text-sm text-gray-700">
+            <span className="mt-1 h-1.5 w-1.5 rounded-full bg-[#7626c6]" />
+            <span>{bullet}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function RoleBadge({ preset, customRoleName }: { preset: PermissionPreset; customRoleName?: string }) {
+  const definition = presetDefinitions[preset];
+  return (
+    <span className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${definition.badgeClass}`}>
+      {getPresetLabel(preset, customRoleName)}
+    </span>
+  );
+}
+
+function StatusBadge({ status }: { status: InviteStatus }) {
+  const className =
+    status === 'pending'
+      ? 'bg-amber-100 text-amber-700'
+      : status === 'sent'
+        ? 'bg-emerald-100 text-emerald-700'
+        : 'bg-slate-200 text-slate-700';
+
+  return <span className={`inline-flex rounded-full px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] ${className}`}>{status}</span>;
+}
+
+function PanelCard({
+  title,
+  description,
+  badge,
+  children,
+}: {
+  title: string;
+  description: string;
+  badge: string;
+  children: ReactNode;
+}) {
+  return (
+    <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+      <div className="mb-5 flex items-start justify-between gap-3 border-b border-gray-100 pb-4">
+        <div>
+          <h2 className="text-xl font-semibold text-gray-900">{title}</h2>
+          <p className="mt-1 text-sm text-gray-500">{description}</p>
+        </div>
+        <div className="rounded-full bg-[#f5ecfd] px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-[#7626c6]">
+          {badge}
+        </div>
+      </div>
+      {children}
+    </section>
+  );
+}
+
+function ToolRow({
+  icon: Icon,
+  title,
+  description,
+}: {
+  icon: typeof Users;
+  title: string;
+  description: string;
+}) {
+  return (
+    <div className="h-full rounded-xl border border-gray-200 p-4">
+      <div className="inline-flex rounded-xl bg-gray-100 p-2 text-gray-700">
+        <Icon className="h-4 w-4" />
+      </div>
+      <div className="mt-3 text-sm font-semibold text-gray-900">{title}</div>
+      <p className="mt-2 text-sm leading-6 text-gray-500">{description}</p>
+    </div>
+  );
+}
+
+function Field({
+  label,
+  htmlFor,
+  children,
+}: {
+  label: string;
+  htmlFor: string;
+  children: ReactNode;
+}) {
+  return (
+    <div>
+      <label htmlFor={htmlFor} className="mb-2 block text-sm font-medium text-gray-700">
+        {label}
+      </label>
+      {children}
+    </div>
+  );
+}
+
+function ModalShell({ children, onClose }: { children: ReactNode; onClose: () => void }) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4 sm:px-6" onClick={onClose}>
+      <div onClick={(event) => event.stopPropagation()}>{children}</div>
+    </div>
+  );
+}

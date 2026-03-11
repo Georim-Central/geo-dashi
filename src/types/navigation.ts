@@ -5,7 +5,16 @@ export type AppView =
   | 'analytics'
   | 'team'
   | 'finance'
+  | 'notification-center'
+  | 'settings'
   | 'help';
+
+export type SettingsSection =
+  | 'profile'
+  | 'security'
+  | 'payments'
+  | 'premium-subscriptions'
+  | 'notifications';
 
 export type EventManagementTab =
   | 'details'
@@ -15,3 +24,13 @@ export type EventManagementTab =
   | 'marketing'
   | 'reports'
   | 'settings';
+
+export type GlobalSearchResultType = 'event' | 'order' | 'attendee' | 'team';
+
+export type GlobalSearchResult = {
+  id: string;
+  type: GlobalSearchResultType;
+  label: string;
+  meta: string;
+  eventId?: string;
+};

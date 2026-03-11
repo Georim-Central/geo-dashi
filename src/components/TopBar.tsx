@@ -1,20 +1,42 @@
 import { Search, Bell, User } from 'lucide-react';
 import { useState } from 'react';
 import { useModalA11y } from '../hooks/useModalA11y';
+import { AppView, GlobalSearchResult } from '../types/navigation';
+import { OrganizerNotification } from '../types/notifications';
 
 interface TopBarProps {
   contextMode: 'organization' | 'event';
+  currentView: AppView;
+  searchQuery: string;
+  onSearchQueryChange: (value: string) => void;
+  searchResults: GlobalSearchResult[];
+  onSearchResultSelect: (result: GlobalSearchResult) => void;
+  notifications: OrganizerNotification[];
+  onMarkAllNotificationsRead: () => void;
+  onNotificationOpen: (notification: OrganizerNotification) => void;
+  onOpenNotificationCenter: () => void;
 }
 
-export function TopBar({ contextMode }: TopBarProps) {
+function getSearchResultBadgeClass(type: GlobalSearchResult['type']) {
+  if (type === 'event') return 'bg-[#f1e5fb] text-[#7626c6]';
+  if (type === 'order') return 'bg-emerald-100 text-emerald-700';
+  if (type === 'attendee') return 'bg-blue-100 text-blue-700';
+  return 'bg-amber-100 text-amber-700';
+}
+
+export function TopBar({
+  contextMode,
+  currentView,
+  searchQuery,
+  onSearchQueryChange,
+  searchResults,
+  onSearchResultSelect,
+  notifications,
+  onMarkAllNotificationsRead,
+  onNotificationOpen,
+  onOpenNotificationCenter
+}: TopBarProps) {
   const [showNotifications, setShowNotifications] = useState(false);
-  const [notifications, setNotifications] = useState([
-    { id: 1, type: 'order', message: 'New order: 2x VIP tickets ($240)', time: '5m ago', read: false },
-    { id: 2, type: 'ticket', message: 'Early Bird tickets 80% sold', time: '12m ago', read: false },
-    { id: 3, type: 'milestone', message: 'Event passed 1,000 attendees', time: '1h ago', read: false },
-    { id: 4, type: 'marketing', message: 'Email campaign: 94% delivery rate', time: '2h ago', read: true },
-    { id: 5, type: 'order', message: 'Refund request for Order #1234', time: '3h ago', read: true }
-  ]);
 
   const unreadCount = notifications.filter((notification) => !notification.read).length;
   const {
@@ -26,11 +48,7 @@ export function TopBar({ contextMode }: TopBarProps) {
     onClose: () => setShowNotifications(false)
   });
 
-  const markAllAsRead = () => {
-    setNotifications((currentNotifications) =>
-      currentNotifications.map((notification) => ({ ...notification, read: true }))
-    );
-  };
+  const showSearchResults = searchQuery.trim().length > 0;
 
   return (
     <div className="glass-header sticky top-0 z-20 px-8 py-4">
@@ -40,9 +58,43 @@ export function TopBar({ contextMode }: TopBarProps) {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input
               type="text"
+              aria-label="Search events, orders, attendees, and team"
               placeholder="Search events, orders, attendees..."
+              value={searchQuery}
+              onChange={(event) => onSearchQueryChange(event.target.value)}
               className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg w-96 focus:ring-2 focus:ring-[#7626c6] focus:border-transparent"
             />
+
+            {showSearchResults && (
+              <div className="absolute left-0 top-[calc(100%+10px)] z-20 w-[28rem] overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-2xl">
+                <div className="border-b border-gray-200 px-4 py-3">
+                  <div className="text-sm font-semibold text-gray-900">Search Results</div>
+                  <div className="text-xs text-gray-500">Organizer view: {currentView === 'event-management' ? 'event operations' : currentView}</div>
+                </div>
+                {searchResults.length > 0 ? (
+                  <div className="max-h-96 overflow-y-auto">
+                    {searchResults.map((result) => (
+                      <button
+                        key={result.id}
+                        type="button"
+                        onClick={() => onSearchResultSelect(result)}
+                        className="flex w-full items-start justify-between gap-3 border-b border-gray-100 px-4 py-3 text-left transition hover:bg-gray-50"
+                      >
+                        <div className="min-w-0">
+                          <div className="truncate text-sm font-medium text-gray-900">{result.label}</div>
+                          <div className="mt-1 text-xs text-gray-500">{result.meta}</div>
+                        </div>
+                        <span className={`inline-flex shrink-0 rounded-full px-2.5 py-1 text-[11px] font-semibold capitalize ${getSearchResultBadgeClass(result.type)}`}>
+                          {result.type}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="px-4 py-6 text-sm text-gray-500">No organizer results matched “{searchQuery.trim()}”.</div>
+                )}
+              </div>
+            )}
           </div>
         </div>
 
@@ -94,7 +146,7 @@ export function TopBar({ contextMode }: TopBarProps) {
                     {unreadCount > 0 && (
                       <button
                         type="button"
-                        onClick={markAllAsRead}
+                        onClick={onMarkAllNotificationsRead}
                         className="text-sm text-[#7626c6] hover:text-[#5f1fa3] font-medium"
                       >
                         Mark all read
@@ -114,6 +166,10 @@ export function TopBar({ contextMode }: TopBarProps) {
                           <button
                             key={notification.id}
                             type="button"
+                            onClick={() => {
+                              onNotificationOpen(notification);
+                              setShowNotifications(false);
+                            }}
                             className={`w-full text-left p-4 hover:bg-gray-50 transition-colors cursor-pointer ${
                               !notification.read ? 'bg-blue-50/50' : ''
                             }`}
@@ -134,21 +190,23 @@ export function TopBar({ contextMode }: TopBarProps) {
                                 </p>
                                 <div className="flex items-center gap-2 mt-1">
                                   <span
-                                    className={`px-2 py-0.5 rounded text-xs ${
-                                      notification.type === 'order'
+                                  className={`px-2 py-0.5 rounded text-xs ${
+                                      notification.category === 'order'
                                         ? 'bg-green-100 text-green-700'
-                                        : notification.type === 'ticket'
+                                        : notification.category === 'ticket'
                                         ? 'bg-blue-100 text-blue-700'
-                                        : notification.type === 'milestone'
+                                        : notification.category === 'milestone'
                                         ? 'bg-red-100 text-red-700'
-                                        : notification.type === 'marketing'
+                                        : notification.category === 'marketing'
                                         ? 'bg-purple-100 text-purple-700'
-                                        : 'bg-orange-100 text-orange-700'
+                                        : notification.category === 'finance'
+                                        ? 'bg-orange-100 text-orange-700'
+                                        : 'bg-sky-100 text-sky-700'
                                     }`}
                                   >
-                                    {notification.type}
+                                    {notification.category}
                                   </span>
-                                  <span className="text-xs text-gray-500">{notification.time}</span>
+                                  <span className="text-xs text-gray-500">{notification.timeLabel}</span>
                                 </div>
                               </div>
                             </div>
@@ -159,7 +217,14 @@ export function TopBar({ contextMode }: TopBarProps) {
                   </div>
 
                   <div className="p-3 border-t border-gray-200 bg-gray-50">
-                    <button type="button" className="text-sm text-[#7626c6] hover:text-[#5f1fa3] font-medium w-full text-center">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onOpenNotificationCenter();
+                        setShowNotifications(false);
+                      }}
+                      className="text-sm text-[#7626c6] hover:text-[#5f1fa3] font-medium w-full text-center"
+                    >
                       View all notifications
                     </button>
                   </div>

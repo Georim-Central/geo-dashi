@@ -2,6 +2,7 @@ import { ComponentType } from 'react';
 import {
   ArrowLeft,
   BarChart3,
+  Bell,
   Calendar,
   CreditCard,
   DollarSign,
@@ -11,11 +12,14 @@ import {
   QrCode,
   Repeat,
   Settings,
+  Shield,
+  Sparkles,
   Ticket,
   Users,
+  Wallet,
 } from 'lucide-react';
 
-import { AppView, EventManagementTab } from '@/types/navigation';
+import { AppView, EventManagementTab, SettingsSection } from '@/types/navigation';
 
 type SidebarIcon = ComponentType<{ className?: string }>;
 
@@ -23,6 +27,10 @@ export type SidebarNavAction =
   | {
       kind: 'view';
       view: AppView;
+    }
+  | {
+      kind: 'settings-section';
+      section: SettingsSection;
     }
   | {
       kind: 'event-tab';
@@ -63,7 +71,9 @@ interface SharedNavigationHandlers {
   onBackToOrganization: () => void;
 }
 
-type OrganizationNavigationConfig = SharedNavigationHandlers;
+interface OrganizationNavigationConfig extends SharedNavigationHandlers {
+  onSettingsSectionSelect: (section: SettingsSection) => void;
+}
 
 interface EventNavigationConfig extends SharedNavigationHandlers {
   selectedEventName?: string | null;
@@ -73,6 +83,7 @@ export const isSidebarParentItem = (item: SidebarNavItem): item is SidebarNavPar
 
 export function createOrganizationSidebarGroups({
   onBackToOrganization,
+  onSettingsSectionSelect,
 }: OrganizationNavigationConfig): SidebarNavGroup[] {
   return [
     {
@@ -110,6 +121,56 @@ export function createOrganizationSidebarGroups({
       label: 'Workspace',
       items: [
         {
+          id: 'notification-center',
+          label: 'Notification Center',
+          icon: Bell,
+          action: { kind: 'view', view: 'notification-center' },
+        },
+        {
+          id: 'settings',
+          label: 'Settings',
+          icon: Settings,
+          description: 'Contextual menu',
+          children: [
+            {
+              id: 'settings-account',
+              label: 'Account Settings',
+              items: [
+                {
+                  id: 'settings-profile',
+                  label: 'Profile',
+                  icon: Users,
+                  action: { kind: 'settings-section', section: 'profile' },
+                },
+                {
+                  id: 'settings-security',
+                  label: 'Security',
+                  icon: Shield,
+                  action: { kind: 'settings-section', section: 'security' },
+                },
+                {
+                  id: 'settings-payments',
+                  label: 'Payments',
+                  icon: Wallet,
+                  action: { kind: 'settings-section', section: 'payments' },
+                },
+                {
+                  id: 'settings-premium-subscriptions',
+                  label: 'Premium Subscriptions',
+                  icon: Sparkles,
+                  action: { kind: 'settings-section', section: 'premium-subscriptions' },
+                },
+                {
+                  id: 'settings-notifications',
+                  label: 'Notifications',
+                  icon: Bell,
+                  action: { kind: 'settings-section', section: 'notifications' },
+                },
+              ],
+            },
+          ],
+        },
+        {
           id: 'help',
           label: 'Help',
           icon: MessageCircle,
@@ -122,7 +183,10 @@ export function createOrganizationSidebarGroups({
           accent: 'danger',
           action: {
             kind: 'callback',
-            onSelect: onBackToOrganization,
+            onSelect: () => {
+              onSettingsSectionSelect('profile');
+              onBackToOrganization();
+            },
           },
         },
       ],
