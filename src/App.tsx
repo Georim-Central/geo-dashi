@@ -22,6 +22,29 @@ const defaultTeamEventOptions = [
   'Georim Founders Circle'
 ];
 
+const profileSections: ProfileSection[] = [
+  'profile',
+  'security',
+  'payments',
+  'billing',
+  'premium-subscriptions',
+  'notifications'
+];
+
+const resolveInitialView = (): AppView => {
+  if (typeof window === 'undefined') return 'dashboard';
+
+  const requestedView = new URLSearchParams(window.location.search).get('view');
+  return requestedView === 'profile' ? 'profile' : 'dashboard';
+};
+
+const resolveInitialProfileSection = (): ProfileSection => {
+  if (typeof window === 'undefined') return 'profile';
+
+  const requestedSection = new URLSearchParams(window.location.search).get('section');
+  return profileSections.find((section) => section === requestedSection) ?? 'profile';
+};
+
 const createEmptyEventDraft = (overrides: Partial<EventDraft> = {}): EventDraft => ({
   title: '',
   type: '',
@@ -99,12 +122,12 @@ const seededEventDetails: Record<string, EventDraft> = {
 
 export default function App() {
   const currentUserFirstName = 'John';
-  const [currentView, setCurrentView] = useState<AppView>('dashboard');
+  const [currentView, setCurrentView] = useState<AppView>(resolveInitialView);
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
   const [selectedEventName, setSelectedEventName] = useState<string | null>(null);
   const [contextMode, setContextMode] = useState<'organization' | 'event'>('organization');
   const [eventManagementTab, setEventManagementTab] = useState<EventManagementTab>('details');
-  const [activeProfileSection, setActiveProfileSection] = useState<ProfileSection>('profile');
+  const [activeProfileSection, setActiveProfileSection] = useState<ProfileSection>(resolveInitialProfileSection);
   const [teamEventOptions, setTeamEventOptions] = useState<string[]>(defaultTeamEventOptions);
   const [eventDetailsById, setEventDetailsById] = useState<Record<string, EventDraft>>(seededEventDetails);
 
