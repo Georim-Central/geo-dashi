@@ -1205,8 +1205,8 @@ function NotificationToggle({
   onToggle: () => void;
 }) {
   return (
-    <div className="flex items-center justify-between gap-4 rounded-2xl border border-gray-200 bg-[#fafafa] px-5 py-4">
-      <div className="space-y-1">
+    <div className="flex items-center justify-between gap-5 rounded-2xl border border-gray-200 bg-[#fafafa] px-6 py-5">
+      <div className="space-y-1.5 pr-4">
         <div className="font-medium text-gray-950">{label}</div>
         <div className="text-sm text-gray-500">{description}</div>
       </div>
