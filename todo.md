@@ -70,3 +70,66 @@
 - [ ] Active Events: live count + ending soon
 - [ ] Monthly Revenue + % change
 - [ ] Monthly Attendees + % change
+
+## 15. Orders Management
+- [ ] Order list with search and filtering
+- [ ] Order details: customer name, email, phone, attendee ID, ticket type, quantity, amount, status
+- [ ] Order statuses: completed, pending, refunded
+- [ ] Payment method and transaction ID display
+- [ ] Promo code used per order
+- [ ] Check-in status per order
+- [ ] Order notes field
+- [ ] Export orders functionality
+
+## 16. Check-In System
+- [ ] QR code scanner integration
+- [ ] Manual scan input fallback
+- [ ] Check-in records table: attendee name, ID, email, ticket type, timestamp, scanner source
+- [ ] Real-time scan feedback (success / warning / error)
+- [ ] Check-in statistics: X of Y attendees checked in
+
+## 17. Marketing Campaigns
+- [ ] Event discovery & listing settings: status toggle, category, geo-radius slider
+- [ ] Push notifications toggle
+- [ ] Audience segments: All Subscribers, Ticket Holders, VIP Guests, Waitlist, Dormant Fans
+- [ ] Campaign creation: name, channel (email/SMS), audience, send time, subject line, objective
+- [ ] Campaign list: name, channel, status (draft/scheduled/sent), metrics (delivered, engagement, conversions, revenue)
+
+## 18. Finance
+- [ ] Payouts tab: payout history (ID, date, destination bank, status, amount), schedule next payout
+- [ ] Transactions tab: order ID, buyer, ticket type, date, status, gross/fees/net amounts, search & filter
+- [ ] Withdrawals tab: request withdrawal, track status (completed/processing/queued), destination account, ETA
+- [ ] Invoices tab: platform invoices (ID, plan, billing period, issued date, status, amount), download invoices
+- [ ] Summary metrics: total revenue, pending payouts, available balance, monthly transactions
+
+## 19. Notification Center
+- [ ] Notification feed with category filters: All, Unread, Orders, Tickets, Marketing, Finance, Team
+- [ ] Notification card: icon, title, message, time, priority badge, category badge, event label, CTA, archive/read toggle
+- [ ] Mark all as read
+- [ ] Notification preferences panel
+- [ ] Summary cards: unread count, high priority count, new activity count, total notifications
+
+## 20. Settings Page
+- [ ] Profile: avatar upload, name, email, phone, address, multiple emails/phones, primary designation
+- [ ] Security: password change, two-factor authentication, active sessions, login history
+- [ ] Payments: payment methods list, add method, set default, payment history
+- [ ] Premium Subscriptions: pricing table, plan comparison, current plan indicator, upgrade/downgrade, billing cycle
+- [ ] Notifications: channel preferences (email/SMS/in-app), quiet hours, category toggles
+
+## 21. Global Search
+- [ ] Search bar in top bar: search events, orders, attendees, team members
+- [ ] Real-time results dropdown (up to 8 results)
+- [ ] Result type badges: event, order, attendee, team
+- [ ] Clickable results navigate to relevant page/tab
+
+## 22. AI Chat Assistant
+- [ ] Expandable chat widget on right side
+- [ ] Context-aware intro message based on current view
+- [ ] File attachment support
+- [ ] Voice input with speech recognition (start/stop listening, interim transcript)
+- [ ] Message history display
+
+## 23. Help Center
+- [ ] FAQ section with collapsible items
+- [ ] Support contact form: name, email, topic dropdown, message, submission confirmation
+- [ ] Testimonials carousel
