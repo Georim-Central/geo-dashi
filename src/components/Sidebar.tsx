@@ -50,8 +50,6 @@ export function Sidebar({
 }: SidebarProps) {
   const [isManuallyCollapsed, setIsManuallyCollapsed] = useState(false);
 
-  const handleDownloadAppClick = () => undefined;
-
   const navGroups = useMemo(
     () =>
       contextMode === 'organization'
@@ -243,7 +241,6 @@ export function Sidebar({
               <p className="georim-sidebar-download__copy">Take event operations on the go.</p>
               <button
                 type="button"
-                onClick={handleDownloadAppClick}
                 className="georim-sidebar-download__button"
               >
                 <Download className="w-4 h-4" />
@@ -256,7 +253,6 @@ export function Sidebar({
           <div className="georim-sidebar-primary__footer is-collapsed">
             <button
               type="button"
-              onClick={handleDownloadAppClick}
               className="georim-sidebar-download__compact-button"
               title="Download Mobile App"
             >

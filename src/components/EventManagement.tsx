@@ -1,5 +1,7 @@
-import { FormEvent, KeyboardEvent, useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
-import { Calendar, Ticket, Mail, BarChart3, CreditCard, Download, Settings as SettingsIcon, QrCode, Search, Phone, CheckCircle, UserRound, ChevronDown } from 'lucide-react';
+import { KeyboardEvent, useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
+import { Calendar, Ticket, Mail, BarChart3, CreditCard, Download, Settings as SettingsIcon, QrCode, Search, Phone, CheckCircle, UserRound, ChevronDown, ChevronLeft, ChevronRight, Bookmark, Share2, MapPin, Clock, X } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Iphone15Pro } from './ui/iphone-15-pro';
 import { TicketingSection } from './event-management/TicketingSection';
 import { OrdersSection } from './event-management/OrdersSection';
 import { MarketingSection } from './event-management/MarketingSection';
@@ -87,6 +89,284 @@ const initialCheckInRecords: CheckInRecord[] = [
   { attendeeId: 'ATT-1934', name: 'Henry Hall',      email: 'henry.h@email.com',    ticketType: 'VIP Access',       orderId: '5847220', checkedInAt: '2026-06-15T10:09:00.000Z', source: 'VIP Entrance Scanner',   scanCode: 'ATT-1934' },
   { attendeeId: 'ATT-2045', name: 'Harper Young',    email: 'hyoung@email.com',     ticketType: 'General Admission',orderId: '5847219', checkedInAt: '2026-06-15T10:12:00.000Z', source: 'Main Gate Scanner',      scanCode: 'ATT-2045' },
 ];
+
+// ─── Phone Event Screen — based on IPhone16Pro10 Figma design ─────────────────
+
+const DUMMY_HERO = 'https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=800&q=80';
+const DUMMY_MAP = 'https://images.unsplash.com/photo-1524661135-423995f22d0b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=400&q=80';
+const DUMMY_AVATAR = 'https://i.pravatar.cc/150?img=5';
+
+function PhoneEventScreen({
+  eventName,
+  eventDetails,
+  eventHeaderDetails,
+}: {
+  eventName: string;
+  eventDetails?: EventDraft;
+  eventHeaderDetails: string;
+}) {
+  const [isBookmarked, setIsBookmarked] = useState(false);
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  const dateStr = eventHeaderDetails.split(' • ')[0] || 'Date not set';
+  const locationStr = eventDetails?.location?.trim() || '4517 Washington Ave.';
+  const description = eventDetails?.summary?.trim() || eventDetails?.description?.trim() ||
+    'Join us for an unforgettable night of live music. This world-class concert experience brings together incredible artists for a one-of-a-kind show you won\'t want to miss.';
+  const heroSrc = eventDetails?.mainImage || DUMMY_HERO;
+  const monthLabel = dateStr.split(' ')[0]?.slice(0, 3).toUpperCase() || 'SEP';
+  const dayLabel = dateStr.match(/\d+/)?.[0] || '15';
+
+  // iOS dark mode palette
+  const C = {
+    bg: '#000000',
+    card: '#160c1e',
+    cardElevated: '#2C2C2E',
+    sep: '#38383A',
+    textPrimary: '#FFFFFF',
+    textSecondary: '#8E8E93',
+    blue: '#910aff',
+    red: '#FF453A',
+    green: '#30D158',
+    orange: '#FF9F0A',
+    pink: '#FF375F',
+  };
+
+  const ios: Record<string, React.CSSProperties> = {
+    root: {
+      position: 'relative', width: '100%', height: '100%', overflow: 'hidden',
+      background: C.bg,
+      fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", system-ui, sans-serif',
+    },
+    scroll: { height: '100%', overflowY: 'auto', scrollbarWidth: 'none' as const },
+    statusBar: {
+      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+      padding: '14px 20px 6px', position: 'absolute', top: 0, left: 0, right: 0, zIndex: 20,
+    },
+    navBar: {
+      position: 'absolute', top: 0, left: 0, right: 0, zIndex: 10,
+      display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between',
+      padding: '52px 16px 12px',
+      background: 'linear-gradient(to bottom, rgba(0,0,0,0.5) 0%, transparent 100%)',
+    },
+    navBtn: {
+      display: 'flex', alignItems: 'center', gap: 3,
+      background: 'none', border: 'none', padding: 0, color: '#fff', cursor: 'pointer',
+    },
+    glassBtn: {
+      width: 32, height: 32, borderRadius: '50%',
+      background: 'rgba(0,0,0,0.35)', backdropFilter: 'blur(12px)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      border: 'none', cursor: 'pointer',
+    },
+    section: { marginBottom: 8 },
+    sectionHeader: {
+      fontSize: 13, fontWeight: 400, color: C.textSecondary,
+      padding: '0 16px 6px', margin: 0,
+    },
+    card: {
+      background: C.card, overflow: 'hidden',
+    },
+    row: {
+      display: 'flex', alignItems: 'center', padding: '12px 16px',
+      borderBottom: `0.5px solid ${C.sep}`,
+    },
+    sectionLabel: {
+      fontSize: 11, fontWeight: 600, color: C.textSecondary,
+      textTransform: 'uppercase' as const, letterSpacing: 0.6, margin: '0 0 8px',
+    },
+  };
+
+  return (
+    <div style={ios.root}>
+      <div ref={scrollRef} style={ios.scroll}>
+
+        {/* ── HERO ── */}
+        <div style={{ position: 'relative', height: 270, flexShrink: 0 }}>
+          <img src={heroSrc} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          {/* Bottom fade into black */}
+          <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 80, background: 'linear-gradient(to bottom, transparent, #000)' }} />
+
+          {/* Status bar */}
+          <div style={ios.statusBar}>
+            <span style={{ fontSize: 15, fontWeight: 600, color: '#fff', letterSpacing: -0.3 }}>9:41</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <svg width="17" height="12" viewBox="0 0 17 12" fill="white">
+                <rect x="0" y="6" width="3" height="6" rx="1" opacity="0.4" />
+                <rect x="4.5" y="4" width="3" height="8" rx="1" opacity="0.6" />
+                <rect x="9" y="2" width="3" height="10" rx="1" opacity="0.8" />
+                <rect x="13.5" y="0" width="3" height="12" rx="1" />
+              </svg>
+              <svg width="16" height="12" viewBox="0 0 16 12" fill="white">
+                <path d="M8 9.5a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3Z" />
+                <path d="M3.5 6.5C4.9 5.1 6.4 4.4 8 4.4s3.1.7 4.5 2.1" strokeWidth="1.5" stroke="white" fill="none" strokeLinecap="round" />
+                <path d="M1 4C3 2 5.4 1 8 1s5 1 7 3" strokeWidth="1.5" stroke="white" fill="none" strokeLinecap="round" opacity="0.5" />
+              </svg>
+              <svg width="25" height="12" viewBox="0 0 25 12" fill="none">
+                <rect x="0.5" y="0.5" width="21" height="11" rx="3.5" stroke="white" strokeOpacity="0.35" />
+                <rect x="2" y="2" width="16" height="8" rx="2" fill="white" />
+                <path d="M23 4v4a2 2 0 0 0 0-4Z" fill="white" fillOpacity="0.4" />
+              </svg>
+            </div>
+          </div>
+
+          {/* Nav bar */}
+          <div style={ios.navBar}>
+            <button type="button" style={ios.navBtn}>
+              <ChevronLeft size={20} color="#fff" />
+              <span style={{ fontSize: 17, color: '#fff', fontWeight: 400 }}>Events</span>
+            </button>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button type="button" style={ios.glassBtn} onClick={() => setIsBookmarked(b => !b)}>
+                <Bookmark size={15} color="#fff" fill={isBookmarked ? '#fff' : 'none'} />
+              </button>
+              <button type="button" style={ios.glassBtn}>
+                <Share2 size={15} color="#fff" />
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* ── TITLE SECTION (full-width, no margin) ── */}
+        <div style={{ background: C.card, padding: '16px 16px 14px', borderBottom: `0.5px solid ${C.sep}`, marginBottom: 8 }}>
+          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8, marginBottom: 10 }}>
+            <h1 style={{ fontSize: 22, fontWeight: 700, color: C.textPrimary, margin: 0, lineHeight: 1.25, flex: 1 }}>
+              {eventName || 'Billie Eilish Concert'}
+            </h1>
+            <span style={{
+              fontSize: 11, fontWeight: 600, color: C.blue,
+              background: 'rgba(10,132,255,0.18)', borderRadius: 6,
+              padding: '3px 8px', whiteSpace: 'nowrap', flexShrink: 0, marginTop: 2,
+            }}>Outdoor</span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div style={{ display: 'flex' }}>
+              {[5, 6, 7].map((n, i) => (
+                <img key={n} src={`https://i.pravatar.cc/50?img=${n}`} alt=""
+                  style={{ width: 24, height: 24, borderRadius: '50%', border: `2px solid ${C.card}`, marginLeft: i > 0 ? -8 : 0, objectFit: 'cover' }} />
+              ))}
+            </div>
+            <span style={{ fontSize: 13, color: C.textSecondary }}>
+              <span style={{ color: C.blue, fontWeight: 600 }}>11k</span> people attending
+            </span>
+          </div>
+        </div>
+
+        {/* ── DATE & LOCATION GROUP ── */}
+        <div style={{ ...ios.section }}>
+          <div style={ios.card}>
+            {/* Date row */}
+            <div style={{ ...ios.row }}>
+              <div style={{ width: 44, height: 44, borderRadius: 10, overflow: 'hidden', flexShrink: 0, marginRight: 14 }}>
+                <div style={{ height: 15, background: C.red, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <span style={{ fontSize: 8, fontWeight: 700, color: '#fff', letterSpacing: 0.5, textTransform: 'uppercase' }}>{monthLabel}</span>
+                </div>
+                <div style={{ height: 29, background: C.cardElevated, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <span style={{ fontSize: 20, fontWeight: 700, color: C.textPrimary, lineHeight: 1 }}>{dayLabel}</span>
+                </div>
+              </div>
+              <div style={{ flex: 1 }}>
+                <p style={{ fontSize: 15, fontWeight: 600, color: C.textPrimary, margin: 0 }}>{dateStr}</p>
+                <p style={{ fontSize: 13, color: C.textSecondary, margin: '3px 0 0', display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <Clock size={12} color={C.textSecondary} strokeWidth={1.8} />
+                  {eventDetails?.startTime || '7:30 AM – 9:00 AM'}
+                </p>
+              </div>
+              <ChevronRight size={16} color={C.sep} />
+            </div>
+            {/* Location row */}
+            <div style={{ display: 'flex', alignItems: 'center', padding: '12px 16px' }}>
+              <div style={{ width: 44, height: 44, borderRadius: 10, overflow: 'hidden', flexShrink: 0, marginRight: 14, position: 'relative' }}>
+                <img src={DUMMY_MAP} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.25)' }}>
+                  <MapPin size={16} color="#fff" />
+                </div>
+              </div>
+              <div style={{ flex: 1 }}>
+                <p style={{ fontSize: 15, fontWeight: 600, color: C.textPrimary, margin: 0 }}>
+                  {locationStr.length > 24 ? locationStr.slice(0, 24) + '…' : locationStr}
+                </p>
+                <p style={{ fontSize: 13, color: C.blue, margin: '3px 0 0' }}>Get Directions</p>
+              </div>
+              <ChevronRight size={16} color={C.sep} />
+            </div>
+          </div>
+        </div>
+
+        {/* ── ABOUT GROUP ── */}
+        <div style={{ ...ios.section }}>
+          <div style={ios.card}>
+            <div style={{ padding: '14px 16px' }}>
+              <p style={ios.sectionLabel}>About</p>
+              <p style={{ fontSize: 15, color: C.textPrimary, margin: 0, lineHeight: 1.55 }}>
+                {description.length > 160 ? description.slice(0, 160) + '…' : description}
+              </p>
+              {description.length > 160 && (
+                <button type="button" style={{ color: C.blue, fontSize: 15, fontWeight: 500, marginTop: 6, background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}>
+                  Read More
+                </button>
+              )}
+            </div>
+            <div style={{ borderTop: `0.5px solid ${C.sep}`, padding: '10px 16px', display: 'flex', gap: 8 }}>
+              {[['Recurring', C.pink], ['Live Music', C.orange], ['All Ages', C.green]].map(([label, color]) => (
+                <span key={label} style={{ fontSize: 12, fontWeight: 500, color, background: `${color}22`, borderRadius: 7, padding: '4px 10px' }}>{label}</span>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* ── ORGANIZER GROUP ── */}
+        <div style={{ ...ios.section }}>
+          <div style={ios.card}>
+            <div style={{ display: 'flex', alignItems: 'center', padding: '14px 16px', borderBottom: `0.5px solid ${C.sep}` }}>
+              <div style={{ position: 'relative', flexShrink: 0, marginRight: 12 }}>
+                <img src={DUMMY_AVATAR} alt="" style={{ width: 46, height: 46, borderRadius: '50%', objectFit: 'cover', border: `2px solid ${C.blue}` }} />
+                <div style={{ position: 'absolute', bottom: 0, right: 0, width: 13, height: 13, borderRadius: '50%', background: C.green, border: `2px solid ${C.card}` }} />
+              </div>
+              <div style={{ flex: 1 }}>
+                <p style={{ fontSize: 15, fontWeight: 600, color: C.textPrimary, margin: 0 }}>its_doggo</p>
+                <p style={{ fontSize: 13, color: C.textSecondary, margin: '2px 0 0' }}>Event Organizer</p>
+              </div>
+              <button type="button" style={{ background: 'rgba(10,132,255,0.18)', borderRadius: 8, padding: '6px 16px', border: 'none', color: C.blue, fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
+                Follow
+              </button>
+            </div>
+            <div style={{ display: 'flex' }}>
+              <button type="button" style={{ flex: 1, padding: '13px 0', background: 'none', border: 'none', borderRight: `0.5px solid ${C.sep}`, color: C.blue, fontSize: 15, fontWeight: 500, cursor: 'pointer' }}>
+                Message
+              </button>
+              <button type="button" style={{ flex: 1, padding: '13px 0', background: 'none', border: 'none', color: C.blue, fontSize: 15, fontWeight: 500, cursor: 'pointer' }}>
+                Website
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* ── BUY TICKET ── */}
+        <div style={{ padding: '4px 16px 16px' }}>
+          <button type="button" style={{
+            width: '100%', background: C.blue, borderRadius: 14,
+            padding: '15px 0', border: 'none', color: '#fff',
+            fontSize: 17, fontWeight: 600, cursor: 'pointer',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+            boxShadow: `0 4px 20px rgba(10,132,255,0.4)`,
+          }}>
+            <Ticket size={19} color="#fff" />
+            Buy Ticket
+          </button>
+          <p style={{ fontSize: 12, color: C.textSecondary, textAlign: 'center', margin: '8px 0 0' }}>
+            Secure checkout · Instant confirmation
+          </p>
+        </div>
+
+        {/* Home indicator */}
+        <div style={{ display: 'flex', justifyContent: 'center', padding: '4px 0 12px' }}>
+          <div style={{ width: 134, height: 5, borderRadius: 3, background: '#fff', opacity: 0.25 }} />
+        </div>
+
+      </div>
+    </div>
+  );
+}
 
 export function EventManagement({
   eventId: _eventId,
@@ -340,82 +620,62 @@ export function EventManagement({
         </section>
       </div>
 
-      {showPreviewModal && (
-        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/40 p-6">
-          <div
-            ref={previewDialogRef}
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby={previewTitleId}
-            aria-describedby={previewDescriptionId}
-            tabIndex={-1}
-            className="w-full max-w-3xl rounded-[28px] border border-gray-200 bg-white p-8 shadow-2xl"
+      <AnimatePresence>
+        {showPreviewModal && (
+          <motion.div
+            className="fixed inset-0 z-40 flex items-center justify-center"
+            initial={{ backgroundColor: 'rgba(0,0,0,0)' }}
+            animate={{ backgroundColor: 'rgba(0,0,0,0.65)' }}
+            exit={{ backgroundColor: 'rgba(0,0,0,0)' }}
+            transition={{ duration: 0.25 }}
           >
-            <div className="mb-6 flex items-start justify-between gap-4">
-              <div>
-                <h2 id={previewTitleId} className="text-2xl font-semibold text-gray-900">Event Preview</h2>
-                <p id={previewDescriptionId} className="mt-1 text-sm text-gray-500">
-                  Quick organizer preview for title, summary, imagery, and launch readiness.
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => setShowPreviewModal(false)}
-                className="rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+            <div className="overflow-y-auto max-h-screen py-10 px-6 flex items-start justify-center">
+              <motion.div
+                ref={previewDialogRef}
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby={previewTitleId}
+                aria-describedby={previewDescriptionId}
+                tabIndex={-1}
+                className="flex flex-col items-center gap-3 outline-none"
+                initial={{ opacity: 0, scale: 0.94, y: 16 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.94, y: 16 }}
+                transition={{ duration: 0.25, ease: [0.25, 0.1, 0.25, 1] }}
               >
-                Close
-              </button>
-            </div>
+                <div className="text-center">
+                  <h2 id={previewTitleId} className="text-sm font-semibold text-white">Event Preview</h2>
+                  <p id={previewDescriptionId} className="text-xs text-white/60 mt-0.5">How attendees see your event.</p>
+                </div>
 
-            <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
-              <div className="space-y-4">
-                {eventDetails?.mainImage ? (
-                  <img src={eventDetails.mainImage} alt={`${resolvedEventName} preview`} className="h-72 w-full rounded-2xl object-cover" />
-                ) : (
-                  <div className="flex h-72 items-center justify-center rounded-2xl border border-dashed border-gray-300 bg-gray-50 text-sm text-gray-500">
-                    No event hero image uploaded yet.
-                  </div>
-                )}
-                <div>
-                  <h3 className="text-2xl font-semibold text-gray-900">{resolvedEventName}</h3>
-                  <p className="mt-2 text-sm leading-6 text-gray-600">{eventDetails?.summary?.trim() || 'Add a short event summary to improve the organizer preview.'}</p>
-                </div>
-              </div>
-
-              <div className="space-y-4 rounded-2xl border border-gray-200 bg-gray-50 p-5">
-                <div>
-                  <div className="text-xs font-semibold uppercase tracking-[0.14em] text-gray-500">Lifecycle</div>
-                  <div className={`mt-2 inline-flex rounded-full px-3 py-1.5 text-sm font-medium ${eventStatusBadgeClass}`}>
-                    {eventStatusLabel}
-                  </div>
-                </div>
-                <div>
-                  <div className="text-xs font-semibold uppercase tracking-[0.14em] text-gray-500">Date</div>
-                  <div className="mt-2 text-sm text-gray-900">{eventHeaderDetails.split(' • ')[0]}</div>
-                </div>
-                <div>
-                  <div className="text-xs font-semibold uppercase tracking-[0.14em] text-gray-500">Location</div>
-                  <div className="mt-2 text-sm text-gray-900">{eventDetails?.location?.trim() || 'Location not set'}</div>
-                </div>
-                <div>
-                  <div className="text-xs font-semibold uppercase tracking-[0.14em] text-gray-500">Tags</div>
-                  <div className="mt-2 flex flex-wrap gap-2">
-                    {(eventDetails?.tags || []).length > 0 ? (
-                      eventDetails?.tags.map((tag) => (
-                        <span key={tag} className="rounded-full bg-white px-3 py-1 text-xs font-medium text-gray-700">
-                          {tag}
-                        </span>
-                      ))
-                    ) : (
-                      <span className="text-sm text-gray-500">No tags added yet.</span>
-                    )}
+                {/* 415 × 874 phone frame */}
+                <div className="relative flex-shrink-0" style={{ width: 415, height: 874 }}>
+                  {/* Close button — top-right corner of the phone frame */}
+                  <button
+                    type="button"
+                    onClick={() => setShowPreviewModal(false)}
+                    className="absolute -top-4 -right-4 z-50 flex items-center justify-center w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm text-white hover:bg-white/35 transition-colors"
+                  >
+                    <X size={20} strokeWidth={2.5} />
+                  </button>
+                  <Iphone15Pro width={415} height={874} />
+                  {/* Screen fills the rounded screen area of the SVG */}
+                  <div
+                    className="absolute overflow-hidden"
+                    style={{ top: 19, left: 20, width: 375, height: 836, borderRadius: 53 }}
+                  >
+                    <PhoneEventScreen
+                      eventName={resolvedEventName}
+                      eventDetails={eventDetails}
+                      eventHeaderDetails={eventHeaderDetails}
+                    />
                   </div>
                 </div>
-              </div>
+              </motion.div>
             </div>
-          </div>
-        </div>
-      )}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
@@ -457,7 +717,7 @@ function CheckedInTab({
     });
   }, [records, searchQuery, ticketTypeFilter]);
 
-  const handleSubmitScan = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmitScan = (event: React.SyntheticEvent<HTMLFormElement>) => {
     event.preventDefault();
     const result = onScan(scanCode, scanSource);
     setScanFeedback(result);
