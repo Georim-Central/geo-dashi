@@ -623,8 +623,8 @@ export function OrdersSection() {
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400 pointer-events-none" />
+            <div className="ui-search-field">
+              <Search className="ui-search-field__icon" />
               <input
                 id={getFieldId('search-orders')}
                 aria-label="Search orders"
@@ -632,7 +632,8 @@ export function OrdersSection() {
                 placeholder="Search orders..."
                 value={searchQuery}
                 onChange={(event) => setSearchQuery(event.target.value)}
-                className="w-56 rounded-lg border border-gray-300 py-2 pl-10 pr-3 text-sm focus:border-transparent focus:ring-2 focus:ring-[#7626c6]"
+                className="ui-search-field__input w-56 rounded-lg border border-gray-300 py-2 pr-3 text-sm focus:border-transparent focus:ring-2 focus:ring-[#7626c6]"
+                style={{ paddingLeft: '44px' }}
               />
             </div>
             <button

@@ -329,13 +329,9 @@ export function TeamManagement({ eventOptions = defaultEventOptions, inviteReque
     setNotice('Invite resent with updated status tracking.');
   };
 
-  const handleExpireInvite = (inviteId: string) => {
-    setPendingInvites((currentInvites) =>
-      currentInvites.map((invite) =>
-        invite.id === inviteId ? { ...invite, status: 'expired', sentAt: 'Expired just now' } : invite
-      )
-    );
-    setNotice('Invite marked as expired.');
+  const handleCancelInvite = (inviteId: string) => {
+    setPendingInvites((currentInvites) => currentInvites.filter((invite) => invite.id !== inviteId));
+    setNotice('Pending invite canceled.');
   };
 
   const openEditModal = (member: TeamMember) => {
@@ -462,8 +458,8 @@ export function TeamManagement({ eventOptions = defaultEventOptions, inviteReque
 
         <div className="grid gap-6 xl:grid-cols-[minmax(0,1.55fr)_380px]">
           <div className="space-y-6">
-            <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-              <div className="mb-5 flex items-start justify-between gap-3 border-b border-gray-100 pb-4">
+            <section className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
+              <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4">
                 <div>
                   <h2 className="text-xl font-semibold text-gray-900">Pending Invites</h2>
                   <p className="mt-1 text-sm text-gray-500">
@@ -475,45 +471,67 @@ export function TeamManagement({ eventOptions = defaultEventOptions, inviteReque
                 </div>
               </div>
 
-              <div className="space-y-3">
-                <ContentState isEmpty={pendingInvites.length === 0} emptyMessage="No pending invites." className="py-14">
-                  {pendingInvites.map((invite) => (
-                    <div key={invite.id} className="rounded-2xl border border-gray-200 p-4">
-                      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-                        <div>
-                          <div className="flex flex-wrap items-center gap-2">
-                            <span className="text-sm font-semibold text-gray-900">{invite.email}</span>
-                            <StatusBadge status={invite.status} />
-                            <RoleBadge preset={invite.preset} customRoleName={invite.customRoleName} />
+              <ContentState isEmpty={pendingInvites.length === 0} emptyMessage="No pending invites." className="m-6 py-14">
+                <table className="w-full">
+                  <thead className="border-b border-gray-200 bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Invitee</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Preset</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Event Access</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Status</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Sent</th>
+                      <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200">
+                    {pendingInvites.map((invite) => (
+                      <tr key={invite.id} className="transition hover:bg-gray-50">
+                        <td className="whitespace-nowrap px-6 py-4">
+                          <div className="flex items-center text-left">
+                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#7626c6] font-medium text-white">
+                              {invite.email.charAt(0).toUpperCase()}
+                            </div>
+                            <div className="ml-4">
+                              <div className="font-medium text-gray-900">{invite.email}</div>
+                              <div className="text-sm text-gray-500">Pending organizer access</div>
+                            </div>
                           </div>
-                          <p className="mt-2 text-sm text-gray-600">
-                            Access: {getAccessLabel(invite.access)}
-                          </p>
-                          <p className="mt-1 text-xs uppercase tracking-[0.18em] text-gray-500">{invite.sentAt}</p>
-                        </div>
-                        <div className="flex flex-wrap gap-2">
-                          <button
-                            type="button"
-                            onClick={() => handleResendInvite(invite.id)}
-                            aria-label={`Resend invite for ${invite.email}`}
-                            className="rounded-lg border border-gray-300 px-3 py-2 text-sm transition hover:bg-gray-50"
-                          >
-                            Resend Invite
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleExpireInvite(invite.id)}
-                            aria-label={`Expire invite for ${invite.email}`}
-                            className="rounded-lg border border-red-200 px-3 py-2 text-sm text-red-600 transition hover:bg-red-50"
-                          >
-                            Expire
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </ContentState>
-              </div>
+                        </td>
+                        <td className="whitespace-nowrap px-6 py-4">
+                          <RoleBadge preset={invite.preset} customRoleName={invite.customRoleName} />
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-600">
+                          {getAccessLabel(invite.access)}
+                        </td>
+                        <td className="whitespace-nowrap px-6 py-4">
+                          <StatusBadge status={invite.status} />
+                        </td>
+                        <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">{invite.sentAt}</td>
+                        <td className="whitespace-nowrap px-6 py-4">
+                          <div className="flex items-center justify-end gap-2">
+                            <button
+                              type="button"
+                              onClick={() => handleResendInvite(invite.id)}
+                              aria-label={`Resend invite for ${invite.email}`}
+                              className="rounded-lg border border-gray-300 px-3 py-2 text-sm transition hover:bg-gray-50"
+                            >
+                              Resend Invite
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleCancelInvite(invite.id)}
+                              aria-label={`Cancel invite for ${invite.email}`}
+                              className="rounded-lg border border-red-200 px-3 py-2 text-sm text-red-600 transition hover:bg-red-50"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </ContentState>
             </section>
 
             <section className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">

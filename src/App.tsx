@@ -1,4 +1,4 @@
-import { Suspense, lazy, useMemo, useState } from 'react';
+import { Suspense, lazy, useEffect, useMemo, useState } from 'react';
 import { GlobalAIChat } from './components/GlobalAIChat';
 import { Sidebar } from './components/Sidebar';
 import { SettingsPage } from './components/SettingsPage';
@@ -284,6 +284,7 @@ const seededNotifications: OrganizerNotification[] = [
   }
 ];
 
+
 const formatDateLabel = (draft: EventDraft) => {
   if (!draft.startDate) return 'Date not set';
 
@@ -302,6 +303,10 @@ const formatDateLabel = (draft: EventDraft) => {
 
 export default function App() {
   const currentUserFirstName = 'John';
+  useEffect(() => {
+    document.documentElement.style.fontSize = '12.8px';
+  }, []);
+
   const [currentView, setCurrentView] = useState<AppView>('dashboard');
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
   const [selectedEventName, setSelectedEventName] = useState<string | null>(null);

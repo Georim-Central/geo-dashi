@@ -56,15 +56,16 @@ export function TopBar({
     <div className="glass-header sticky top-0 z-20 px-8 py-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <div className="ui-search-field flex-1">
+            <Search className="ui-search-field__icon" />
             <input
               type="text"
               aria-label="Search events, orders, attendees, and team"
               placeholder="Search events, orders, attendees..."
               value={searchQuery}
               onChange={(event) => onSearchQueryChange(event.target.value)}
-              className="ui-toolbar-select h-12 w-96 rounded-2xl border border-gray-200 bg-white/90 pl-10 pr-4 text-sm text-gray-700 shadow-sm"
+              className="ui-search-field__input ui-toolbar-select h-12 w-96 rounded-2xl border border-gray-200 bg-white/90 pr-4 text-sm text-gray-700 shadow-sm"
+              style={{ paddingLeft: '44px' }}
             />
 
             {showSearchResults && (

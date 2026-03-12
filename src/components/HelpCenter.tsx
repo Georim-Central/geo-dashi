@@ -3,6 +3,7 @@ import { MessageCircle, Shield, Sparkles, X } from 'lucide-react';
 
 import { FaqSection } from '@/components/ui/faq';
 import { TestimonialsSection } from '@/components/ui/testimonials-with-marquee';
+import { Button } from '@/components/ui/button';
 import { useModalA11y } from '@/hooks/useModalA11y';
 
 type HelpForm = {
@@ -69,6 +70,24 @@ const faqItems = [
   },
 ];
 
+const supportHighlights = [
+  {
+    label: 'Coverage',
+    value: 'Organizer support',
+    detail: 'Dashboard, ticketing, and live event workflows',
+  },
+  {
+    label: 'Response',
+    value: 'Fast triage',
+    detail: 'Built for active event-day questions and blockers',
+  },
+  {
+    label: 'Submission',
+    value: 'In-dashboard',
+    detail: 'Send context-rich requests without leaving your workspace',
+  },
+];
+
 export function HelpCenter() {
   const [helpForm, setHelpForm] = useState<HelpForm>(defaultHelpForm);
   const [isContactModalOpen, setIsContactModalOpen] = useState(false);
@@ -109,21 +128,36 @@ export function HelpCenter() {
 
   return (
     <div className="help-center-page p-8 space-y-6">
-      <div className="help-center-hero bg-white rounded-xl border border-gray-200 p-6">
-        <div className="help-center-hero__content">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="p-2 rounded-lg bg-[#7626c6]/10">
-              <Shield className="w-5 h-5 text-[#7626c6]" />
+      <div className="help-center-hero">
+        <div className="help-center-hero__top">
+          <div className="help-center-hero__content">
+            <div className="help-center-hero__eyebrow">
+              <span className="help-center-hero__eyebrow-dot" />
+              <span>Support workspace</span>
             </div>
-            <h1 className="text-2xl font-semibold text-gray-900">Help Center</h1>
+            <div className="flex items-center gap-3 mb-3">
+              <div className="help-center-hero__icon">
+                <Shield className="w-5 h-5 text-[#7626c6]" />
+              </div>
+              <h1 className="help-center-hero__title">Help Center</h1>
+            </div>
+            <p className="text-sm text-gray-600 help-center-hero__copy">
+              Browse proven workflows, common answers, and guided support for day-to-day event operations.
+            </p>
           </div>
-          <p className="text-sm text-gray-600 help-center-hero__copy">
-            Browse proven workflows, common answers, and guided support for day-to-day event operations.
-          </p>
+          <div className="help-center-hero__badge">
+            <Sparkles className="w-4 h-4" />
+            <span>In-app support for organizers and event teams</span>
+          </div>
         </div>
-        <div className="help-center-hero__badge">
-          <Sparkles className="w-4 h-4" />
-          <span>In-app support for organizers and event teams</span>
+        <div className="help-center-hero__metrics">
+          {supportHighlights.map((item) => (
+            <div key={item.label} className="help-center-hero__metric">
+              <p className="help-center-hero__metric-label">{item.label}</p>
+              <p className="help-center-hero__metric-value">{item.value}</p>
+              <p className="help-center-hero__metric-detail">{item.detail}</p>
+            </div>
+          ))}
         </div>
       </div>
 
@@ -133,26 +167,45 @@ export function HelpCenter() {
         testimonials={testimonials}
       />
 
-      <div className="bg-white rounded-xl border border-gray-200 p-6">
-        <div className="flex items-center gap-2 mb-4">
-          <MessageCircle className="w-5 h-5 text-[#7626c6]" />
-          <h2 className="text-lg font-semibold text-gray-900">Browse Help Topics</h2>
+      <div className="help-center-support-grid">
+        <div className="help-center-surface bg-white rounded-xl border border-gray-200 p-6">
+          <div className="help-center-section-heading mb-4">
+            <div className="help-center-section-heading__icon">
+              <MessageCircle className="w-5 h-5 text-[#7626c6]" />
+            </div>
+            <div>
+              <h2 className="text-lg font-semibold text-gray-900">Browse Help Topics</h2>
+              <p className="mt-1 text-sm text-gray-500">
+                Common answers for dashboard, team, and event-management workflows.
+              </p>
+            </div>
+          </div>
+          <FaqSection
+            title="FAQs"
+            description="Find direct answers quickly, then open a support request when the workflow needs follow-up."
+            items={faqItems}
+            className="pt-0"
+          />
         </div>
-        <FaqSection
-          title="FAQs"
-          description="Common answers for dashboard, team, and event-management workflows."
-          items={faqItems}
-          contactInfo={{
-            title: 'Still have questions?',
-            description: 'Open a support request and send the details directly from the dashboard.',
-            buttonText: 'Contact Support',
-            onContact: () => {
+
+        <div className="help-faq-section__contact">
+          <div className="help-faq-section__contact-icon">
+            <MessageCircle className="w-4 h-4" />
+          </div>
+          <p className="help-faq-section__contact-title">Still have questions?</p>
+          <p className="help-faq-section__contact-description">
+            Open a support request and send the details directly from the dashboard.
+          </p>
+          <Button
+            size="sm"
+            onClick={() => {
               setNotice(null);
               setIsContactModalOpen(true);
-            },
-          }}
-          className="pt-0"
-        />
+            }}
+          >
+            Contact Support
+          </Button>
+        </div>
       </div>
 
       {isContactModalOpen && (

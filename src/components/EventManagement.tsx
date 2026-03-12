@@ -623,13 +623,13 @@ export function EventManagement({
       <AnimatePresence>
         {showPreviewModal && (
           <motion.div
-            className="fixed inset-0 z-40 flex items-center justify-center"
+            className="fixed inset-0 z-40 flex items-center justify-center p-4 sm:p-6"
             initial={{ backgroundColor: 'rgba(0,0,0,0)' }}
             animate={{ backgroundColor: 'rgba(0,0,0,0.65)' }}
             exit={{ backgroundColor: 'rgba(0,0,0,0)' }}
             transition={{ duration: 0.25 }}
           >
-            <div className="overflow-y-auto max-h-screen py-10 px-6 flex items-start justify-center">
+            <div className="flex max-h-full w-full items-center justify-center">
               <motion.div
                 ref={previewDialogRef}
                 role="dialog"
@@ -637,7 +637,7 @@ export function EventManagement({
                 aria-labelledby={previewTitleId}
                 aria-describedby={previewDescriptionId}
                 tabIndex={-1}
-                className="flex flex-col items-center gap-3 outline-none"
+                className="flex max-h-full flex-col items-center justify-center gap-3 outline-none"
                 initial={{ opacity: 0, scale: 0.94, y: 16 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.94, y: 16 }}
@@ -648,21 +648,32 @@ export function EventManagement({
                   <p id={previewDescriptionId} className="text-xs text-white/60 mt-0.5">How attendees see your event.</p>
                 </div>
 
-                {/* 415 × 874 phone frame */}
-                <div className="relative flex-shrink-0" style={{ width: 415, height: 874 }}>
+                <div
+                  className="relative flex-shrink-0"
+                  style={{
+                    width: 'min(380px, calc(100vw - 48px), calc((100vh - 140px) * 380 / 775))',
+                    aspectRatio: '380 / 775'
+                  }}
+                >
                   {/* Close button — top-right corner of the phone frame */}
                   <button
                     type="button"
                     onClick={() => setShowPreviewModal(false)}
-                    className="absolute -top-4 -right-4 z-50 flex items-center justify-center w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm text-white hover:bg-white/35 transition-colors"
+                    className="absolute -top-3 -right-3 z-50 flex h-9 w-9 items-center justify-center rounded-full bg-white/20 text-white backdrop-blur-sm transition-colors hover:bg-white/35"
                   >
                     <X size={20} strokeWidth={2.5} />
                   </button>
-                  <Iphone15Pro width={415} height={874} />
+                  <Iphone15Pro className="h-full w-full" />
                   {/* Screen fills the rounded screen area of the SVG */}
                   <div
                     className="absolute overflow-hidden"
-                    style={{ top: 19, left: 20, width: 375, height: 836, borderRadius: 53 }}
+                    style={{
+                      top: '2.1825%',
+                      left: '4.9076%',
+                      width: '89.9538%',
+                      height: '95.6349%',
+                      borderRadius: '14.31% / 6.61%'
+                    }}
                   >
                     <PhoneEventScreen
                       eventName={resolvedEventName}
@@ -769,12 +780,8 @@ function CheckedInTab({
           </div>
           <div className="flex items-center gap-3 flex-shrink-0">
             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-50 text-emerald-700 text-xs font-medium border border-emerald-200">
-              <span className="relative flex h-2.5 w-2.5 flex-shrink-0">
-                <span
-                  className="absolute h-2.5 w-2.5 rounded-full bg-emerald-400"
-                  style={{ animation: 'ping 1.2s cubic-bezier(0,0,0.2,1) infinite', transformOrigin: 'center' }}
-                />
-                <span className="relative h-2.5 w-2.5 rounded-full bg-emerald-500" />
+              <span className="ui-status-dot ui-status-dot--emerald" aria-hidden="true">
+                <span className="ui-status-dot__core" />
               </span>
               Live sync active
             </div>
@@ -848,13 +855,14 @@ function CheckedInTab({
                 <option key={t} value={t}>{t}</option>
               ))}
             </select>
-            <div className="relative flex-shrink-0 w-72">
-              <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <div className="ui-search-field w-72 flex-shrink-0">
+              <Search className="ui-search-field__icon" />
               <input
                 value={searchQuery}
                 onChange={(event) => setSearchQuery(event.target.value)}
                 placeholder="Search attendee, ID, order..."
-                className="w-full h-9 pl-11 pr-3 rounded-lg border border-gray-200 bg-white text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#7626c6]/50 focus:outline-none"
+                className="ui-search-field__input w-full h-9 rounded-lg border border-gray-200 bg-white pr-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#7626c6]/50 focus:outline-none"
+                style={{ paddingLeft: '44px' }}
               />
             </div>
           </div>
