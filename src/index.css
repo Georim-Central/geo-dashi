@@ -2466,7 +2466,8 @@ button.btn-glass:focus-visible {
 }
 
 .app-shell :is(div, section, article)[class*="bg-white"][class*="border"][class*="rounded-xl"],
-.app-shell :is(div, section, article)[class*="bg-white"][class*="border"][class*="rounded-2xl"] {
+.app-shell :is(div, section, article)[class*="bg-white"][class*="border"][class*="rounded-2xl"],
+.app-shell :is(div, section, article)[class*="bg-white"][class*="border"][class*="rounded-[28px]"] {
   border-radius: var(--ui-radius);
 }
 
@@ -2853,6 +2854,47 @@ button.btn-glass:focus-visible {
     0 0 0 1px rgba(118, 38, 198, 0.24),
     0 0 0 4px var(--ui-focus-ring-soft);
   outline: none;
+}
+
+.ui-tabs-list {
+  background: #f4ecfb;
+}
+
+.ui-tabs-trigger {
+  color: #4b5563;
+}
+
+.ui-tabs-trigger:hover {
+  color: #1f2937;
+}
+
+.ui-tabs-trigger::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: 0.35rem;
+  width: 2.25rem;
+  height: 3px;
+  border-radius: 9999px;
+  background: #5a189a;
+  transform: translateX(-50%);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.ui-tabs-trigger[data-state="active"] {
+  background: #fff;
+  color: #5a189a;
+  font-weight: 600;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
+}
+
+.ui-tabs-trigger[data-state="active"]::after {
+  opacity: 1;
+}
+
+.finance-subcard {
+  border-radius: var(--ui-radius);
 }
 
 .ai-chat-root {

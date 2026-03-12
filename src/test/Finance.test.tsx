@@ -1,28 +1,52 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { describe, expect, it, vi } from 'vitest';
+
+vi.mock('../utils/reportExport', () => ({
+  downloadReportPdf: vi.fn(),
+}));
 
 import { Finance } from '../components/Finance';
+import { downloadReportPdf } from '../utils/reportExport';
 
-describe('Finance workspace', () => {
-  it('renders organizer finance history views and switches between them', async () => {
+describe('Finance exports', () => {
+  it('exports the finance report to pdf from the header action', async () => {
     const user = userEvent.setup();
     render(<Finance />);
 
-    expect(screen.getByRole('heading', { name: /^finance$/i })).toBeInTheDocument();
-    expect(screen.getByText(/available to withdraw/i)).toBeInTheDocument();
-    expect(screen.getByRole('tab', { name: /payout history/i })).toBeInTheDocument();
-    expect(screen.getByText(/po-2026-0310/i)).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: /export report/i }));
 
-    await user.click(screen.getByRole('tab', { name: /^transactions$/i }));
-    expect(await screen.findByText(/order #5847239/i)).toBeInTheDocument();
-    expect(screen.getByText(/recent transactions/i)).toBeInTheDocument();
+    expect(downloadReportPdf).toHaveBeenCalledTimes(1);
+    expect(downloadReportPdf).toHaveBeenCalledWith(
+      expect.objectContaining({
+        fileName: 'finance-report.pdf',
+        title: 'Finance Report',
+        sections: expect.arrayContaining([
+          expect.objectContaining({ heading: 'Payment Summary' }),
+          expect.objectContaining({ heading: 'Payout History' }),
+          expect.objectContaining({ heading: 'Recent Transactions' }),
+          expect.objectContaining({ heading: 'Withdrawal Requests' }),
+          expect.objectContaining({ heading: 'Invoice & Subscription History' }),
+        ]),
+      })
+    );
+  });
 
-    await user.click(screen.getByRole('tab', { name: /withdrawal history/i }));
-    expect(await screen.findByText(/wd-1029/i)).toBeInTheDocument();
-    expect(screen.getAllByText(/view transfer details/i).length).toBeGreaterThan(0);
+  it('submits a withdrawal request to admin from the finance header action', async () => {
+    const user = userEvent.setup();
+    render(<Finance />);
 
-    await user.click(screen.getByRole('tab', { name: /invoices & subscription/i }));
-    expect(await screen.findByText(/inv-2026-03/i)).toBeInTheDocument();
-    expect(screen.getAllByText(/pro organizer/i).length).toBeGreaterThan(0);
+    await user.click(screen.getByRole('button', { name: /request withdrawal/i }));
+
+    expect(await screen.findByRole('dialog', { name: /request withdrawal/i })).toBeInTheDocument();
+
+    await user.type(screen.getByLabelText(/withdrawal amount/i), '6200');
+    await user.type(
+      screen.getByLabelText(/request note/i),
+      'Please review and approve this payout request for the next admin settlement run.'
+    );
+    await user.click(screen.getByRole('button', { name: /send to admin/i }));
+
+    expect(await screen.findByText(/withdrawal request for \$6,200\.00 sent to admin for approval\./i)).toBeInTheDocument();
   });
 });

@@ -627,6 +627,12 @@ export default function App() {
     setContextMode('organization');
   };
 
+  const handleOpenPaymentSettings = () => {
+    setSettingsSection('payments');
+    setCurrentView('settings');
+    setContextMode('organization');
+  };
+
   return (
     <div className="app-shell flex h-screen">
       <Sidebar
@@ -718,7 +724,7 @@ export default function App() {
               <TeamManagement eventOptions={teamEventOptions} inviteRequestId={teamInviteRequestId} />
             )}
             {currentView === 'finance' && (
-              <Finance />
+              <Finance onOpenPaymentSettings={handleOpenPaymentSettings} />
             )}
             {currentView === 'notification-center' && (
               <NotificationCenter

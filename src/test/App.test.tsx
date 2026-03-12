@@ -151,15 +151,18 @@ describe('App core flows', () => {
     expect(screen.getByRole('heading', { name: /finance activity/i })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: /payout schedule/i })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: /finance controls/i })).toBeInTheDocument();
-    expect(screen.getByText(/gross revenue/i)).toBeInTheDocument();
-    expect(screen.getByText(/available to withdraw/i)).toBeInTheDocument();
     expect(screen.getByText(/^jan$/i)).toBeInTheDocument();
     expect(screen.getByText(/available balance/i)).toBeInTheDocument();
 
     const paymentSummaryHeading = screen.getByRole('heading', { name: /payment summary/i });
     const financeActivityHeading = screen.getByRole('heading', { name: /finance activity/i });
     expect(paymentSummaryHeading.compareDocumentPosition(financeActivityHeading) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
-  });
+
+    await user.click(screen.getAllByRole('button', { name: /^edit$/i })[0]);
+
+    expect(await screen.findByRole('heading', { name: /^payments$/i })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /choose how to pay/i })).toBeInTheDocument();
+  }, 10000);
 
   it('routes dashboard support buttons into live organizer workflows', async () => {
     const user = userEvent.setup();

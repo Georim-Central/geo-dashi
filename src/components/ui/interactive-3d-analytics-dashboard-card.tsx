@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { AlertCircle, ArrowDown, ArrowUp, MoonStar, SunMedium } from 'lucide-react';
+import { AlertCircle, ArrowDown, ArrowUp } from 'lucide-react';
 
 type AnalyticsPoint = {
   label: string;
@@ -72,13 +72,13 @@ function AnimatedBar({
 
   return (
     <motion.div
-      className="relative flex h-full w-full items-end"
+      className="group relative flex h-full w-full items-end"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.08 }}
     >
       <motion.div
-        className={`group relative w-full rounded-t-md ${
+        className={`relative w-full rounded-t-md ${
           isDarkMode
             ? 'bg-gradient-to-t from-indigo-600 to-violet-400'
             : 'bg-gradient-to-t from-blue-500 to-cyan-300'
@@ -92,7 +92,7 @@ function AnimatedBar({
           delay: index * 0.08,
         }}
       >
-        <div className="pointer-events-none absolute -top-9 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-white/95 px-2.5 py-1 text-[11px] font-medium text-black shadow-sm transition-colors duration-200 group-hover:bg-[#7626c6] group-hover:text-white dark:bg-gray-900 dark:text-white dark:group-hover:bg-[#8c52d4] dark:group-hover:text-white">
+        <div className="absolute -top-9 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-transparent px-2.5 py-1 text-[11px] font-medium text-black transition-all duration-200 group-hover:bg-[#1f1f29] group-hover:text-white group-hover:shadow-sm dark:text-white dark:group-hover:bg-[#f3f4f6] dark:group-hover:text-gray-900">
           {valueFormatter(value)}
         </div>
       </motion.div>
@@ -164,7 +164,7 @@ export default function Interactive3DAnalyticsDashboardCard({
     <div className={`font-sans ${isDarkMode ? 'dark' : ''}`}>
       <div
         className="
-          group relative h-[28rem] w-full cursor-default overflow-hidden rounded-xl
+          group relative h-[28rem] w-full cursor-default overflow-hidden rounded-[28px]
           border border-gray-200 bg-white p-5 shadow-sm transition-all duration-300 hover:border-[#d9c1f5] hover:shadow-[0_18px_42px_rgba(118,38,198,0.12)]
           dark:border-gray-700 dark:bg-gray-900 dark:shadow-[0_20px_50px_rgba(0,0,0,0.3)]
           sm:p-6
@@ -177,12 +177,12 @@ export default function Interactive3DAnalyticsDashboardCard({
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={resetRotation}
       >
-        <div className="absolute inset-0 overflow-hidden rounded-xl opacity-20 dark:opacity-15">
+        <div className="absolute inset-0 overflow-hidden rounded-[28px] opacity-20 dark:opacity-15">
           <div className="absolute -right-24 top-0 h-48 w-48 rounded-full bg-[#eef2ff] blur-3xl dark:bg-[#1f2b52]" />
           <div className="absolute -left-16 bottom-0 h-40 w-40 rounded-full bg-[#f5f3ff] blur-3xl dark:bg-[#25183f]" />
         </div>
 
-        <div className="absolute inset-0 rounded-xl bg-white/92 backdrop-blur-sm dark:bg-gray-900/84" />
+        <div className="absolute inset-0 rounded-[28px] bg-white/92 backdrop-blur-sm dark:bg-gray-900/84" />
 
         <div className="relative z-10 flex h-full flex-col">
           <div className="mb-5 flex items-start justify-between gap-4 sm:mb-6">
@@ -190,17 +190,9 @@ export default function Interactive3DAnalyticsDashboardCard({
               <h2 className="text-xl font-semibold text-gray-900 dark:text-white">{title}</h2>
               <p className="text-sm text-gray-500 dark:text-gray-400">{subtitle}</p>
             </div>
-            <button
-              type="button"
-              onClick={() => setIsDarkMode((current) => !current)}
-              className="rounded-xl border border-gray-200 bg-white p-2 text-gray-700 transition-colors hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
-              aria-label={isDarkMode ? 'Switch analytics card to light mode' : 'Switch analytics card to dark mode'}
-            >
-              {isDarkMode ? <SunMedium className="h-5 w-5" /> : <MoonStar className="h-5 w-5" />}
-            </button>
           </div>
 
-          <div className="flex-1 overflow-hidden rounded-xl border border-gray-200 bg-[#fafafa] p-4 backdrop-blur-sm dark:border-gray-700 dark:bg-gray-800/50">
+          <div className="flex-1 overflow-hidden rounded-[28px] bg-[#fafafa] p-4 backdrop-blur-sm dark:bg-gray-800/50 sm:p-5">
             <AnimatePresence mode="wait">
               {isLoading ? (
                 <motion.div
@@ -253,7 +245,7 @@ export default function Interactive3DAnalyticsDashboardCard({
           </div>
 
           {!isLoading && !hasError ? (
-            <div className="mt-4 grid grid-cols-3 gap-3">
+            <div className="mt-4 grid grid-cols-4 gap-2">
               {stats.map((stat) => {
                 const isPositive = stat.tone === 'positive';
                 const isWarning = stat.tone === 'warning';
@@ -262,7 +254,7 @@ export default function Interactive3DAnalyticsDashboardCard({
                 return (
                   <motion.div
                     key={stat.label}
-                    className={`rounded-xl border border-gray-200 p-4 backdrop-blur-sm ${
+                    className={`rounded-[28px] border border-gray-200 px-4 py-3 backdrop-blur-sm sm:px-5 ${
                       isPositive
                         ? 'bg-white dark:bg-green-900/20'
                         : isWarning
@@ -271,9 +263,9 @@ export default function Interactive3DAnalyticsDashboardCard({
                     }`}
                     whileHover={{ y: -2, boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)' }}
                   >
-                    <p className="text-xs text-gray-500 dark:text-gray-400">{stat.label}</p>
+                    <p className="text-[11px] text-gray-500 dark:text-gray-400">{stat.label}</p>
                     <div
-                      className={`mt-1 flex items-center gap-1 text-lg font-bold ${
+                      className={`mt-1 flex items-center gap-1 text-base font-bold ${
                         isPositive
                           ? 'text-green-600 dark:text-green-400'
                           : isWarning
@@ -284,7 +276,7 @@ export default function Interactive3DAnalyticsDashboardCard({
                       {showTrend ? stat.trendDirection === 'up' ? <ArrowUp className="h-4 w-4" /> : <ArrowDown className="h-4 w-4" /> : null}
                       <span>{stat.value}</span>
                     </div>
-                    <p className="mt-1 text-[11px] leading-4 text-gray-500 dark:text-gray-400">{stat.detail}</p>
+                    <p className="mt-1 text-[10px] leading-4 text-gray-500 dark:text-gray-400">{stat.detail}</p>
                   </motion.div>
                 );
               })}
@@ -292,7 +284,7 @@ export default function Interactive3DAnalyticsDashboardCard({
           ) : null}
 
           {!isLoading && !hasError ? (
-            <div className="mt-3 flex items-center justify-between rounded-xl bg-[#fafafa] px-4 py-3 text-xs text-gray-600 backdrop-blur-sm dark:bg-gray-800/60 dark:text-gray-300">
+            <div className="mt-3 flex items-center justify-between rounded-[28px] bg-[#fafafa] px-4 py-3 text-xs text-gray-600 backdrop-blur-sm dark:bg-gray-800/60 dark:text-gray-300 sm:px-5">
               <span>Total settled: {valueFormatter(totalValue)}</span>
               <span>Average month: {valueFormatter(averageValue)}</span>
               <span className={trend >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}>

@@ -249,9 +249,9 @@ const SECONDARY_BUTTON_CLASS =
 const SOFT_BUTTON_CLASS =
   'inline-flex items-center justify-center gap-2 rounded-xl bg-[#f3e8fc] px-5 py-3 text-sm font-medium text-gray-800 transition hover:bg-[#ebdefb] disabled:cursor-not-allowed disabled:opacity-50';
 const SETTINGS_PAGE_STACK_CLASS = 'space-y-5 sm:space-y-6 lg:space-y-7';
-const SETTINGS_SECTION_GRID_CLASS = 'grid grid-cols-1 gap-5 md:grid-cols-2 lg:gap-6';
-const SETTINGS_COLUMN_STACK_CLASS = 'space-y-5 sm:space-y-6';
-const SETTINGS_CONTENT_STACK_CLASS = 'space-y-4 sm:space-y-5';
+const SETTINGS_SECTION_GRID_CLASS = 'grid grid-cols-1 gap-6 md:grid-cols-2 md:gap-6 lg:gap-7';
+const SETTINGS_COLUMN_STACK_CLASS = 'space-y-6 sm:space-y-7';
+const SETTINGS_CONTENT_STACK_CLASS = 'space-y-5 sm:space-y-6';
 const SETTINGS_FORM_GRID_CLASS = 'grid grid-cols-1 gap-5 sm:gap-6';
 const SETTINGS_PANEL_CLASS = 'rounded-xl border border-gray-200 bg-[#fafafa] px-5 py-4 sm:px-6 sm:py-5';
 const SETTINGS_PADDED_PANEL_CLASS = 'rounded-xl border border-gray-200 bg-[#fafafa] p-4 sm:p-5';
@@ -728,7 +728,7 @@ function ProfileSettingsContent() {
             }
             className="border-gray-200 bg-[linear-gradient(145deg,rgba(255,255,255,0.98)_0%,rgba(249,249,251,0.96)_56%,rgba(255,250,240,0.94)_100%)] shadow-sm"
           >
-            <div className={SETTINGS_PAGE_STACK_CLASS}>
+            <div className={SETTINGS_CONTENT_STACK_CLASS}>
               <div className="flex flex-col gap-5 sm:gap-6">
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between sm:gap-5">
                   <div className="flex items-center gap-4">
@@ -780,7 +780,7 @@ function ProfileSettingsContent() {
                   <button
                     type="button"
                     onClick={openProfileEditor}
-                    className={SECONDARY_BUTTON_CLASS}
+                    className="inline-flex shrink-0 items-center justify-center gap-2 self-start rounded-full border border-gray-200 bg-white px-3.5 py-2 text-sm font-medium text-gray-700 shadow-sm transition hover:bg-gray-50"
                   >
                     <PencilLine className="h-4 w-4" />
                     Edit
@@ -788,7 +788,7 @@ function ProfileSettingsContent() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5">
+              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 sm:gap-6">
                 <ProfileMetric
                   icon={<CheckCircle2 className="h-5 w-5" />}
                   label="Profile Completeness"
@@ -993,7 +993,7 @@ function ProfileSettingsContent() {
             title={<ProfileCardTitle icon={<SlidersHorizontal className="h-4 w-4" />} title="Account Options" />}
             className="shadow-[0_18px_42px_rgba(15,23,42,0.06)]"
           >
-            <div className={SETTINGS_PAGE_STACK_CLASS}>
+            <div className={SETTINGS_CONTENT_STACK_CLASS}>
               <div className={SETTINGS_PANEL_CLASS}>
                 <div className="flex items-start gap-4">
                   <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#f5f5f7] text-[#1d1d1f] shadow-sm">
@@ -1277,7 +1277,7 @@ function PaymentsSettingsContent() {
                       <div className="text-sm text-gray-500">{transaction.id}</div>
                     </div>
                   </div>
-                  <div className="text-right">
+                  <div className="pr-4 text-right sm:pr-5">
                     <div className="font-semibold text-gray-950">{transaction.amount}</div>
                     <div className="text-sm text-gray-500">{transaction.status}</div>
                   </div>
@@ -1632,7 +1632,7 @@ function PremiumSubscriptionsContent() {
           ) : null
         }
       >
-        <div className="grid grid-cols-1 gap-4 sm:gap-5 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-5 sm:gap-6 lg:grid-cols-3">
           <div className={`${SETTINGS_PANEL_CLASS} pl-7 pr-6 sm:pl-8 sm:pr-7`}>
             <div className="mb-2 text-sm font-medium text-gray-500">Active Plan</div>
             <div className="text-3xl font-semibold tracking-[-0.03em] text-gray-950">Professional</div>
@@ -1699,7 +1699,7 @@ function NotificationToggle({
   onToggle: () => void;
 }) {
   return (
-    <div className={`flex items-center justify-between gap-5 ${SETTINGS_PANEL_CLASS}`}>
+    <div className={`flex items-center justify-between gap-5 ${SETTINGS_PANEL_CLASS} pr-6 sm:pr-7`}>
       <div className="space-y-1.5 pr-4">
         <div className="font-medium text-gray-950">{label}</div>
         <div className="text-sm text-gray-500">{description}</div>
@@ -1834,7 +1834,7 @@ function NotificationsSettingsContent() {
         </SettingsCard>
 
         <SettingsCard title="Quiet Hours">
-          <div className={SETTINGS_PAGE_STACK_CLASS}>
+          <div className={SETTINGS_CONTENT_STACK_CLASS}>
             <div className={`flex items-start gap-4 ${SETTINGS_PANEL_CLASS}`}>
               <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#f1e5fb] text-[#7626c6]">
                 <Clock3 className="h-5 w-5" />
