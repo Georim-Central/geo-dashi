@@ -1,5 +1,5 @@
 import { FormEvent, KeyboardEvent, useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
-import { Calendar, Ticket, Mail, BarChart3, CreditCard, Download, Settings as SettingsIcon, QrCode, Search, Phone, CheckCircle } from 'lucide-react';
+import { Calendar, Ticket, Mail, BarChart3, CreditCard, Download, Settings as SettingsIcon, QrCode, Search, Phone, CheckCircle, UserRound, ChevronDown } from 'lucide-react';
 import { TicketingSection } from './event-management/TicketingSection';
 import { OrdersSection } from './event-management/OrdersSection';
 import { MarketingSection } from './event-management/MarketingSection';
@@ -41,24 +41,51 @@ type ScanResult = {
 };
 
 const registeredAttendees: RegisteredAttendee[] = [
-  { attendeeId: 'ATT-3901', name: 'Sarah Johnson', email: 'sarah.j@email.com', ticketType: 'Early Bird GA', orderId: '5847239' },
-  { attendeeId: 'ATT-4420', name: 'Michael Chen', email: 'mchen@email.com', ticketType: 'VIP Access', orderId: '5847238' },
-  { attendeeId: 'ATT-2015', name: 'Emily Rodriguez', email: 'emily.r@email.com', ticketType: 'Student Discount', orderId: '5847237' },
-  { attendeeId: 'ATT-3372', name: 'David Kim', email: 'davidk@email.com', ticketType: 'Early Bird GA', orderId: '5847236' },
-  { attendeeId: 'ATT-1187', name: 'Jessica Brown', email: 'jbrown@email.com', ticketType: 'VIP Access', orderId: '5847235' }
+  { attendeeId: 'ATT-3901', name: 'Sarah Johnson',    email: 'sarah.j@email.com',      ticketType: 'Early Bird GA',    orderId: '5847239' },
+  { attendeeId: 'ATT-4420', name: 'Michael Chen',     email: 'mchen@email.com',         ticketType: 'VIP Access',       orderId: '5847238' },
+  { attendeeId: 'ATT-2015', name: 'Emily Rodriguez',  email: 'emily.r@email.com',       ticketType: 'Student Discount', orderId: '5847237' },
+  { attendeeId: 'ATT-3372', name: 'David Kim',        email: 'davidk@email.com',        ticketType: 'Early Bird GA',    orderId: '5847236' },
+  { attendeeId: 'ATT-1187', name: 'Jessica Brown',    email: 'jbrown@email.com',        ticketType: 'VIP Access',       orderId: '5847235' },
+  { attendeeId: 'ATT-5503', name: 'James Carter',     email: 'jcarter@email.com',       ticketType: 'General Admission',orderId: '5847234' },
+  { attendeeId: 'ATT-6621', name: 'Olivia Park',      email: 'oliviapark@email.com',    ticketType: 'Early Bird GA',    orderId: '5847233' },
+  { attendeeId: 'ATT-7744', name: 'Daniel Foster',    email: 'd.foster@email.com',      ticketType: 'VIP Access',       orderId: '5847232' },
+  { attendeeId: 'ATT-8812', name: 'Ava Thompson',     email: 'ava.t@email.com',         ticketType: 'Student Discount', orderId: '5847231' },
+  { attendeeId: 'ATT-9930', name: 'Noah Williams',    email: 'noahw@email.com',         ticketType: 'General Admission',orderId: '5847230' },
+  { attendeeId: 'ATT-1045', name: 'Sophia Martinez',  email: 's.martinez@email.com',    ticketType: 'Early Bird GA',    orderId: '5847229' },
+  { attendeeId: 'ATT-1156', name: 'Liam Anderson',    email: 'liam.a@email.com',        ticketType: 'VIP Access',       orderId: '5847228' },
+  { attendeeId: 'ATT-1267', name: 'Isabella Taylor',  email: 'itaylor@email.com',       ticketType: 'General Admission',orderId: '5847227' },
+  { attendeeId: 'ATT-1378', name: 'Mason Lee',        email: 'masonlee@email.com',      ticketType: 'Student Discount', orderId: '5847226' },
+  { attendeeId: 'ATT-1489', name: 'Mia Harris',       email: 'mia.h@email.com',         ticketType: 'Early Bird GA',    orderId: '5847225' },
+  { attendeeId: 'ATT-1590', name: 'Ethan Clark',      email: 'ethanc@email.com',        ticketType: 'VIP Access',       orderId: '5847224' },
+  { attendeeId: 'ATT-1601', name: 'Charlotte Lewis',  email: 'c.lewis@email.com',       ticketType: 'General Admission',orderId: '5847223' },
+  { attendeeId: 'ATT-1712', name: 'Lucas Robinson',   email: 'l.robinson@email.com',    ticketType: 'Early Bird GA',    orderId: '5847222' },
+  { attendeeId: 'ATT-1823', name: 'Amelia Walker',    email: 'awalker@email.com',       ticketType: 'Student Discount', orderId: '5847221' },
+  { attendeeId: 'ATT-1934', name: 'Henry Hall',       email: 'henry.h@email.com',       ticketType: 'VIP Access',       orderId: '5847220' },
+  { attendeeId: 'ATT-2045', name: 'Harper Young',     email: 'hyoung@email.com',        ticketType: 'General Admission',orderId: '5847219' },
 ];
 
 const initialCheckInRecords: CheckInRecord[] = [
-  {
-    attendeeId: 'ATT-3901',
-    name: 'Sarah Johnson',
-    email: 'sarah.j@email.com',
-    ticketType: 'Early Bird GA',
-    orderId: '5847239',
-    checkedInAt: '2026-06-15T09:12:00.000Z',
-    source: 'Main Gate - iPhone Scanner',
-    scanCode: 'ATT-3901'
-  }
+  { attendeeId: 'ATT-3901', name: 'Sarah Johnson',   email: 'sarah.j@email.com',   ticketType: 'Early Bird GA',    orderId: '5847239', checkedInAt: '2026-06-15T09:12:00.000Z', source: 'Main Gate Scanner',      scanCode: 'ATT-3901' },
+  { attendeeId: 'ATT-4420', name: 'Michael Chen',    email: 'mchen@email.com',      ticketType: 'VIP Access',       orderId: '5847238', checkedInAt: '2026-06-15T09:15:00.000Z', source: 'VIP Entrance Scanner',   scanCode: 'ATT-4420' },
+  { attendeeId: 'ATT-2015', name: 'Emily Rodriguez', email: 'emily.r@email.com',    ticketType: 'Student Discount', orderId: '5847237', checkedInAt: '2026-06-15T09:18:00.000Z', source: 'Main Gate Scanner',      scanCode: 'ATT-2015' },
+  { attendeeId: 'ATT-3372', name: 'David Kim',       email: 'davidk@email.com',     ticketType: 'Early Bird GA',    orderId: '5847236', checkedInAt: '2026-06-15T09:21:00.000Z', source: 'iPhone Scanner App',     scanCode: 'ATT-3372' },
+  { attendeeId: 'ATT-1187', name: 'Jessica Brown',   email: 'jbrown@email.com',     ticketType: 'VIP Access',       orderId: '5847235', checkedInAt: '2026-06-15T09:24:00.000Z', source: 'VIP Entrance Scanner',   scanCode: 'ATT-1187' },
+  { attendeeId: 'ATT-5503', name: 'James Carter',    email: 'jcarter@email.com',    ticketType: 'General Admission',orderId: '5847234', checkedInAt: '2026-06-15T09:27:00.000Z', source: 'Main Gate Scanner',      scanCode: 'ATT-5503' },
+  { attendeeId: 'ATT-6621', name: 'Olivia Park',     email: 'oliviapark@email.com', ticketType: 'Early Bird GA',    orderId: '5847233', checkedInAt: '2026-06-15T09:30:00.000Z', source: 'iPhone Scanner App',     scanCode: 'ATT-6621' },
+  { attendeeId: 'ATT-7744', name: 'Daniel Foster',   email: 'd.foster@email.com',   ticketType: 'VIP Access',       orderId: '5847232', checkedInAt: '2026-06-15T09:33:00.000Z', source: 'VIP Entrance Scanner',   scanCode: 'ATT-7744' },
+  { attendeeId: 'ATT-8812', name: 'Ava Thompson',    email: 'ava.t@email.com',      ticketType: 'Student Discount', orderId: '5847231', checkedInAt: '2026-06-15T09:36:00.000Z', source: 'Main Gate Scanner',      scanCode: 'ATT-8812' },
+  { attendeeId: 'ATT-9930', name: 'Noah Williams',   email: 'noahw@email.com',      ticketType: 'General Admission',orderId: '5847230', checkedInAt: '2026-06-15T09:39:00.000Z', source: 'iPhone Scanner App',     scanCode: 'ATT-9930' },
+  { attendeeId: 'ATT-1045', name: 'Sophia Martinez', email: 's.martinez@email.com', ticketType: 'Early Bird GA',    orderId: '5847229', checkedInAt: '2026-06-15T09:42:00.000Z', source: 'Main Gate Scanner',      scanCode: 'ATT-1045' },
+  { attendeeId: 'ATT-1156', name: 'Liam Anderson',   email: 'liam.a@email.com',     ticketType: 'VIP Access',       orderId: '5847228', checkedInAt: '2026-06-15T09:45:00.000Z', source: 'VIP Entrance Scanner',   scanCode: 'ATT-1156' },
+  { attendeeId: 'ATT-1267', name: 'Isabella Taylor', email: 'itaylor@email.com',    ticketType: 'General Admission',orderId: '5847227', checkedInAt: '2026-06-15T09:48:00.000Z', source: 'iPhone Scanner App',     scanCode: 'ATT-1267' },
+  { attendeeId: 'ATT-1378', name: 'Mason Lee',       email: 'masonlee@email.com',   ticketType: 'Student Discount', orderId: '5847226', checkedInAt: '2026-06-15T09:51:00.000Z', source: 'Main Gate Scanner',      scanCode: 'ATT-1378' },
+  { attendeeId: 'ATT-1489', name: 'Mia Harris',      email: 'mia.h@email.com',      ticketType: 'Early Bird GA',    orderId: '5847225', checkedInAt: '2026-06-15T09:54:00.000Z', source: 'iPhone Scanner App',     scanCode: 'ATT-1489' },
+  { attendeeId: 'ATT-1590', name: 'Ethan Clark',     email: 'ethanc@email.com',     ticketType: 'VIP Access',       orderId: '5847224', checkedInAt: '2026-06-15T09:57:00.000Z', source: 'VIP Entrance Scanner',   scanCode: 'ATT-1590' },
+  { attendeeId: 'ATT-1601', name: 'Charlotte Lewis', email: 'c.lewis@email.com',    ticketType: 'General Admission',orderId: '5847223', checkedInAt: '2026-06-15T10:00:00.000Z', source: 'Main Gate Scanner',      scanCode: 'ATT-1601' },
+  { attendeeId: 'ATT-1712', name: 'Lucas Robinson',  email: 'l.robinson@email.com', ticketType: 'Early Bird GA',    orderId: '5847222', checkedInAt: '2026-06-15T10:03:00.000Z', source: 'iPhone Scanner App',     scanCode: 'ATT-1712' },
+  { attendeeId: 'ATT-1823', name: 'Amelia Walker',   email: 'awalker@email.com',    ticketType: 'Student Discount', orderId: '5847221', checkedInAt: '2026-06-15T10:06:00.000Z', source: 'Main Gate Scanner',      scanCode: 'ATT-1823' },
+  { attendeeId: 'ATT-1934', name: 'Henry Hall',      email: 'henry.h@email.com',    ticketType: 'VIP Access',       orderId: '5847220', checkedInAt: '2026-06-15T10:09:00.000Z', source: 'VIP Entrance Scanner',   scanCode: 'ATT-1934' },
+  { attendeeId: 'ATT-2045', name: 'Harper Young',    email: 'hyoung@email.com',     ticketType: 'General Admission',orderId: '5847219', checkedInAt: '2026-06-15T10:12:00.000Z', source: 'Main Gate Scanner',      scanCode: 'ATT-2045' },
 ];
 
 export function EventManagement({
@@ -273,10 +300,10 @@ export function EventManagement({
                   tabIndex={activeTab === tab.id ? 0 : -1}
                   onClick={() => activateTab(tab.id as Tab)}
                   onKeyDown={(event) => handleTabKeyDown(event, index)}
-                  className={`flex items-center gap-2 px-6 py-3 border-b-2 transition-colors whitespace-nowrap ${
+                  className={`flex items-center gap-2 px-4 py-3 text-sm border-b-2 transition-colors duration-[150ms] whitespace-nowrap ${
                     activeTab === tab.id
-                      ? 'border-[#7626c6] text-[#7626c6]'
-                      : 'border-transparent text-gray-600 hover:text-gray-900'
+                      ? 'border-gray-900 text-gray-900 font-semibold'
+                      : 'border-transparent text-gray-400 font-medium hover:text-violet-400 hover:border-violet-200'
                   }`}
                 >
                   <Icon className="w-4 h-4" />
@@ -407,20 +434,28 @@ function CheckedInTab({
   const [scanSource, setScanSource] = useState('Main Gate Scanner');
   const [searchQuery, setSearchQuery] = useState('');
   const [scanFeedback, setScanFeedback] = useState<ScanResult | null>(null);
+  const [showAllLog, setShowAllLog] = useState(false);
+  const [ticketTypeFilter, setTicketTypeFilter] = useState('all');
   const getFieldId = (field: string) => `${fieldIdPrefix}-${field}`;
 
   const pendingCount = Math.max(0, totalAttendees - records.length);
   const checkInRate = totalAttendees ? Math.min(100, Math.round((records.length / totalAttendees) * 100)) : 0;
 
+  const ticketTypes = useMemo(() => {
+    const types = Array.from(new Set(records.map((r) => r.ticketType))).sort();
+    return types;
+  }, [records]);
+
   const filteredRecords = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
-    if (!query) return records;
-    return records.filter((record) =>
-      [record.name, record.email, record.attendeeId, record.orderId, record.ticketType].some((value) =>
+    return records.filter((record) => {
+      const matchesSearch = !query || [record.name, record.email, record.attendeeId, record.orderId, record.ticketType].some((value) =>
         value.toLowerCase().includes(query)
-      )
-    );
-  }, [records, searchQuery]);
+      );
+      const matchesTicket = ticketTypeFilter === 'all' || record.ticketType === ticketTypeFilter;
+      return matchesSearch && matchesTicket;
+    });
+  }, [records, searchQuery, ticketTypeFilter]);
 
   const handleSubmitScan = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -447,23 +482,46 @@ function CheckedInTab({
 
   return (
     <div className="space-y-6">
-      <div className="bg-white rounded-[20px] border border-gray-200/90 shadow-[0_10px_30px_rgba(15,23,42,0.06)] p-6 md:p-7">
-        <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
+      {/* Metric strip — sits outside the parent card, 24px gap, always 3-column */}
+      <div className="grid grid-cols-3 gap-6">
+        {[
+          { label: 'Checked In',       value: records.length,   sub: 'Attendees successfully scanned', },
+          { label: 'Pending Check-In', value: pendingCount,      sub: 'Awaiting arrival at venue',      },
+          { label: 'Check-In Rate',    value: `${checkInRate}%`, sub: 'Live venue attendance progress', },
+        ].map((stat) => (
+          <div key={stat.label} className="rounded-[28px] border border-gray-200 bg-white p-6">
+            <p className="ui-meta-text mb-3">{stat.label}</p>
+            <p className="text-3xl font-semibold tracking-tight text-gray-900 leading-none">{stat.value}</p>
+            <p className="mt-2 text-xs text-gray-500">{stat.sub}</p>
+          </div>
+        ))}
+      </div>
+
+      <div className="bg-white rounded-[28px] border border-gray-200 shadow-[var(--ui-shadow-soft)]">
+
+        {/* Card header */}
+        <div className="flex items-start justify-between gap-4 px-6 py-6 border-b border-gray-100">
           <div>
-            <h2 className="text-2xl font-semibold text-gray-900 tracking-tight">Checked-In Attendees</h2>
-            <p className="text-sm text-gray-600 mt-1.5 max-w-2xl">
+            <h2 className="ui-card-title">Checked-In Attendees</h2>
+            <p className="mt-1 text-xs text-gray-500">
               Scan attendee QR codes from your phone or scanner device to log check-ins in real time.
             </p>
           </div>
-          <div className="flex items-center gap-4 flex-wrap lg:justify-end lg:pr-1">
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-green-50 text-green-700 text-xs font-medium border border-green-200">
-              <span className="w-2 h-2 rounded-full bg-green-500" />
+          <div className="flex items-center gap-3 flex-shrink-0">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-50 text-emerald-700 text-xs font-medium border border-emerald-200">
+              <span className="relative flex h-2.5 w-2.5 flex-shrink-0">
+                <span
+                  className="absolute h-2.5 w-2.5 rounded-full bg-emerald-400"
+                  style={{ animation: 'ping 1.2s cubic-bezier(0,0,0.2,1) infinite', transformOrigin: 'center' }}
+                />
+                <span className="relative h-2.5 w-2.5 rounded-full bg-emerald-500" />
+              </span>
               Live sync active
             </div>
             <button
               type="button"
               onClick={simulatePhoneScan}
-              className="inline-flex h-12 items-center justify-center gap-2 px-6 bg-[#7626c6] text-white btn-glass rounded-xl hover:bg-[#5f1fa3] transition-colors text-sm font-medium"
+              className="ui-button ui-button--default ui-button--size-sm"
             >
               <Phone className="w-4 h-4" />
               Simulate Scan
@@ -471,35 +529,26 @@ function CheckedInTab({
           </div>
         </div>
 
-        <form onSubmit={handleSubmitScan} className="mt-6 rounded-2xl border border-gray-200 bg-[#fbfbfe] p-5 md:p-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <div>
-              <label htmlFor={getFieldId('scan-code')} className="block text-xs font-semibold tracking-wide uppercase text-gray-500 mb-2">QR Code</label>
-              <input
-                id={getFieldId('scan-code')}
-                value={scanCode}
-                onChange={(event) => setScanCode(event.target.value)}
-                placeholder="Scan or paste QR code (example: ATT-4420)"
-                className="w-full h-12 px-4 border border-gray-200 bg-white rounded-xl focus:ring-2 focus:ring-[#7626c6] focus:border-transparent"
-              />
-            </div>
-            <div>
-              <label htmlFor={getFieldId('scan-source')} className="block text-xs font-semibold tracking-wide uppercase text-gray-500 mb-2">Source Device</label>
-              <input
-                id={getFieldId('scan-source')}
-                value={scanSource}
-                onChange={(event) => setScanSource(event.target.value)}
-                placeholder="Scanner source"
-                className="w-full h-12 px-4 border border-gray-200 bg-white rounded-xl focus:ring-2 focus:ring-[#7626c6] focus:border-transparent"
-              />
-            </div>
-          </div>
-
-          <div className="mt-5 pt-4 border-t border-gray-200 flex justify-end pr-1">
-            <button
-              type="submit"
-              className="inline-flex h-12 items-center justify-center gap-2 px-6 bg-[#7626c6] text-white btn-glass rounded-xl hover:bg-[#5f1fa3] transition-colors text-sm font-medium"
-            >
+        <div className="p-6">
+        <form onSubmit={handleSubmitScan} className="rounded-[22px] border border-gray-200 bg-gray-50 p-5 md:p-6">
+          <div className="flex items-end gap-4">
+            <input
+              id={getFieldId('scan-code')}
+              value={scanCode}
+              onChange={(event) => setScanCode(event.target.value)}
+              placeholder="Scan or paste QR code (e.g. ATT-4420)"
+              aria-label="QR Code"
+              className="flex-1 h-10 px-4 border border-gray-200 bg-white rounded-xl focus:ring-2 focus:ring-[#7626c6] focus:border-transparent text-sm"
+            />
+            <input
+              id={getFieldId('scan-source')}
+              value={scanSource}
+              onChange={(event) => setScanSource(event.target.value)}
+              placeholder="Scanner source"
+              aria-label="Source Device"
+              className="flex-1 h-10 px-4 border border-gray-200 bg-white rounded-xl focus:ring-2 focus:ring-[#7626c6] focus:border-transparent text-sm"
+            />
+            <button type="submit" className="ui-button ui-button--default flex-shrink-0 !min-h-0 !py-2 text-sm" style={{ paddingLeft: '1rem', paddingRight: '1rem' }}>
               <QrCode className="w-4 h-4" />
               Log Check-in
             </button>
@@ -522,43 +571,37 @@ function CheckedInTab({
           </div>
         )}
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
-          <div className="rounded-2xl bg-blue-50/80 p-5 border border-blue-100">
-            <div className="text-xs font-semibold tracking-wide uppercase text-blue-700/80 mb-2">Checked In</div>
-            <div className="text-3xl font-semibold text-blue-900 leading-none">{records.length}</div>
-            <div className="text-xs text-blue-700/80 mt-2">Attendees successfully scanned</div>
-          </div>
-          <div className="rounded-2xl bg-orange-50/80 p-5 border border-orange-100">
-            <div className="text-xs font-semibold tracking-wide uppercase text-orange-700/80 mb-2">Pending Check-In</div>
-            <div className="text-3xl font-semibold text-orange-900 leading-none">{pendingCount}</div>
-            <div className="text-xs text-orange-700/80 mt-2">Awaiting arrival at venue</div>
-          </div>
-          <div className="rounded-2xl bg-green-50/80 p-5 border border-green-100">
-            <div className="text-xs font-semibold tracking-wide uppercase text-green-700/80 mb-2">Check-In Rate</div>
-            <div className="text-3xl font-semibold text-green-900 leading-none">{checkInRate}%</div>
-            <div className="text-xs text-green-700/80 mt-2">Live venue attendance progress</div>
-          </div>
         </div>
       </div>
 
       <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <h3 className="text-lg font-semibold text-gray-900">Live Check-In Log</h3>
-          <div className="w-full sm:max-w-sm">
-            <div className="flex items-center rounded-lg border border-gray-300 bg-white focus-within:border-[#7626c6]/50 focus-within:ring-2 focus-within:ring-[#7626c6]/20">
-              <Search className="ml-3 mr-2 w-4 h-4 text-gray-400 shrink-0" />
+        <div className="px-6 py-4 border-b border-gray-200 flex items-center gap-4">
+          <h3 className="text-lg font-semibold text-gray-900 flex-shrink-0">Live Check-In Log</h3>
+          <div className="flex items-center gap-3 ml-auto">
+            <select
+              value={ticketTypeFilter}
+              onChange={(e) => setTicketTypeFilter(e.target.value)}
+              className="h-9 w-44 flex-shrink-0 rounded-lg border border-gray-200 bg-white px-3 text-sm text-gray-700 focus:border-[#7626c6] focus:outline-none focus:ring-2 focus:ring-[#7626c6]/20"
+            >
+              <option value="all">All ticket types</option>
+              {ticketTypes.map((t) => (
+                <option key={t} value={t}>{t}</option>
+              ))}
+            </select>
+            <div className="relative flex-shrink-0 w-72">
+              <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
               <input
                 value={searchQuery}
                 onChange={(event) => setSearchQuery(event.target.value)}
                 placeholder="Search attendee, ID, order..."
-                className="w-full py-2 pr-4 text-gray-900 bg-transparent rounded-r-lg focus:outline-none"
+                className="w-full h-9 pl-11 pr-3 rounded-lg border border-gray-200 bg-white text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#7626c6]/50 focus:outline-none"
               />
             </div>
           </div>
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full">
+          <table className="w-full text-sm">
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Attendee</th>
@@ -578,7 +621,7 @@ function CheckedInTab({
                   </td>
                 </tr>
               )}
-              {filteredRecords.map((record) => (
+              {(showAllLog ? filteredRecords : filteredRecords.slice(0, 10)).map((record) => (
                 <tr key={`${record.attendeeId}-${record.checkedInAt}`} className="hover:bg-gray-50 transition-colors">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="font-medium text-gray-900">{record.name}</div>
@@ -602,6 +645,17 @@ function CheckedInTab({
             </tbody>
           </table>
         </div>
+        {filteredRecords.length > 10 && (
+          <div className="border-t border-gray-200 px-6 py-3 flex justify-end">
+            <button
+              type="button"
+              onClick={() => setShowAllLog((prev) => !prev)}
+              className="flex items-center gap-1 text-sm font-medium text-[#7626c6] hover:text-[#5f1fa3] transition-colors duration-[150ms]"
+            >
+              {showAllLog ? 'Show less' : `View all ${filteredRecords.length} check-ins`}
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -1057,233 +1111,242 @@ function ReportsTab({ eventName }: { eventName: string }) {
       title: `Event Reports: ${eventName}`,
       subtitle: 'Attendee issue log and performance snapshot.',
       sections: [
-        {
-          heading: 'Quick Stats',
-          lines: [
-            'Total Tickets Sold: 847',
-            'Checked In: 796',
-            'Check-in Rate: 94%',
-            'No Shows: 51'
-          ]
-        },
-        {
-          heading: 'Attendee Report Issues',
-          lines: [
-            'High Priority: Ticket Scanning Issues (12 attendees, gates 2 and 3)',
-            'Medium Priority: Missing Confirmation Emails (8 attendees)',
-            'Medium Priority: Late Entry Requests (5 attendees)',
-            'Low Priority: Name Mismatch on Tickets (6 attendees)',
-            'Low Priority: Refund Processing Delays (4 attendees)'
-          ]
-        },
-        {
-          heading: 'Issue Summary',
-          lines: [
-            'Total Issues: 35',
-            'High Priority: 1',
-            'Medium Priority: 2',
-            'Resolved: 23'
-          ]
-        }
+        { heading: 'Quick Stats', lines: ['Total Tickets Sold: 847', 'Checked In: 796', 'Check-in Rate: 94%', 'No Shows: 51'] },
+        { heading: 'Attendee Report Issues', lines: [
+          'High Priority: Ticket Scanning Issues (12 attendees, gates 2 and 3)',
+          'Medium Priority: Missing Confirmation Emails (8 attendees)',
+          'Medium Priority: Late Entry Requests (5 attendees)',
+          'Low Priority: Name Mismatch on Tickets (6 attendees)',
+          'Low Priority: Refund Processing Delays (4 attendees)',
+        ]},
+        { heading: 'Issue Summary', lines: ['Total Issues: 35', 'High Priority: 1', 'Medium Priority: 2', 'Resolved: 23'] },
       ]
     });
   };
 
+  const [expandedIssue, setExpandedIssue] = useState<string | null>(null);
+  const [resolvedReports, setResolvedReports] = useState<{ id: string; attendee: string; orderId: string; detail: string; issueTitle: string }[]>([]);
+  const [showAllResolved, setShowAllResolved] = useState(false);
+  const [issueReports, setIssueReports] = useState<Record<string, { id: string; attendee: string; orderId: string; detail: string }[]>>({
+    'Ticket Scanning Issues': [
+      { id: 'ISS-001', attendee: 'Sarah Johnson',   orderId: '#5847239', detail: 'QR code not recognised at Gate 2. Manually admitted after 8-minute delay.' },
+      { id: 'ISS-002', attendee: 'Michael Chen',    orderId: '#5847238', detail: 'Scanner at Gate 3 returned error code E-04 repeatedly. Issue escalated to tech.' },
+      { id: 'ISS-003', attendee: 'Emily Rodriguez', orderId: '#5847237', detail: 'App-generated QR code failed. Backup PDF ticket accepted instead.' },
+    ],
+    'Missing Confirmation Emails': [
+      { id: 'ISS-004', attendee: 'David Kim',      orderId: '#5847236', detail: 'Confirmation email not received. Resent manually — confirmed delivered.' },
+      { id: 'ISS-005', attendee: 'Jessica Brown',  orderId: '#5847235', detail: 'Email bounced due to typo in address at checkout. Corrected and resent.' },
+    ],
+    'Late Entry Requests': [
+      { id: 'ISS-006', attendee: 'James Carter',  orderId: '#5847234', detail: 'Arrived 25 minutes after closing. Entry granted via supervisor override.' },
+      { id: 'ISS-007', attendee: 'Olivia Park',   orderId: '#5847233', detail: 'Delayed due to transport disruption. Entry denied per policy — refund requested.' },
+    ],
+    'Name Mismatch on Tickets': [
+      { id: 'ISS-008', attendee: 'Daniel Foster',   orderId: '#5847232', detail: 'Name printed as "Forster" — ticket reissued with correct spelling.' },
+      { id: 'ISS-009', attendee: 'Ava Thompson',    orderId: '#5847231', detail: 'Middle name included erroneously. Ticket reissue pending.' },
+    ],
+    'Refund Processing Delays': [
+      { id: 'ISS-010', attendee: 'Noah Williams',   orderId: '#5847230', detail: 'Refund requested 9 days ago — still pending. Escalated to payments team.' },
+      { id: 'ISS-011', attendee: 'Sophia Martinez', orderId: '#5847229', detail: 'Bank return failed on first attempt. Second attempt initiated.' },
+    ],
+  });
+
+  const handleResolve = (issueTitle: string, reportId: string) => {
+    const report = issueReports[issueTitle]?.find((r) => r.id === reportId);
+    if (!report) return;
+    setResolvedReports((prev) => [...prev, { ...report, issueTitle }]);
+    setIssueReports((prev) => ({
+      ...prev,
+      [issueTitle]: prev[issueTitle].filter((r) => r.id !== reportId),
+    }));
+  };
+
+  const issues = [
+    { icon: QrCode,    title: 'Ticket Scanning Issues',     priority: 'high' as const,   description: 'QR code scanning failures at entrance gates 2 & 3.',                        meta: ['2 hours ago', '12 attendees', 'Gate 2, Gate 3']       },
+    { icon: Mail,      title: 'Missing Confirmation Emails', priority: 'medium' as const, description: 'Attendees did not receive ticket confirmation after purchase.',              meta: ['5 hours ago', '8 attendees', 'Email delivery']        },
+    { icon: Calendar,  title: 'Late Entry Requests',         priority: 'medium' as const, description: 'Attendees arrived after official check-in closing time.',                   meta: ['3 hours ago', '5 attendees', 'Policy exception']      },
+    { icon: UserRound, title: 'Name Mismatch on Tickets',    priority: 'low' as const,    description: 'Spelling errors on attendee names on digital tickets.',                     meta: ['1 day ago', '6 attendees', 'Ticket reissue needed']   },
+    { icon: CreditCard,title: 'Refund Processing Delays',    priority: 'low' as const,    description: 'Refund status inquiries beyond standard 5–7 day window.',                   meta: ['2 days ago', '4 attendees', 'Payment processing']     },
+  ];
+
+  const priorityBadge = (p: 'high' | 'medium' | 'low') => {
+    if (p === 'high')   return 'bg-rose-50 text-rose-700 border border-rose-200';
+    if (p === 'medium') return 'bg-amber-50 text-amber-700 border border-amber-200';
+    return 'bg-gray-100 text-gray-600 border border-gray-200';
+  };
+
   return (
     <div className="space-y-6">
-      {/* Reports Header */}
-      <div className="bg-white rounded-xl border border-gray-200 p-6">
-        <div className="flex items-center justify-between mb-6">
+
+      {/* Page header */}
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h2 className="ui-card-title">Event Reports</h2>
+          <p className="mt-1 text-xs text-gray-500">Attendee issue log and performance snapshot.</p>
+        </div>
+        <button type="button" onClick={handleExportReport} className="ui-button ui-button--default ui-button--size-sm flex-shrink-0">
+          <Download className="w-4 h-4" />
+          Export Report
+        </button>
+      </div>
+
+      {/* Metric strip */}
+      <div className="grid grid-cols-4 gap-6">
+        {[
+          { label: 'Tickets Sold',   value: '847', sub: 'Total confirmed sales'       },
+          { label: 'Checked In',     value: '796', sub: 'Attendees scanned at entry'  },
+          { label: 'Check-in Rate',  value: '94%', sub: 'Of all ticket holders'       },
+          { label: 'No Shows',       value: '51',  sub: 'Did not attend the event'    },
+        ].map((stat) => (
+          <div key={stat.label} className="rounded-[28px] border border-gray-200 bg-white p-6">
+            <p className="ui-meta-text mb-3">{stat.label}</p>
+            <p className="text-3xl font-semibold tracking-tight text-gray-900 leading-none">{stat.value}</p>
+            <p className="mt-2 text-xs text-gray-500">{stat.sub}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* Issue log */}
+      <div className="overflow-hidden rounded-[28px] border border-gray-200 bg-white">
+        <div className="flex items-start justify-between gap-4 border-b border-gray-100 px-6 py-6">
           <div>
-            <h2 className="text-lg font-semibold text-gray-900">Event Reports</h2>
-            <p className="text-gray-600 mt-1">Event attendee reports and analytics</p>
+            <h3 className="ui-card-title">Attendee Report Issues</h3>
+            <p className="mt-1 text-xs text-gray-500">Issues and concerns reported by attendees for this event.</p>
           </div>
-          <button
-            type="button"
-            onClick={handleExportReport}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-[#7626c6] text-white btn-glass rounded-lg text-sm font-medium hover:bg-[#5f1fa3] transition-colors"
-          >
-            <Download className="w-4 h-4" />
-            Export Report
-          </button>
-        </div>
-
-        {/* Quick Stats */}
-        <div className="grid grid-cols-4 gap-4">
-          <div className="bg-purple-50 rounded-lg p-4">
-            <div className="text-sm text-purple-600 mb-1">Total Tickets Sold</div>
-            <div className="text-2xl font-bold text-purple-900">847</div>
-          </div>
-          <div className="bg-blue-50 rounded-lg p-4">
-            <div className="text-sm text-blue-600 mb-1">Checked In</div>
-            <div className="text-2xl font-bold text-blue-900">796</div>
-          </div>
-          <div className="bg-green-50 rounded-lg p-4">
-            <div className="text-sm text-green-600 mb-1">Check-in Rate</div>
-            <div className="text-2xl font-bold text-green-900">94%</div>
-          </div>
-          <div className="bg-orange-50 rounded-lg p-4">
-            <div className="text-sm text-orange-600 mb-1">No Shows</div>
-            <div className="text-2xl font-bold text-orange-900">51</div>
+          <div className="flex items-center gap-3 flex-shrink-0">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-50 border border-rose-200 px-2.5 py-1 text-xs font-medium text-rose-700">1 high</span>
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 border border-amber-200 px-2.5 py-1 text-xs font-medium text-amber-700">2 medium</span>
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 border border-emerald-200 px-2.5 py-1 text-xs font-medium text-emerald-700">23 resolved</span>
           </div>
         </div>
-      </div>
 
-      {/* Attendee Report Issues */}
-      <div className="bg-white rounded-xl border border-gray-200 p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Attendee Report Issues</h3>
-        <p className="text-sm text-gray-600 mb-6">Issues and concerns reported by attendees for this event</p>
+        <div className="divide-y divide-gray-100">
+          {issues.map((issue) => {
+            const Icon = issue.icon;
+            const isOpen = expandedIssue === issue.title;
+            return (
+              <div key={issue.title}>
+                <button
+                  type="button"
+                  onClick={() => setExpandedIssue(isOpen ? null : issue.title)}
+                  className="w-full flex items-start gap-4 px-6 py-4 text-left hover:bg-gray-50 transition-colors duration-[150ms]"
+                >
+                  <div className="flex-shrink-0 rounded-xl bg-gray-100 p-2 text-gray-500 mt-0.5">
+                    <Icon className="h-4 w-4" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-start justify-between gap-3">
+                      <p className="text-sm font-semibold text-gray-900">{issue.title}</p>
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium capitalize ${priorityBadge(issue.priority)}`}>
+                          {issue.priority}
+                        </span>
+                        <ChevronDown className={`h-4 w-4 text-gray-400 transition-transform duration-[150ms] ${isOpen ? 'rotate-180' : ''}`} />
+                      </div>
+                    </div>
+                    <p className="mt-1 text-xs text-gray-500 leading-5">{issue.description}</p>
+                    <div className="mt-2 flex items-center gap-2 text-[11px] text-gray-400">
+                      {issue.meta.map((m, i) => (
+                        <span key={m} className="flex items-center gap-2">
+                          {i > 0 && <span>·</span>}
+                          {m}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </button>
 
-        <div className="space-y-3">
-          {/* Issue 1 */}
-          <div className="flex items-start gap-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-            <div className="bg-red-100 p-2 rounded flex-shrink-0">
-              <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-              </svg>
-            </div>
-            <div className="flex-1">
-              <div className="flex items-center justify-between mb-1">
-                <h4 className="font-medium text-red-900">Ticket Scanning Issues</h4>
-                <span className="text-xs px-2.5 py-1 bg-red-100 text-red-700 rounded-full font-medium">High Priority</span>
+                {isOpen && (
+                  <div className="border-t border-gray-100 bg-gray-50 px-6 py-4 space-y-3">
+                    {(issueReports[issue.title] ?? []).length === 0 ? (
+                      <p className="text-xs text-gray-400 py-2">All reports in this category have been resolved.</p>
+                    ) : (issueReports[issue.title] ?? []).map((report) => (
+                      <div key={report.id} className="overflow-hidden rounded-[22px] border border-gray-200 bg-white divide-y divide-gray-100">
+                        <div className="flex items-center gap-4 px-4 py-3">
+                          <span className="w-16 flex-shrink-0 text-xs font-medium text-gray-400">Report</span>
+                          <span className="text-xs font-medium text-gray-700">{report.id}</span>
+                          <span className="ml-auto flex items-center gap-3">
+                            <span className="text-xs text-gray-400">{report.orderId}</span>
+                            <button
+                              type="button"
+                              onClick={() => handleResolve(issue.title, report.id)}
+                              className="ui-button ui-button--outline ui-button--size-sm !py-1 text-xs"
+                              style={{ paddingLeft: '0.625rem', paddingRight: '0.625rem' }}
+                            >
+                              Resolve
+                            </button>
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-4 px-4 py-3">
+                          <span className="w-16 flex-shrink-0 text-xs font-medium text-gray-400">Attendee</span>
+                          <span className="text-xs text-gray-700">{report.attendee}</span>
+                        </div>
+                        <div className="flex items-start gap-4 px-4 py-3">
+                          <span className="w-16 flex-shrink-0 text-xs font-medium text-gray-400">Detail</span>
+                          <span className="text-xs text-gray-700 leading-5">{report.detail}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
-              <p className="text-sm text-red-700 mb-2">
-                12 attendees reported QR code scanning failures at entrance gates 2 & 3
-              </p>
-              <div className="flex items-center gap-4 text-xs text-red-600">
-                <span>Reported: 2 hours ago</span>
-                <span>•</span>
-                <span>Affected: 12 attendees</span>
-                <span>•</span>
-                <span>Gate 2, Gate 3</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Issue 2 */}
-          <div className="flex items-start gap-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-            <div className="bg-yellow-100 p-2 rounded flex-shrink-0">
-              <svg className="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
-            <div className="flex-1">
-              <div className="flex items-center justify-between mb-1">
-                <h4 className="font-medium text-yellow-900">Missing Confirmation Emails</h4>
-                <span className="text-xs px-2.5 py-1 bg-yellow-100 text-yellow-700 rounded-full font-medium">Medium Priority</span>
-              </div>
-              <p className="text-sm text-yellow-700 mb-2">
-                8 attendees did not receive ticket confirmation emails after purchase
-              </p>
-              <div className="flex items-center gap-4 text-xs text-yellow-600">
-                <span>Reported: 5 hours ago</span>
-                <span>•</span>
-                <span>Affected: 8 attendees</span>
-                <span>•</span>
-                <span>Email delivery issue</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Issue 3 */}
-          <div className="flex items-start gap-4 p-4 bg-orange-50 border border-orange-200 rounded-lg">
-            <div className="bg-orange-100 p-2 rounded flex-shrink-0">
-              <svg className="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-              </svg>
-            </div>
-            <div className="flex-1">
-              <div className="flex items-center justify-between mb-1">
-                <h4 className="font-medium text-orange-900">Late Entry Requests</h4>
-                <span className="text-xs px-2.5 py-1 bg-orange-100 text-orange-700 rounded-full font-medium">Medium Priority</span>
-              </div>
-              <p className="text-sm text-orange-700 mb-2">
-                5 attendees arrived after official check-in closing time, requesting special entry
-              </p>
-              <div className="flex items-center gap-4 text-xs text-orange-600">
-                <span>Reported: 3 hours ago</span>
-                <span>•</span>
-                <span>Affected: 5 attendees</span>
-                <span>•</span>
-                <span>Policy exception request</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Issue 4 */}
-          <div className="flex items-start gap-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-            <div className="bg-blue-100 p-2 rounded flex-shrink-0">
-              <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-              </svg>
-            </div>
-            <div className="flex-1">
-              <div className="flex items-center justify-between mb-1">
-                <h4 className="font-medium text-blue-900">Name Mismatch on Tickets</h4>
-                <span className="text-xs px-2.5 py-1 bg-blue-100 text-blue-700 rounded-full font-medium">Low Priority</span>
-              </div>
-              <p className="text-sm text-blue-700 mb-2">
-                6 attendees reported name spelling errors on their digital tickets
-              </p>
-              <div className="flex items-center gap-4 text-xs text-blue-600">
-                <span>Reported: 1 day ago</span>
-                <span>•</span>
-                <span>Affected: 6 attendees</span>
-                <span>•</span>
-                <span>Ticket reissue needed</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Issue 5 */}
-          <div className="flex items-start gap-4 p-4 bg-purple-50 border border-purple-200 rounded-lg">
-            <div className="bg-purple-100 p-2 rounded flex-shrink-0">
-              <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
-              </svg>
-            </div>
-            <div className="flex-1">
-              <div className="flex items-center justify-between mb-1">
-                <h4 className="font-medium text-purple-900">Refund Processing Delays</h4>
-                <span className="text-xs px-2.5 py-1 bg-purple-100 text-purple-700 rounded-full font-medium">Low Priority</span>
-              </div>
-              <p className="text-sm text-purple-700 mb-2">
-                4 attendees inquiring about refund status beyond standard 5-7 day processing time
-              </p>
-              <div className="flex items-center gap-4 text-xs text-purple-600">
-                <span>Reported: 2 days ago</span>
-                <span>•</span>
-                <span>Affected: 4 attendees</span>
-                <span>•</span>
-                <span>Payment processing</span>
-              </div>
-            </div>
-          </div>
+            );
+          })}
         </div>
       </div>
 
-      {/* Issue Summary */}
-      <div className="bg-white rounded-xl border border-gray-200 p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Issue Summary</h3>
-        <div className="grid grid-cols-4 gap-4">
-          <div className="text-center p-4 bg-gray-50 rounded-lg">
-            <div className="text-2xl font-bold text-gray-900">35</div>
-            <div className="text-sm text-gray-600 mt-1">Total Issues</div>
+      {/* Resolved Issues */}
+      {resolvedReports.length > 0 && (
+        <div className="overflow-hidden rounded-[28px] border border-gray-200 bg-white">
+          <div className="flex items-start justify-between gap-4 border-b border-gray-100 px-6 py-6">
+            <div>
+              <h3 className="ui-card-title">Resolved Issues</h3>
+              <p className="mt-1 text-xs text-gray-500">{resolvedReports.length} report{resolvedReports.length !== 1 ? 's' : ''} marked as resolved.</p>
+            </div>
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 border border-emerald-200 px-2.5 py-1 text-xs font-medium text-emerald-700">
+              {resolvedReports.length} resolved
+            </span>
           </div>
-          <div className="text-center p-4 bg-red-50 rounded-lg">
-            <div className="text-2xl font-bold text-red-600">1</div>
-            <div className="text-sm text-gray-600 mt-1">High Priority</div>
+          <div className="px-6 py-4 space-y-3">
+            {(showAllResolved ? resolvedReports : resolvedReports.slice(-3).reverse()).map((report) => (
+              <div key={report.id} className="overflow-hidden rounded-[22px] border border-gray-200 bg-gray-50 divide-y divide-gray-100">
+                <div className="flex items-center gap-4 px-4 py-3">
+                  <span className="w-16 flex-shrink-0 text-xs font-medium text-gray-400">Report</span>
+                  <span className="text-xs font-medium text-gray-700">{report.id}</span>
+                  <span className="ml-auto flex items-center gap-3">
+                    <span className="text-xs text-gray-400">{report.orderId}</span>
+                    <span className="inline-flex items-center rounded-full bg-emerald-50 border border-emerald-200 px-2 py-0.5 text-[11px] font-medium text-emerald-700">Resolved</span>
+                  </span>
+                </div>
+                <div className="flex items-center gap-4 px-4 py-3">
+                  <span className="w-16 flex-shrink-0 text-xs font-medium text-gray-400">Attendee</span>
+                  <span className="text-xs text-gray-700">{report.attendee}</span>
+                </div>
+                <div className="flex items-center gap-4 px-4 py-3">
+                  <span className="w-16 flex-shrink-0 text-xs font-medium text-gray-400">Category</span>
+                  <span className="text-xs text-gray-500">{report.issueTitle}</span>
+                </div>
+                <div className="flex items-start gap-4 px-4 py-3">
+                  <span className="w-16 flex-shrink-0 text-xs font-medium text-gray-400">Detail</span>
+                  <span className="text-xs text-gray-700 leading-5">{report.detail}</span>
+                </div>
+              </div>
+            ))}
           </div>
-          <div className="text-center p-4 bg-yellow-50 rounded-lg">
-            <div className="text-2xl font-bold text-yellow-600">2</div>
-            <div className="text-sm text-gray-600 mt-1">Medium Priority</div>
-          </div>
-          <div className="text-center p-4 bg-green-50 rounded-lg">
-            <div className="text-2xl font-bold text-green-600">23</div>
-            <div className="text-sm text-gray-600 mt-1">Resolved</div>
-          </div>
+          {resolvedReports.length > 3 && (
+            <div className="flex justify-end border-t border-gray-100 px-6 py-3">
+              <button
+                type="button"
+                onClick={() => setShowAllResolved((v) => !v)}
+                className="text-xs font-medium text-gray-500 hover:text-gray-900 transition-colors duration-[150ms]"
+              >
+                {showAllResolved ? 'Show less' : `View all ${resolvedReports.length} resolved`}
+              </button>
+            </div>
+          )}
         </div>
-      </div>
+      )}
+
     </div>
   );
 }

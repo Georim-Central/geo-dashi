@@ -10,7 +10,7 @@ describe('MarketingSection workflow', () => {
 
     const historySection = screen.getByRole('heading', { name: /campaign history/i }).closest('section');
     expect(historySection).not.toBeNull();
-    expect(screen.getByRole('heading', { name: /audience targeting/i })).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: /audience targeting/i })).not.toBeInTheDocument();
     expect(screen.getAllByText(/vip upgrade push/i).length).toBeGreaterThan(0);
 
     await user.click(within(historySection as HTMLElement).getByRole('button', { name: /^draft$/i }));

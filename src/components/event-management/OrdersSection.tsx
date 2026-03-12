@@ -144,6 +144,186 @@ const initialOrders: OrderRecord[] = [
     checkInStatus: 'Refunded',
     notes: 'Refunded due to schedule conflict.',
   },
+  {
+    id: '5847234',
+    customer: {
+      name: 'Omar Hassan',
+      email: 'o.hassan@email.com',
+      phone: '+1 (555) 348-8821',
+      attendeeId: 'ATT-8821',
+    },
+    ticketType: 'Early Bird GA',
+    quantity: 1,
+    amount: '45.00',
+    status: 'completed',
+    date: 'Jan 6, 2026',
+    purchasedAt: 'Jan 6, 2026, 9:05 AM',
+    paymentMethod: 'Visa •••• 3310',
+    transactionId: 'TXN-4L9R-8821',
+    promoCode: null,
+    checkInStatus: 'Not checked in',
+    notes: 'No additional notes.',
+  },
+  {
+    id: '5847233',
+    customer: {
+      name: 'Priya Nair',
+      email: 'priya.n@email.com',
+      phone: '+1 (555) 507-2293',
+      attendeeId: 'ATT-2293',
+    },
+    ticketType: 'VIP Access',
+    quantity: 1,
+    amount: '150.00',
+    status: 'completed',
+    date: 'Jan 5, 2026',
+    purchasedAt: 'Jan 5, 2026, 3:44 PM',
+    paymentMethod: 'Mastercard •••• 5509',
+    transactionId: 'TXN-7H2N-2293',
+    promoCode: 'VIP20',
+    checkInStatus: 'Not checked in',
+    notes: 'Requested front-of-stage access.',
+  },
+  {
+    id: '5847232',
+    customer: {
+      name: 'Lucas Ferreira',
+      email: 'lferreira@email.com',
+      phone: '+1 (555) 129-4470',
+      attendeeId: 'ATT-4470',
+    },
+    ticketType: 'Student Discount',
+    quantity: 2,
+    amount: '60.00',
+    status: 'pending',
+    date: 'Jan 5, 2026',
+    purchasedAt: 'Jan 5, 2026, 6:17 PM',
+    paymentMethod: 'Pending payment verification',
+    transactionId: 'TXN-PEND-4470',
+    promoCode: 'STUDENT10',
+    checkInStatus: 'Not checked in',
+    notes: 'Group student booking — IDs pending.',
+  },
+  {
+    id: '5847231',
+    customer: {
+      name: 'Aisha Okafor',
+      email: 'aisha.ok@email.com',
+      phone: '+1 (555) 883-6614',
+      attendeeId: 'ATT-6614',
+    },
+    ticketType: 'Early Bird GA',
+    quantity: 3,
+    amount: '135.00',
+    status: 'completed',
+    date: 'Jan 4, 2026',
+    purchasedAt: 'Jan 4, 2026, 11:22 AM',
+    paymentMethod: 'Amex •••• 9901',
+    transactionId: 'TXN-2K8W-6614',
+    promoCode: 'SUMMER2026',
+    checkInStatus: 'Not checked in',
+    notes: 'No additional notes.',
+  },
+  {
+    id: '5847230',
+    customer: {
+      name: 'Tom Nakamura',
+      email: 'tnakamura@email.com',
+      phone: '+1 (555) 441-7730',
+      attendeeId: 'ATT-7730',
+    },
+    ticketType: 'VIP Access',
+    quantity: 1,
+    amount: '150.00',
+    status: 'refunded',
+    date: 'Jan 3, 2026',
+    purchasedAt: 'Jan 3, 2026, 2:55 PM',
+    paymentMethod: 'Visa •••• 0042',
+    transactionId: 'TXN-RFD-7730',
+    promoCode: null,
+    checkInStatus: 'Refunded',
+    notes: 'Refunded — event date conflict.',
+  },
+  {
+    id: '5847229',
+    customer: {
+      name: 'Rachel Obi',
+      email: 'rachel.obi@email.com',
+      phone: '+1 (555) 670-3341',
+      attendeeId: 'ATT-3341',
+    },
+    ticketType: 'Early Bird GA',
+    quantity: 2,
+    amount: '90.00',
+    status: 'completed',
+    date: 'Jan 3, 2026',
+    purchasedAt: 'Jan 3, 2026, 10:14 AM',
+    paymentMethod: 'Mastercard •••• 8812',
+    transactionId: 'TXN-5Q1M-3341',
+    promoCode: 'SUMMER2026',
+    checkInStatus: 'Not checked in',
+    notes: 'No additional notes.',
+  },
+  {
+    id: '5847228',
+    customer: {
+      name: 'Carlos Mendez',
+      email: 'c.mendez@email.com',
+      phone: '+1 (555) 219-5566',
+      attendeeId: 'ATT-5566',
+    },
+    ticketType: 'Student Discount',
+    quantity: 1,
+    amount: '30.00',
+    status: 'pending',
+    date: 'Jan 2, 2026',
+    purchasedAt: 'Jan 2, 2026, 7:30 PM',
+    paymentMethod: 'Pending payment verification',
+    transactionId: 'TXN-PEND-5566',
+    promoCode: 'STUDENT10',
+    checkInStatus: 'Not checked in',
+    notes: 'Student ID not yet verified.',
+  },
+  {
+    id: '5847227',
+    customer: {
+      name: 'Nina Patel',
+      email: 'nina.p@email.com',
+      phone: '+1 (555) 334-9920',
+      attendeeId: 'ATT-9920',
+    },
+    ticketType: 'VIP Access',
+    quantity: 2,
+    amount: '300.00',
+    status: 'completed',
+    date: 'Jan 2, 2026',
+    purchasedAt: 'Jan 2, 2026, 1:48 PM',
+    paymentMethod: 'Visa •••• 7741',
+    transactionId: 'TXN-8B3X-9920',
+    promoCode: 'VIP20',
+    checkInStatus: 'Not checked in',
+    notes: 'Backstage pass requested at will-call.',
+  },
+  {
+    id: '5847226',
+    customer: {
+      name: 'James Okonkwo',
+      email: 'j.okonkwo@email.com',
+      phone: '+1 (555) 882-1104',
+      attendeeId: 'ATT-1104',
+    },
+    ticketType: 'Early Bird GA',
+    quantity: 3,
+    amount: '135.00',
+    status: 'completed',
+    date: 'Jan 1, 2026',
+    purchasedAt: 'Jan 1, 2026, 5:22 PM',
+    paymentMethod: 'Amex •••• 6630',
+    transactionId: 'TXN-3W7V-1104',
+    promoCode: null,
+    checkInStatus: 'Not checked in',
+    notes: 'Group booking — single point of contact.',
+  },
 ];
 
 const mockWaitlist = [
@@ -199,6 +379,7 @@ export function OrdersSection() {
   const [searchQuery, setSearchQuery] = useState('');
   const [actionNotice, setActionNotice] = useState('');
   const [exportState, setExportState] = useState<ExportState>('idle');
+  const [showAllOrders, setShowAllOrders] = useState(false);
   const actionMenuRef = useRef<HTMLDivElement | null>(null);
 
   const selectedOrder = useMemo(
@@ -437,26 +618,50 @@ export function OrdersSection() {
   return (
     <div className="space-y-6">
       <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-        <div className="mb-4 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+        <div className="mb-4 flex flex-row items-start justify-between gap-4">
           <div>
             <h2 className="text-xl font-semibold text-gray-900">Orders & Registration</h2>
             <p className="mt-1 text-sm text-gray-500">
               Track ticket payments, attendee details, refunds, and export-ready order history.
             </p>
           </div>
-          <button
-            type="button"
-            onClick={handleExport}
-            disabled={exportState === 'exporting'}
-            className="inline-flex items-center gap-2 rounded-lg border border-gray-300 px-4 py-2 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            <Download className="h-4 w-4" />
-            {exportState === 'exporting'
-              ? 'Preparing CSV...'
-              : exportState === 'ready'
-                ? 'CSV Ready'
-                : 'Export CSV'}
-          </button>
+          <div className="flex items-center gap-2">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400 pointer-events-none" />
+              <input
+                id={getFieldId('search-orders')}
+                aria-label="Search orders"
+                type="text"
+                placeholder="Search orders..."
+                value={searchQuery}
+                onChange={(event) => setSearchQuery(event.target.value)}
+                className="w-56 rounded-lg border border-gray-300 py-2 pl-10 pr-3 text-sm focus:border-transparent focus:ring-2 focus:ring-[#7626c6]"
+              />
+            </div>
+            <button
+              type="button"
+              onClick={handleFilterClick}
+              className="inline-flex items-center gap-2 rounded-lg border border-gray-300 px-3 py-2 text-sm transition-colors hover:bg-gray-50"
+              aria-expanded={showFilterOptions}
+              aria-controls="orders-filter-options"
+            >
+              <Filter className="h-4 w-4" />
+              Filters
+            </button>
+            <button
+              type="button"
+              onClick={handleExport}
+              disabled={exportState === 'exporting'}
+              className="inline-flex items-center gap-2 rounded-lg border border-gray-300 px-3 py-2 text-sm transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              <Download className="h-4 w-4" />
+              {exportState === 'exporting'
+                ? 'Preparing…'
+                : exportState === 'ready'
+                  ? 'CSV Ready'
+                  : 'Export CSV'}
+            </button>
+          </div>
         </div>
 
         {actionNotice ? (
@@ -464,31 +669,6 @@ export function OrdersSection() {
             {actionNotice}
           </div>
         ) : null}
-
-        <div className="flex flex-col gap-4 lg:flex-row">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
-            <input
-              id={getFieldId('search-orders')}
-              aria-label="Search orders"
-              type="text"
-              placeholder="Search by order ID, name, email, or attendee ID..."
-              value={searchQuery}
-              onChange={(event) => setSearchQuery(event.target.value)}
-              className="w-full rounded-lg border border-gray-300 py-2 pl-10 pr-4 focus:border-transparent focus:ring-2 focus:ring-[#7626c6]"
-            />
-          </div>
-          <button
-            type="button"
-            onClick={handleFilterClick}
-            className="inline-flex items-center gap-2 rounded-lg border border-gray-300 px-4 py-2 transition-colors hover:bg-gray-50"
-            aria-expanded={showFilterOptions}
-            aria-controls="orders-filter-options"
-          >
-            <Filter className="h-4 w-4" />
-            Filters
-          </button>
-        </div>
 
         {showFilterOptions ? (
           <div id="orders-filter-options" className="mt-4 rounded-lg border border-gray-200 bg-gray-50 p-4">
@@ -524,7 +704,7 @@ export function OrdersSection() {
           </div>
         ) : null}
 
-        <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <div className="mt-6 grid grid-cols-4 gap-4">
           <StatCard label="Completed" value={String(stats.completed)} tone="green" />
           <StatCard label="Pending" value={String(stats.pending)} tone="yellow" />
           <StatCard label="Refunded" value={String(stats.refunded)} tone="red" />
@@ -533,7 +713,8 @@ export function OrdersSection() {
       </div>
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.6fr)_360px]">
-        <div className="overflow-x-auto overflow-y-visible rounded-2xl border border-gray-200 bg-white shadow-sm">
+        <div className="rounded-2xl border border-gray-200 bg-white shadow-sm">
+          <div className="overflow-x-auto">
           <ContentState
             isEmpty={filteredOrders.length === 0}
             emptyMessage="No orders match your current filters."
@@ -566,7 +747,7 @@ export function OrdersSection() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
-                {filteredOrders.map((order) => (
+                {(showAllOrders ? filteredOrders : filteredOrders.slice(0, 4)).map((order) => (
                   <tr
                     key={order.id}
                     className={`transition-colors hover:bg-gray-50 ${
@@ -663,74 +844,88 @@ export function OrdersSection() {
               </tbody>
             </table>
           </ContentState>
+          </div>
+          {filteredOrders.length > 4 && (
+            <div className="border-t border-gray-200 px-6 py-3 flex justify-end">
+              <button
+                type="button"
+                onClick={() => setShowAllOrders((prev) => !prev)}
+                className="flex items-center gap-1 text-sm font-medium text-[#5f1fa3] hover:text-[#4d1c84] transition-colors"
+              >
+                {showAllOrders ? 'Show less' : `View all ${filteredOrders.length} orders`}
+              </button>
+            </div>
+          )}
         </div>
 
-        <aside className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-          <div className="mb-5 flex items-start justify-between gap-3 border-b border-gray-100 pb-4">
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900">Attendee Detail</h3>
-              <p className="mt-1 text-sm text-gray-500">Quick drill-in for the selected order.</p>
-            </div>
-            <div className="rounded-full bg-[#f5ecfd] px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-[#7626c6]">
-              Live
-            </div>
+        <aside className="overflow-hidden rounded-[28px] border border-gray-200 bg-white">
+
+          {/* Card header */}
+          <div className="border-b border-gray-100 px-6 py-6">
+            <h3 className="ui-card-title">Attendee Detail</h3>
+            <p className="mt-2 text-xs text-gray-500">Select an order to inspect the attendee.</p>
           </div>
 
           {selectedOrder ? (
-            <div className="space-y-5">
-              <div className="flex items-center gap-3">
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#f5ecfd] font-semibold text-[#7626c6]">
-                  {selectedOrder.customer.name
-                    .split(' ')
-                    .map((name) => name[0])
-                    .join('')}
+            <div className="p-6 space-y-4">
+
+              {/* Avatar + name subcard */}
+              <div className="flex items-center gap-3 rounded-[22px] border border-gray-200 bg-gray-50 p-4">
+                <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-[#f1e5fb] text-sm font-semibold text-[#7626c6]">
+                  {selectedOrder.customer.name.split(' ').map((n) => n[0]).join('')}
                 </div>
-                <div>
-                  <div className="font-semibold text-gray-900">{selectedOrder.customer.name}</div>
-                  <div className="text-sm text-gray-500">{selectedOrder.customer.email}</div>
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold text-gray-900 truncate">{selectedOrder.customer.name}</p>
+                  <p className="mt-0.5 text-xs text-gray-500 truncate">{selectedOrder.customer.email}</p>
                 </div>
               </div>
 
-              <div className="space-y-3">
-                <DetailRow icon={UserRound} label="Attendee ID" value={selectedOrder.customer.attendeeId} />
-                <DetailRow icon={Receipt} label="Order" value={`#${selectedOrder.id}`} />
-                <DetailRow icon={Mail} label="Contact" value={selectedOrder.customer.phone} />
-                <DetailRow icon={Eye} label="Check-in" value={selectedOrder.checkInStatus} />
+              {/* Metadata list subcard */}
+              <div className="overflow-hidden rounded-[22px] border border-gray-200 divide-y divide-gray-100">
+                {[
+                  { label: 'Attendee ID', value: selectedOrder.customer.attendeeId },
+                  { label: 'Order',       value: `#${selectedOrder.id}` },
+                  { label: 'Contact',     value: selectedOrder.customer.phone },
+                  { label: 'Check-in',    value: selectedOrder.checkInStatus },
+                ].map((row) => (
+                  <div key={row.label} className="flex items-start gap-4 px-4 py-3">
+                    <span className="w-20 flex-shrink-0 text-xs font-medium text-gray-400">{row.label}</span>
+                    <span className="text-xs text-gray-700 capitalize leading-5">{row.value}</span>
+                  </div>
+                ))}
               </div>
 
-              <div className="rounded-xl border border-gray-200 bg-gray-50 p-4">
-                <div className="mb-2 text-xs font-semibold uppercase tracking-[0.2em] text-gray-500">
-                  Organizer Notes
-                </div>
+              {/* Notes subcard */}
+              <div className="rounded-[22px] border border-gray-200 bg-gray-50 p-4">
+                <p className="mb-2 text-xs font-medium text-gray-400">Notes</p>
                 <p className="text-sm leading-6 text-gray-700">{selectedOrder.notes}</p>
               </div>
 
+              {/* Action buttons */}
               <div className="flex flex-wrap gap-2">
                 <button
                   type="button"
-                  onClick={() => {
-                    setDraftNotes(selectedOrder.notes);
-                    setShowNotesModal(true);
-                  }}
-                  className="rounded-lg border border-gray-300 px-3 py-2 text-sm transition-colors hover:bg-gray-50"
+                  onClick={() => { setDraftNotes(selectedOrder.notes); setShowNotesModal(true); }}
+                  className="ui-button ui-button--outline ui-button--size-sm"
                 >
                   Edit notes
                 </button>
                 <button
                   type="button"
-                  onClick={() => {
-                    setShowOrderDetailsModal(true);
-                  }}
-                  className="rounded-lg bg-[#7626c6] px-3 py-2 text-sm text-white transition-colors hover:bg-[#5f1fa3]"
+                  onClick={() => setShowOrderDetailsModal(true)}
+                  className="ui-button ui-button--default ui-button--size-sm"
                 >
                   Open full order
                 </button>
               </div>
+
             </div>
           ) : (
-            <ContentState isEmpty emptyMessage="Select an order to open attendee details." className="py-16">
-              <div />
-            </ContentState>
+            <div className="px-6 py-16 text-center">
+              <UserRound className="mx-auto h-8 w-8 text-gray-300" />
+              <p className="mt-4 text-sm font-medium text-gray-900">No attendee selected</p>
+              <p className="mt-2 text-xs text-gray-500">Select an order to open attendee details.</p>
+            </div>
           )}
         </aside>
       </div>

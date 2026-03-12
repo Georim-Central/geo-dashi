@@ -69,31 +69,36 @@ const recentActivity = [
     action: 'New order',
     detail: '2x VIP tickets purchased',
     time: '5 min ago',
-    amount: '+$240'
+    amount: '+$240',
+    unread: true
   },
   {
     event: 'Summer Music Festival 2026',
     action: 'Ticket update',
     detail: 'Early Bird tickets 80% sold',
-    time: '12 min ago'
+    time: '12 min ago',
+    unread: true
   },
   {
     event: 'Tech Conference 2026',
     action: 'Marketing milestone',
     detail: 'Reached 10K impressions on Georim',
-    time: '1 hour ago'
+    time: '1 hour ago',
+    unread: true
   },
   {
     event: 'Summer Music Festival 2026',
     action: 'Registration milestone',
     detail: 'Passed 1,000 attendees',
-    time: '2 hours ago'
+    time: '2 hours ago',
+    unread: true
   },
   {
     event: 'Food & Wine Expo',
     action: 'Email campaign sent',
     detail: 'Event reminder - 94% delivery rate',
-    time: '3 hours ago'
+    time: '3 hours ago',
+    unread: false
   }
 ];
 
@@ -547,8 +552,13 @@ export function Dashboard({
         <div className="lg:col-span-1">
           <div className="space-y-6">
             <div className="overflow-hidden rounded-[28px] border border-gray-200 bg-white">
-              <div className="px-6 py-4 border-b border-gray-200">
+              <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between gap-3">
                 <h2 className="ui-card-title">Recent Activity</h2>
+                {recentActivity.filter(a => a.unread).length > 0 && (
+                  <span className="inline-flex items-center justify-center h-5 min-w-5 px-1.5 rounded-full bg-violet-500 text-white text-[10px] font-semibold leading-none">
+                    {recentActivity.filter(a => a.unread).length}
+                  </span>
+                )}
               </div>
 
               <div className="divide-y divide-gray-200 motion-stagger">
@@ -560,9 +570,9 @@ export function Dashboard({
                   className="py-14"
                 >
                   {recentActivity.map((activity, index) => (
-                  <div key={index} className="p-4 hover:bg-gray-50 transition-colors">
+                  <div key={index} className={`p-4 transition-colors ${activity.unread ? 'bg-violet-50/40 hover:bg-violet-50/60' : 'hover:bg-gray-50'}`}>
                     <div className="flex items-start gap-3">
-                      <div className="mt-2 h-2 w-2 flex-shrink-0 rounded-full bg-violet-500"></div>
+                      <div className={`mt-2 h-2 w-2 flex-shrink-0 rounded-full ${activity.unread ? 'bg-violet-500 animate-pulse' : 'bg-violet-300'}`}></div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-start justify-between gap-2 mb-1">
                           <p className="text-sm font-medium text-gray-900">{activity.action}</p>
