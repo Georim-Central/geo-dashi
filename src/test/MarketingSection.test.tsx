@@ -14,14 +14,14 @@ describe('MarketingSection workflow', () => {
     expect(screen.getAllByText(/vip upgrade push/i).length).toBeGreaterThan(0);
 
     await user.click(within(historySection as HTMLElement).getByRole('button', { name: /^draft$/i }));
-    expect(screen.getByText(/no campaign history matches this filter/i)).toBeInTheDocument();
+    expect(screen.getByText(/no campaigns match this filter/i)).toBeInTheDocument();
     await user.click(within(historySection as HTMLElement).getByRole('button', { name: /^all$/i }));
 
     await user.click(screen.getByRole('button', { name: /new campaign/i }));
     const campaignDialog = await screen.findByRole('dialog', { name: /create campaign/i });
 
     await user.type(within(campaignDialog).getByLabelText(/campaign name/i), 'Waitlist recovery text');
-    await user.selectOptions(within(campaignDialog).getByLabelText(/campaign status/i), 'scheduled');
+    await user.selectOptions(within(campaignDialog).getByLabelText(/^status$/i), 'scheduled');
     fireEvent.change(within(campaignDialog).getByLabelText(/send time/i), {
       target: { value: '2026-03-20T18:30' },
     });

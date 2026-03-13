@@ -5,8 +5,8 @@ test('home and create event flow renders', async ({ page }) => {
   await expect(page).toHaveTitle('Georim Home (MVP)');
   await expect(page.getByRole('heading', { name: /welcome john/i })).toBeVisible();
 
-  await page.getByRole('main').getByRole('button', { name: 'Create Event' }).click();
-  await expect(page.getByRole('heading', { name: 'Create New Event' })).toBeVisible();
+  await page.getByRole('main').getByRole('button', { name: /create event/i }).click();
+  await expect(page.getByRole('heading', { name: /create new event/i })).toBeVisible();
 });
 
 test('ticketing modal buttons open and close correctly', async ({ page }) => {

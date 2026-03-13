@@ -72,7 +72,6 @@ const registeredAttendees: RegisteredAttendee[] = [
 
 const initialCheckInRecords: CheckInRecord[] = [
   { attendeeId: 'ATT-3901', name: 'Sarah Johnson',   email: 'sarah.j@email.com',   ticketType: 'Early Bird GA',    orderId: '5847239', checkedInAt: '2026-06-15T09:12:00.000Z', source: 'Main Gate Scanner',      scanCode: 'ATT-3901' },
-  { attendeeId: 'ATT-4420', name: 'Michael Chen',    email: 'mchen@email.com',      ticketType: 'VIP Access',       orderId: '5847238', checkedInAt: '2026-06-15T09:15:00.000Z', source: 'VIP Entrance Scanner',   scanCode: 'ATT-4420' },
   { attendeeId: 'ATT-2015', name: 'Emily Rodriguez', email: 'emily.r@email.com',    ticketType: 'Student Discount', orderId: '5847237', checkedInAt: '2026-06-15T09:18:00.000Z', source: 'Main Gate Scanner',      scanCode: 'ATT-2015' },
   { attendeeId: 'ATT-3372', name: 'David Kim',       email: 'davidk@email.com',     ticketType: 'Early Bird GA',    orderId: '5847236', checkedInAt: '2026-06-15T09:21:00.000Z', source: 'iPhone Scanner App',     scanCode: 'ATT-3372' },
   { attendeeId: 'ATT-1187', name: 'Jessica Brown',   email: 'jbrown@email.com',     ticketType: 'VIP Access',       orderId: '5847235', checkedInAt: '2026-06-15T09:24:00.000Z', source: 'VIP Entrance Scanner',   scanCode: 'ATT-1187' },
@@ -500,64 +499,65 @@ export function EventManagement({
   };
 
   return (
-    <div className="min-h-full bg-gray-50">
+    <div className="app-page-background min-h-full">
       {/* Event Header */}
-      <div className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-8 py-6">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h1 className="ui-page-title ui-type-section text-gray-900">{resolvedEventName}</h1>
-              <p className="ui-page-subtitle ui-type-subsection mt-1">{eventHeaderDetails}</p>
-              {statusNotice ? (
-                <p className="mt-2 text-sm font-medium capitalize text-[#7626c6]" aria-live="polite">
-                  {statusNotice}
-                </p>
-              ) : null}
-            </div>
-            <div className="flex items-center gap-3">
-              <span className={`inline-flex rounded-full px-3 py-1.5 text-sm font-medium ${eventStatusBadgeClass}`}>
-                {eventStatusLabel}
-              </span>
-              <button
-                type="button"
-                onClick={() => setShowPreviewModal(true)}
-                className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-              >
-                Preview Event
-              </button>
-              <button
-                type="button"
-                onClick={onDuplicateEvent}
-                className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-              >
-                Duplicate
-              </button>
-              <select
-                aria-label="Lifecycle status"
-                value={eventStatus}
-                onChange={(event) => handleLifecycleChange(event.target.value as EventLifecycleStatus)}
-                className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm text-gray-700"
-              >
-                <option value="draft">Draft</option>
-                <option value="published">Published</option>
-                <option value="private">Private</option>
-                <option value="archived">Archived</option>
-              </select>
-              <button
-                type="button"
-                onClick={() => handleLifecycleChange(eventStatus === 'published' ? 'draft' : 'published')}
-                className="px-4 py-2 bg-[#7626c6] text-white btn-glass rounded-lg hover:bg-[#5f1fa3] transition-colors"
-              >
-                {eventStatus === 'published' ? 'Unpublish' : 'Publish'}
-              </button>
-            </div>
+      <div className="max-w-7xl mx-auto px-8 pt-6">
+        <div className="mb-6 flex items-center justify-between">
+          <div>
+            <h1 className="ui-page-title ui-type-section text-gray-900">{resolvedEventName}</h1>
+            <p className="ui-page-subtitle ui-type-subsection mt-1">{eventHeaderDetails}</p>
+            {statusNotice ? (
+              <p className="mt-2 text-sm font-medium capitalize text-[#7626c6]" aria-live="polite">
+                {statusNotice}
+              </p>
+            ) : null}
+          </div>
+          <div className="flex items-center gap-3">
+            <span className={`inline-flex rounded-full px-3 py-1.5 text-sm font-medium ${eventStatusBadgeClass}`}>
+              {eventStatusLabel}
+            </span>
+            <button
+              type="button"
+              onClick={() => setShowPreviewModal(true)}
+              className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              Preview Event
+            </button>
+            <button
+              type="button"
+              onClick={onDuplicateEvent}
+              className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              Duplicate
+            </button>
+            <select
+              aria-label="Lifecycle status"
+              value={eventStatus}
+              onChange={(event) => handleLifecycleChange(event.target.value as EventLifecycleStatus)}
+              className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm text-gray-700"
+            >
+              <option value="draft">Draft</option>
+              <option value="published">Published</option>
+              <option value="private">Private</option>
+              <option value="archived">Archived</option>
+            </select>
+            <button
+              type="button"
+              onClick={() => handleLifecycleChange(eventStatus === 'published' ? 'draft' : 'published')}
+              className="px-4 py-2 bg-[#7626c6] text-white btn-glass rounded-lg hover:bg-[#5f1fa3] transition-colors"
+            >
+              {eventStatus === 'published' ? 'Unpublish' : 'Publish'}
+            </button>
           </div>
         </div>
       </div>
 
       {/* Tab Content */}
       <div className="max-w-7xl mx-auto px-8 pt-6 pb-8">
-        <div className="sticky top-0 z-10 mb-8 pt-1">
+        <div
+          className="app-page-background sticky top-0 z-20 mb-8 pt-1"
+          style={{ paddingBottom: '0.35rem' }}
+        >
           <VercelTabs value={activeTab} onValueChange={(value) => activateTab(value as Tab)} className="w-full">
             <VercelTabsList className="w-full" aria-label="Event management sections">
               {tabs.map((tab) => {

@@ -9,7 +9,6 @@ import {
   Plus,
   Send,
   Sparkles,
-  Target,
 } from 'lucide-react';
 
 import { useModalA11y } from '../../hooks/useModalA11y';
@@ -178,11 +177,6 @@ export function MarketingSection() {
     };
   }, [activeChannel, campaigns]);
 
-  const selectedSegments = useMemo(
-    () => audienceSegments.filter((s) => campaignDraft.audience.includes(s.id)),
-    [campaignDraft.audience]
-  );
-
   const updateCampaignDraft = <T extends keyof typeof campaignDraft>(field: T, value: (typeof campaignDraft)[T]) =>
     setCampaignDraft((d) => ({ ...d, [field]: value }));
 
@@ -246,10 +240,6 @@ export function MarketingSection() {
     setMarketingNotice(next.status === 'live' ? 'Georim Explore listing updated and visible.' : 'Georim Explore listing updated and paused.');
   };
 
-  const selectedAudienceCountLabel =
-    selectedSegments.length === 0 ? 'No audience selected' :
-    `${selectedSegments.length} segment${selectedSegments.length > 1 ? 's' : ''} selected`;
-
   return (
     <div className="space-y-6">
 
@@ -298,7 +288,7 @@ export function MarketingSection() {
         ].map((stat) => (
           <div key={stat.label} className="rounded-[28px] border border-gray-200 bg-white p-6">
             <p className="ui-meta-text mb-3">{stat.label}</p>
-            <p className="text-3xl font-semibold tracking-tight text-gray-900 leading-none">{stat.value}</p>
+            <p className="text-2xl font-semibold leading-none tabular-nums text-gray-900">{stat.value}</p>
             <p className="mt-2 text-xs text-gray-500">{stat.sub}</p>
           </div>
         ))}
@@ -393,42 +383,6 @@ export function MarketingSection() {
 
         {/* Right aside */}
         <aside className="space-y-6">
-
-          {/* Audience Targeting */}
-          <section className="overflow-hidden rounded-[28px] border border-gray-200 bg-white">
-            <div className="border-b border-gray-100 px-6 py-6">
-              <h3 className="ui-card-title">Audience Targeting</h3>
-              <p className="mt-1 text-xs text-gray-500">Select who receives your next campaign.</p>
-            </div>
-            <div className="py-2">
-              {audienceSegments.map((segment) => {
-                const isSelected = campaignDraft.audience.includes(segment.id);
-                return (
-                  <button key={segment.id} type="button" onClick={() => toggleAudienceSegment(segment.id)}
-                    className="w-full px-3 py-1 text-left focus-visible:outline-none"
-                  >
-                    <div className={`rounded-[20px] px-4 py-3 transition-colors duration-[150ms] ${
-                      isSelected ? 'bg-violet-50 ring-1 ring-violet-200/60' : 'hover:bg-gray-50'
-                    }`}>
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="min-w-0">
-                          <p className="text-sm font-semibold text-gray-900">{segment.label}</p>
-                          <p className="mt-0.5 text-xs text-gray-500 line-clamp-1">{segment.description}</p>
-                          <p className="mt-1.5 text-[11px] text-gray-400">{segment.countLabel}</p>
-                        </div>
-                        <Target className={`h-4 w-4 flex-shrink-0 mt-0.5 ${isSelected ? 'text-[#7626c6]' : 'text-gray-300'}`} />
-                      </div>
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-            <div className="border-t border-gray-100 px-6 py-4">
-              <p className="text-xs font-medium text-gray-900">{selectedAudienceCountLabel}</p>
-              <p className="mt-1 text-xs text-gray-500">Selected segments prefill your next campaign.</p>
-            </div>
-          </section>
-
           {/* Performance Summary */}
           <section className="overflow-hidden rounded-[28px] border border-gray-200 bg-white">
             <div className="border-b border-gray-100 px-6 py-6">

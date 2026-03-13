@@ -58,28 +58,28 @@ const presetDefinitions: Record<
   admin: {
     label: 'Admin',
     description: 'Full control of events, team access, payouts, and settings.',
-    bullets: ['Create and edit events', 'Manage finance and payouts', 'Invite and remove team members'],
+    bullets: [],
     badgeClass: 'bg-violet-100 text-violet-700',
     cardTone: 'bg-violet-50',
   },
   marketing: {
     label: 'Marketing',
     description: 'Campaign creation, audience targeting, and performance review.',
-    bullets: ['Launch email and SMS campaigns', 'Review analytics and engagement', 'No payout permissions'],
+    bullets: [],
     badgeClass: 'bg-blue-100 text-blue-700',
     cardTone: 'bg-blue-50',
   },
   operations: {
     label: 'Operations',
     description: 'On-site attendee management, check-in, and guest support.',
-    bullets: ['Run check-in and QR scanning', 'Handle attendee support queues', 'No event publishing rights'],
+    bullets: [],
     badgeClass: 'bg-emerald-100 text-emerald-700',
     cardTone: 'bg-emerald-50',
   },
   custom: {
     label: 'Custom',
     description: 'Flexible access for specialized roles and temporary coverage.',
-    bullets: ['Scope access per event', 'Match access to workflow needs', 'Use for contractors and partners'],
+    bullets: [],
     badgeClass: 'bg-amber-100 text-amber-700',
     cardTone: 'bg-amber-50',
   },
@@ -411,10 +411,10 @@ export function TeamManagement({ eventOptions = defaultEventOptions }: TeamManag
   };
 
   return (
-    <div className="min-h-full bg-[#f7f5fb] p-6 md:p-8">
+    <div className="app-page-background min-h-full p-6 md:p-8">
       <div className="mx-auto flex max-w-7xl flex-col gap-6">
-        <div className="ui-page-header flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-          <div>
+        <div className="ui-page-header items-start justify-between gap-6">
+          <div className="min-w-0 flex-1">
             <h1 className="ui-page-title ui-type-section">Team Management</h1>
             <p className="ui-page-subtitle ui-type-subsection mt-2 max-w-2xl">
               Clarify organizer permissions, review event-by-event access, and track every pending invite from one workspace.
@@ -423,7 +423,7 @@ export function TeamManagement({ eventOptions = defaultEventOptions }: TeamManag
           <button
             type="button"
             onClick={openInviteModal}
-            className="inline-flex w-fit items-center gap-2 self-start rounded-xl bg-[#7626c6] px-4 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-[#5f1fa3] lg:self-auto"
+            className="ml-4 inline-flex min-h-12 shrink-0 items-center gap-2 self-start rounded-xl bg-[#7626c6] px-4 py-3 text-sm font-medium text-white shadow-sm transition hover:bg-[#5f1fa3]"
           >
             <Plus className="h-4 w-4" />
             Invite Team Member
@@ -1003,14 +1003,16 @@ function PresetCard({ preset, memberCount }: { preset: PermissionPreset; memberC
       </div>
       <h3 className="ui-card-title">{definition.label}</h3>
       <p className="ui-support-copy mt-2">{definition.description}</p>
-      <div className="mt-4 space-y-2">
-        {definition.bullets.map((bullet) => (
-          <div key={bullet} className="ui-type-subsection flex items-start gap-2 text-gray-700">
-            <span className="mt-1 h-1.5 w-1.5 rounded-full bg-[#7626c6]" />
-            <span>{bullet}</span>
-          </div>
-        ))}
-      </div>
+      {definition.bullets.length > 0 ? (
+        <div className="mt-4 space-y-2">
+          {definition.bullets.map((bullet) => (
+            <div key={bullet} className="ui-type-subsection flex items-start gap-2 text-gray-700">
+              <span className="mt-1 h-1.5 w-1.5 rounded-full bg-[#7626c6]" />
+              <span>{bullet}</span>
+            </div>
+          ))}
+        </div>
+      ) : null}
     </div>
   );
 }

@@ -20,15 +20,21 @@ Important:
 
 ### App Shell / Navigation
 
-- `[Page: App Shell]` Use a collapsible sidebar for Home, Events, Notification Center, Settings, and Help.
+- `[Page: App Shell]` Use a compact icon sidebar for Home, Events, Notification Center, and Settings in the free workspace.
+- `[Page: App Shell]` Reveal sidebar item labels through hover/focus tooltips while the rail stays collapsed.
 - `[Page: App Shell]` Move between organization-level views in a single-page app shell.
-- `[Page: App Shell]` Open Settings subsections from the sidebar.
+- `[Page: App Shell]` Open the Settings workspace from the sidebar.
+- `[Page: App Shell]` Keep the top bar pinned while the main page content scrolls underneath it.
+- `[Page: App Shell]` Hand off the main Georim logo to a compact sidebar brand cap after scrolling down in the shell.
 - `[Page: App Shell]` Return to Home from the Georim logo.
+- `[Page: App Shell]` Return to Home and reset the shell scroll state from the compact sidebar brand cap.
 
 ### Home Page
 
 - `[Page: Home]` See the welcome view for the current organizer.
 - `[Page: Home]` Start the Create Event flow from the primary CTA.
+- `[Page: Home]` Browse organizer resource cards, academy course cards, and help-topic content blocks.
+- `[Page: Home]` See mobile-app and profile-setup promotional cards in the right rail.
 
 ### Events Page
 
@@ -66,7 +72,10 @@ Important:
 - `[Page: Top Bar]` Open a notifications dropdown from the bell icon.
 - `[Page: Top Bar]` Mark all visible notifications as read from the dropdown.
 - `[Page: Top Bar]` Open the Notification Center from the dropdown.
-- `[Page: Top Bar]` Open profile settings from the top-right account control.
+- `[Page: Top Bar]` Open a profile menu from the top-right account control.
+- `[Page: Top Bar]` View the current account name and email inside the profile menu.
+- `[Page: Top Bar]` Open Account Settings from the profile menu.
+- `[Page: Top Bar]` Use profile-menu shortcuts for placeholder account actions such as `Switch to attending`, `Help Center`, and `Log out`.
 - `[Page: Top Bar]` See whether the app is in Organization View or Event View.
 
 ### Notification Center Page
@@ -82,6 +91,9 @@ Important:
 
 ### Settings Page
 
+- `[Page: Settings]` Use a sticky top tab bar for Profile, Security, Payments, Notifications, and Subscriptions.
+- `[Page: Settings]` See an animated active underline and hover highlight on the tab navigation.
+- `[Page: Settings]` Scroll the page workspace back to the top when switching settings tabs.
 - `[Page: Settings > Profile]` View and edit profile information.
 - `[Page: Settings > Profile]` Upload and preview a profile avatar.
 - `[Page: Settings > Profile]` Manage email addresses, phone numbers, and addresses.
@@ -94,13 +106,6 @@ Important:
 - `[Page: Settings > Subscriptions]` See tier benefit summaries inside the settings UI.
 - `[Page: Settings]` Open the floating settings assistant modal.
 
-### Help Center Page
-
-- `[Page: Help Center]` Browse FAQ content for common organizer workflows.
-- `[Page: Help Center]` View testimonial content on the support page.
-- `[Page: Help Center]` Open a support contact modal from inside Home.
-- `[Page: Help Center]` Submit a support request with prefilled account details.
-
 ### Global AI Chat
 
 - `[Page: Global AI Chat]` Open a floating AI assistant shell from anywhere in the app.
@@ -112,6 +117,10 @@ Important:
 
 
 ## ------- Premium Features -------
+
+### App Shell / Navigation
+
+- `[Page: App Shell]` Unlock Analytics and Finance destinations in the sidebar once the workspace is on Premium.
 
 ### Events Page
 
@@ -132,6 +141,10 @@ Important:
 ### Event Management > Details
 
 - `[Page: Event Management > Details]` Open a dedicated event workspace after selecting an event.
+- `[Page: Event Management]` Use a `Back to Organization` action from the event sidebar.
+- `[Page: Event Management]` See the selected event name reflected in the event sidebar group label.
+- `[Page: Event Management]` Use sticky tab navigation with animated underline and hover states inside the event workspace.
+- `[Page: Event Management]` Scroll the page workspace back to the top when switching event-management tabs.
 - `[Page: Event Management > Details]` View and edit event information after creation.
 - `[Page: Event Management > Details]` Update title, type, category, tags, location type, and location.
 - `[Page: Event Management > Details]` Update start and end dates and times.
@@ -245,6 +258,10 @@ Important:
 
 
 ## ------- Business / Enterprise Features -------
+
+### App Shell / Navigation
+
+- `[Page: App Shell]` Unlock the Team destination in the sidebar once the workspace is on Business / Enterprise.
 
 ### Team Management Page
 

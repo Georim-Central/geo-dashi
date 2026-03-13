@@ -4,230 +4,388 @@ You are acting as a Chief Design Officer performing a platform-level UX audit.
 
 Use the rules and standards in this document to review the interface and identify design issues.
 
+Important:
+The current Home page is the visual benchmark for the platform.
+When auditing any screen, compare it against the design quality, polish, rhythm, typography variety, and surface treatment already established on Home.
 
 
-## Layout Preservation Rule
+## Core Instruction
 
-The existing layout structure of the platform is considered correct.
+Do not redesign the product.
 
-This audit must not:
+Do not change layout architecture.
 
-• change page layouts
-• restructure grids
-• move major sections
-• alter column structures
+Do not move major sections.
 
-All recommendations must work within the existing layout system.
+Do not invent a new visual language.
 
-When auditing UI components:
+Refine each screen so it feels like it belongs to the same product family as the current Home page.
 
-1. Evaluate visual hierarchy.
-2. Check spacing consistency.
-3. Validate typography hierarchy.
-4. Identify inconsistent components.
-5. Identify unclear navigation or interactions.
-6. Suggest improvements aligned with Apple, Stripe, and Linear design standards.
 
-Focus on:
+## What Makes The Home Page The Reference
 
-• clarity  
-• minimalism  
-• interaction feedback  
-• usability  
-• accessibility  
-• product polish  
+The Home page succeeds because it feels:
 
-Your output should include:
+- premium but calm
+- editorial without losing product clarity
+- generous in spacing without feeling empty
+- varied in typography without feeling chaotic
+- expressive in surface treatment without becoming loud
+- modern and polished without looking template-driven
 
-1. Identified UI issues
-2. Suggested improvements
-3. Priority level (High / Medium / Low)
-4. Recommended design changes
+It does not rely on a single trick.
+Its strength comes from many small details working together:
 
-Do not redesign the product. Focus on identifying improvements and validating the interface.
+- the soft page canvas
+- the restrained violet accent usage
+- the large rounded parent cards
+- the slightly tighter nested cards
+- the sharper buttons inside softer containers
+- the mix of white, transparent, and muted surfaces
+- the use of both operational and inspirational content blocks
+- the stronger section titles paired with quieter metadata
 
 
 # Platform UI/UX Audit
-### Apple + Stripe + Linear Level Product Design Review
+### Home-Page-Calibrated Product Design Review
 
-Author: Internal Design Audit  
-Scope: Full platform interface and interaction system  
-Goal: Achieve premium product clarity, consistency, and usability comparable to Apple, Stripe Dashboard, and Linear.
+Author: Internal Design Audit
+Scope: Full platform interface and interaction system
+Goal: Bring every page to the same product maturity, polish, and cohesion already demonstrated by the Home page.
 
 ---
 
 # Executive Summary
 
-This audit evaluates the platform’s design system, interface patterns, usability, and interaction behavior.
+This audit evaluates whether a screen feels like a true sibling of the Home page.
 
-The objective is to validate whether the platform meets premium SaaS product standards in:
+The objective is not to create a different aesthetic.
+The objective is to preserve the existing layout while upgrading the screen so it reflects the same:
 
-- Visual hierarchy
-- Layout consistency
-- Spacing rhythm
-- Interaction clarity
-- Component consistency
-- Accessibility
-- Product feel
+- visual hierarchy
+- spacing rhythm
+- card language
+- typography richness
+- button polish
+- interaction feedback
+- restraint in accent color
+- overall premium SaaS feel
 
-Overall the platform demonstrates a strong structural foundation including modular card layouts and a clear dashboard structure.
-
-However several improvements are required to reach a Stripe / Linear / Apple-grade interface quality.
-
-Key improvement areas:
-
-1. Interaction feedback
-2. Spacing system standardization
-3. Component consistency
-4. Information hierarchy clarity
-5. Tab and navigation clarity
-6. Motion and micro-interactions
+When a page feels flatter, harsher, denser, or more generic than Home, it should be treated as under-designed.
 
 ---
 
-# Visual Hierarchy
+# Non-Negotiable Audit Rule
 
-Users should understand the purpose of a page in under **2 seconds**.
+The existing layout structure of the platform is considered correct.
 
-Hierarchy should follow this pattern:
+This audit must not:
 
-Page Title  
-Section Title  
-Card Title  
-Primary Content  
-Metadata
+- change page layouts
+- restructure grids
+- move major sections
+- alter column structures
+- replace the current navigation model
 
-Issues to validate:
+All recommendations must work within the existing layout system.
 
-- Titles visually competing with card content
-- Metrics not emphasized enough
-- Too many elements using accent color
-- Important actions not visually dominant
+The goal is refinement, not redesign.
 
 ---
 
-# Layout System
+# Home Page Reference Principles
 
-# Layout Validation
+Every audited screen should aim to match these qualities from Home:
 
-The current platform layout structure is considered valid and should remain unchanged.
+1. Strong section hierarchy
+Page sections are easy to scan because titles are bold, large, and clearly separated from supporting copy.
 
-This audit does not recommend restructuring page layouts, grid systems, or card placement.
+2. Calm canvas
+The page background is softly atmospheric, not flat white and not aggressively branded.
 
-Instead, the layout should be validated against the following criteria:
+3. Layered card system
+Large parent cards, smaller nested cards, transparent feature surfaces, and restrained accent surfaces all coexist without conflict.
 
-• Primary content appears first in the visual hierarchy  
-• Secondary controls appear in supporting positions  
-• Content does not feel cramped or overly sparse  
-• Cards align cleanly within the existing layout  
-• Column spacing remains visually balanced
+4. Purposeful typography variety
+Different text roles feel intentionally different.
+Home does not flatten everything into one heading size and one body size.
 
-Example of correct hierarchy:
+5. Sharper CTA language
+Buttons are slightly sharper than cards, which creates a polished contrast.
 
-Finance Activity | Payout Schedule  
-                 | Finance Controls
+6. Utility plus storytelling
+The page mixes operational modules, learning content, community proof, and support entry points.
+This makes the experience feel alive, not purely transactional.
 
-The goal of this audit is to **refine the interface within the existing layout**, not redesign it.
-----
-
-
-# Spacing Audit
-
-Adopt a strict spacing scale.
-
-4px  
-8px  
-12px  
-16px  
-24px  
-32px  
-40px  
-48px  
-64px
-
-Card spacing should follow:
-
-Card padding: 24px  
-Card gap: 24px  
-Subcard gap: 16px  
-Text spacing: 8px  
-Section gap: 32px
-
-Spacing inconsistencies should be corrected across all screens.
+7. Accent restraint
+Violet is used as emphasis, not wallpaper.
 
 ---
 
-# Typography
+# Page Canvas
 
-Typography hierarchy should remain consistent.
+The Home page establishes the approved page background system:
 
-Page Title  
-32px semibold
+- subtle radial violet bloom at the top-left
+- soft neutral linear gradient underneath
+- light overall page value
+- no heavy tinted blocks across the full page
 
-Section Title  
-20px semibold
+Reference surface:
 
-Card Title  
-16px semibold
+- `radial-gradient(circle at top left, rgba(118, 38, 198, 0.08), transparent 28%), linear-gradient(180deg, #f7f5fb 0%, #f4f5f8 100%)`
 
-Body Text  
-14px regular
+Audit rule:
 
-Metadata  
-12px medium
-
-Typography should prioritize readability over stylistic variation.
+- Pages should feel softly elevated from the browser, not placed on a stark flat background.
+- Background styling should remain understated.
+- Large content areas should not compete with cards and typography.
 
 ---
 
-# Color Usage
+# Layout And Spacing Rhythm
 
-Primary accent color should be used sparingly.
+The Home page uses a generous but controlled rhythm.
 
-Recommended uses:
+Reference spacing behavior:
 
-- Primary buttons
-- Active navigation elements
-- Icons
-- Highlighted metrics
+- overall page padding feels spacious
+- primary card gap: 24px
+- nested content gap: 16px
+- standard parent card padding: 24px
+- section title to supporting copy: 8px to 12px
+- section to section rhythm: clear 24px cadence
+- wider top-level breathing room before the first content block
 
-Avoid using accent colors for large background surfaces.
+Audit rule:
 
-Neutral palette should dominate the UI.
+- Keep the layout exactly where it is.
+- Improve spacing consistency so screens feel composed rather than merely assembled.
+- Avoid cramped stacks, random gaps, and inconsistent card padding.
+
+---
+
+# Typography System
+
+The Home page proves that the platform should use controlled typography variety, not a flat single-scale UI.
+
+Reference hierarchy:
+
+- Primary page greeting: large, welcoming, calm, and not overly heavy
+- Major section titles: `30px / 40px`, bold, dark plum
+- Mid-level card titles: `20px / 24px` or `20px / 28px`, semibold
+- Lead/supporting paragraphs: `17px to 18px`, comfortable line height
+- Standard body copy: `14px`, neutral and readable
+- Metadata and utility copy: `12px`
+- Small labels can use medium or semibold weight when needed
+
+Reference text colors:
+
+- primary dark heading: `#1e0a3c`
+- standard body text: `#39364f`
+- quiet metadata: `#6f7287`
+
+Audit rule:
+
+- Do not reduce everything to one generic title size and one generic paragraph size.
+- Larger sections should feel important.
+- Supporting copy should feel quieter without disappearing.
+- Typography should create rhythm, confidence, and hierarchy.
+
+---
+
+# Color System
+
+Home uses color with discipline.
+
+Reference accent palette:
+
+- primary accent violet: `#7626c6`
+- soft violet tint: `#f4ecfb`
+- soft violet mist: `rgba(118, 38, 198, 0.08)`
+
+Approved accent usage:
+
+- icons
+- link buttons
+- small highlight titles
+- pills and badges
+- selected emphasis moments
+- primary CTA gradients
+
+Avoid:
+
+- large solid violet surfaces
+- excessive accent text
+- multiple competing accent colors on one screen
+- decorative color blocks with no semantic purpose
+
+Audit rule:
+
+- Neutrals should dominate.
+- Accent color should guide attention, not flood the interface.
 
 ---
 
 # Card System
 
-Cards are the core UI primitive.
+The Home page establishes a layered card system rather than one repeated card style.
 
-Standard Card:
+## Parent Cards
 
-Border radius: 28px  
-Padding: 24px  
-Border: gray-200  
-Shadow: subtle
+Reference:
 
-Subcards:
+- white background
+- `28px` border radius
+- `24px` padding
+- subtle neutral border
+- minimal shadow or no visible shadow
 
-Radius: 20–24px  
-Padding: 16px  
-Border: gray-200  
-Spacing between subcards: 16px
+Use for:
+
+- major content sections
+- checklist blocks
+- resources sections
+- academy sections
+- spotlight content
+
+## Transparent Feature Cards
+
+Reference:
+
+- transparent background
+- same `28px` radius
+- same `24px` padding
+- no unnecessary border
+
+Use for:
+
+- hero choices
+- introductory action modules
+- content that should feel integrated with the page canvas
+
+## Nested Cards
+
+Reference:
+
+- `22px` radius
+- compact internal spacing
+- muted or white surface
+- lighter emphasis than parent cards
+
+Use for:
+
+- resource items
+- academy tiles
+- help topic cards
+- small supportive modules
+
+## Micro Surfaces
+
+Reference:
+
+- icon tiles at `48px x 48px`
+- generous rounding
+- badge pills with fully rounded radius
+- small label strips used sparingly
+
+Audit rule:
+
+- Pages should not use one corner radius for everything.
+- Parent cards should feel softer and broader.
+- Buttons should feel slightly sharper.
+- Nested cards should feel distinct from the parent they live inside.
 
 ---
 
-# Tables
+# Button System
 
-Tables must prioritize readability.
+Home establishes the clearest button language in the product and should be the reference.
 
-Row height: minimum 48px
+## Action Buttons
 
-Numeric columns should be right aligned.
+Reference:
 
-Add row hover state:
+- minimum height: `48px`
+- border radius: `14px`
+- semibold label
+- calm hover lift
+- polished border and shadow treatment
 
-Background: gray-50
+## Outline CTAs
+
+Reference:
+
+- near-white surface
+- subtle border
+- light inset highlight
+- gentle hover elevation
+
+## Primary CTAs
+
+Reference:
+
+- violet gradient
+- soft depth
+- strong contrast
+- still restrained and premium
+
+## Link Buttons
+
+Reference:
+
+- no heavy chrome
+- violet text
+- semibold
+- slight horizontal motion on hover
+
+Audit rule:
+
+- Buttons should feel intentionally crafted, not default.
+- CTA hierarchy should be obvious.
+- Different button roles should look related but not identical.
+
+---
+
+# Section Composition
+
+Home works because each section has a different job and a slightly different presentation style.
+
+Reference section archetypes:
+
+- dual hero choice cards
+- a checklist card with one dominant CTA
+- a resource grid made of muted nested cards
+- a horizontal academy scroller with image-led learning cards
+- a community spotlight split layout
+- a help grid with equal support cards
+- a promotional mobile app card with localized accent treatment
+- a narrow right-rail utility card
+
+Audit rule:
+
+- Preserve the existing section order and layout.
+- Within that layout, make sure sections feel intentionally differentiated.
+- Avoid pages where every section repeats the same exact visual formula.
+
+---
+
+# Imagery And Iconography
+
+Home uses imagery in a disciplined way.
+
+Reference behavior:
+
+- photography appears inside clipped rounded frames
+- icons sit inside clean supportive containers
+- icon color follows the accent system
+- visual assets support the content instead of overpowering it
+
+Audit rule:
+
+- Use imagery only where it adds warmth, proof, or context.
+- Keep icon language clean and recognizable.
+- Avoid random illustration styles or inconsistent icon treatment.
 
 ---
 
@@ -235,50 +393,63 @@ Background: gray-50
 
 Every interactive component must support:
 
-Hover  
-Active  
-Focus  
-Disabled  
-Loading
+- hover
+- active
+- focus
+- disabled
+- loading, when relevant
 
-Buttons should visually respond to user interaction.
+Reference interaction behavior from Home:
 
-Hover duration should remain between 120–150ms.
+- small vertical lift for action buttons
+- small horizontal movement for link buttons
+- subtle shadow increase on hover
+- no exaggerated motion
+
+Audit rule:
+
+- Interactions should feel responsive and polished immediately.
+- Feedback should be visible but calm.
 
 ---
 
 # Motion
 
-Motion should feel fast and calm.
+Motion should feel fast, soft, and modern.
 
-Recommended durations:
+Reference timing:
 
-Micro interactions: 120ms  
-Hover transitions: 150ms  
-Modal entry: 200ms
+- small movement: about `120ms`
+- color and shadow transitions: about `150ms`
+- larger surface changes should still feel brief and unobtrusive
 
-Animations should never slow down task completion.
+Audit rule:
+
+- Motion should add polish, not theatricality.
+- Avoid both sluggish animation and completely dead interfaces.
 
 ---
 
-# Information Architecture
+# Content Tone
 
-Users should instantly understand:
+Home demonstrates the right voice for the platform:
 
-Where they are  
-What actions they can perform  
-What happens next
+- clear
+- warm
+- direct
+- supportive
+- optimistic
 
-Navigation should follow a consistent structure.
+Reference content behavior:
 
-Example:
+- titles are concise
+- supporting copy explains value quickly
+- CTAs use simple verbs
+- educational and inspirational modules still feel product-native
 
-Home  
-Events  
-Orders  
-Finance  
-Marketing  
-Settings
+Audit rule:
+
+- Copy should sound like a refined product team, not placeholder marketing or machine-generated filler.
 
 ---
 
@@ -286,34 +457,46 @@ Settings
 
 Minimum accessibility requirements:
 
-WCAG AA contrast compliance  
-Keyboard navigation support  
-Visible focus states
+- WCAG AA contrast compliance
+- keyboard navigation support
+- visible focus states
+- clear text hierarchy
+- touch-friendly interaction targets
 
-Accessibility should not be treated as optional.
+Accessibility should be treated as part of premium polish, not a separate checklist.
 
 ---
 
-# Final Assessment
+# Audit Output Format
 
-Design maturity score:
+Your output should include:
 
-8 / 10
+1. Identified UI issues
+2. Suggested improvements
+3. Priority level: High / Medium / Low
+4. Recommended design changes
+5. A note on whether the audited screen feels aligned with the Home page reference
 
-Strengths:
+When reviewing a page, ask:
 
-- Clean dashboard architecture
-- Strong card system
-- Good whitespace usage
-- Clear financial data layout
+- Does it feel as polished as Home?
+- Does it use typography with the same confidence?
+- Does it use surfaces with the same nuance?
+- Do buttons feel equally intentional?
+- Does the page feel calm, premium, and modern?
+- Does the layout stay the same while the visual system improves?
 
-Areas to improve:
+---
 
-- Interaction clarity
-- Spacing consistency
-- Component state feedback
+# Final Standard
 
-With these improvements the platform can reach Stripe / Linear grade design quality.
+The target quality bar is no longer a generic Apple / Stripe / Linear reference in the abstract.
+
+The practical benchmark is:
+
+Apple / Stripe / Linear level polish interpreted through the current Home page design language.
+
+If a page feels flatter, harsher, more generic, more cramped, or less expressive than Home, it should be upgraded until it belongs to the same family.
 
 ---
 

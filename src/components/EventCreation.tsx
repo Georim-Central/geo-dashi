@@ -201,7 +201,7 @@ export function EventCreation({ onEventCreated }: EventCreationProps) {
   };
 
   return (
-    <div className="event-creation-page min-h-full bg-gray-50">
+    <div className="event-creation-page app-page-background min-h-full">
       {/* Progress Bar */}
       <div className="bg-white border-b border-gray-200">
         <div className="max-w-5xl mx-auto px-8 py-6">

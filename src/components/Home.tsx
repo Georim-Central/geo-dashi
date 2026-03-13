@@ -92,11 +92,13 @@ const helpTopics = [
 const accentViolet = '#7626c6';
 const accentVioletTint = '#f4ecfb';
 const accentVioletTintSoft = 'rgba(118, 38, 198, 0.08)';
+const homeCardRadius = '28px';
+const homeSubcardRadius = '22px';
 
 const shellStyle = {
   minHeight: '100vh',
   width: '100%',
-  backgroundColor: '#f8f7fa',
+  background: 'var(--app-page-background)',
   overflowX: 'hidden',
 } as const;
 
@@ -111,26 +113,20 @@ const mainStyle = {
 const panelStyle = {
   backgroundColor: '#ffffff',
   border: '1px solid #eeedf2',
-  borderRadius: '8px',
+  borderRadius: homeCardRadius,
   padding: '24px',
 } as const;
 
 const mutedPanelStyle = {
   backgroundColor: '#f8f7fa',
-  borderRadius: '8px',
+  borderRadius: homeSubcardRadius,
   padding: '24px',
 } as const;
 
-const outlineButtonStyle = {
-  backgroundColor: '#ffffff',
-  border: '2px solid #a9a8b3',
-  borderRadius: '4px',
-  height: '44px',
-  padding: '0 24px',
-  fontSize: '16px',
-  fontWeight: 500,
-  color: '#39364f',
-  cursor: 'pointer',
+const transparentPanelStyle = {
+  background: 'transparent',
+  borderRadius: homeCardRadius,
+  padding: '24px',
 } as const;
 
 const iconTileStyle = {
@@ -178,7 +174,7 @@ export function Home({ onCreateEvent, firstName }: HomeProps) {
   }, []);
 
   return (
-    <div className="w-full" style={shellStyle}>
+    <div className="home-page w-full" style={shellStyle}>
       <main style={mainStyle}>
         <h1 aria-label={`Welcome ${firstName}`} className="ui-page-title ui-type-section mb-12" style={{ color: '#39364f' }}>
           Hello there, {firstName}
@@ -194,7 +190,7 @@ export function Home({ onCreateEvent, firstName }: HomeProps) {
         >
           <div style={{ minWidth: 0 }}>
             <div className="mb-6 grid grid-cols-2 gap-6">
-              <div style={mutedPanelStyle}>
+              <div style={transparentPanelStyle}>
                 <div className="flex flex-col items-center text-center">
                   <div style={iconTileStyle}>
                     <svg aria-hidden="true" viewBox="0 0 32 32" style={{ width: '32px', height: '32px' }}>
@@ -216,13 +212,13 @@ export function Home({ onCreateEvent, firstName }: HomeProps) {
                     Add your event details, create ticket types, and configure recurring moments from one
                     Georim workflow.
                   </p>
-                  <button type="button" onClick={onCreateEvent} style={outlineButtonStyle}>
+                  <button type="button" onClick={onCreateEvent} className="home-action-button home-action-button--outline">
                     Create event
                   </button>
                 </div>
               </div>
 
-              <div style={mutedPanelStyle}>
+              <div style={transparentPanelStyle}>
                 <div className="flex flex-col items-center text-center">
                   <div style={iconTileStyle}>
                     <svg aria-hidden="true" viewBox="0 0 32 32" style={{ width: '32px', height: '32px' }}>
@@ -244,7 +240,7 @@ export function Home({ onCreateEvent, firstName }: HomeProps) {
                     Answer a few quick prompts and generate an event draft you can refine in minutes
                     instead of hours.
                   </p>
-                  <button type="button" onClick={onCreateEvent} style={outlineButtonStyle}>
+                  <button type="button" onClick={onCreateEvent} className="home-action-button home-action-button--outline">
                     Create with Geo AI
                   </button>
                 </div>
@@ -290,17 +286,7 @@ export function Home({ onCreateEvent, firstName }: HomeProps) {
                       <button
                         type="button"
                         onClick={onCreateEvent}
-                        className="flex items-center gap-2"
-                        style={{
-                          backgroundColor: accentViolet,
-                          border: 'none',
-                          borderRadius: '50px',
-                          height: '36px',
-                          padding: '0 16px',
-                          color: '#ffffff',
-                          fontSize: '16px',
-                          cursor: 'pointer',
-                        }}
+                        className="home-action-button home-action-button--primary flex items-center gap-2"
                       >
                         <svg aria-hidden="true" viewBox="0 0 24 24" style={{ width: '24px', height: '24px' }}>
                           <path clipRule="evenodd" d={svgPaths.p1e20d380} fill="#fff" fillRule="evenodd" />
@@ -356,15 +342,7 @@ export function Home({ onCreateEvent, firstName }: HomeProps) {
                 </h2>
                 <button
                   type="button"
-                  style={{
-                    background: 'transparent',
-                    color: accentViolet,
-                    fontSize: '16px',
-                    fontWeight: 600,
-                    cursor: 'pointer',
-                    border: 'none',
-                    padding: 0,
-                  }}
+                  className="home-link-button home-link-button--large"
                 >
                   Visit Georim Blog
                 </button>
@@ -400,15 +378,7 @@ export function Home({ onCreateEvent, firstName }: HomeProps) {
                     </h3>
                     <button
                       type="button"
-                      className="flex items-center gap-1"
-                      style={{
-                        background: 'transparent',
-                        color: accentViolet,
-                        fontSize: '12px',
-                        cursor: 'pointer',
-                        border: 'none',
-                        padding: 0,
-                      }}
+                      className="home-link-button home-link-button--compact flex items-center gap-1"
                     >
                       <svg aria-hidden="true" viewBox="0 0 10.6667 13.3333" style={{ width: '16px', height: '16px' }}>
                         <path clipRule="evenodd" d={svgPaths.p24c28600} fill={accentViolet} fillRule="evenodd" />
@@ -461,7 +431,7 @@ export function Home({ onCreateEvent, firstName }: HomeProps) {
                       style={{
                         backgroundColor: '#fff',
                         border: '1px solid #eeedf2',
-                        borderRadius: '8px',
+                        borderRadius: homeSubcardRadius,
                         display: 'flex',
                         flexGrow: 0,
                         flexShrink: 0,
@@ -514,15 +484,7 @@ export function Home({ onCreateEvent, firstName }: HomeProps) {
                         </p>
                         <button
                           type="button"
-                          style={{
-                            background: 'transparent',
-                            color: accentViolet,
-                            fontSize: '12px',
-                            fontWeight: 600,
-                            cursor: 'pointer',
-                            border: 'none',
-                            padding: 0,
-                          }}
+                          className="home-link-button home-link-button--compact"
                         >
                           View course
                         </button>
@@ -547,7 +509,7 @@ export function Home({ onCreateEvent, firstName }: HomeProps) {
               </h2>
 
               <div className="flex gap-6">
-                <div className="shrink-0 overflow-hidden" style={{ width: '240px', height: '275px', borderRadius: '8px' }}>
+                <div className="shrink-0 overflow-hidden" style={{ width: '240px', height: '275px', borderRadius: homeSubcardRadius }}>
                   <img
                     src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=700&q=80"
                     alt="Georim organizer spotlight"
@@ -556,7 +518,7 @@ export function Home({ onCreateEvent, firstName }: HomeProps) {
                 </div>
 
                 <div className="flex flex-1 flex-col justify-center">
-                  <h3 className="mb-4" style={{ fontSize: '20px', fontWeight: 600, color: '#f05537' }}>
+                  <h3 className="mb-4" style={{ fontSize: '20px', fontWeight: 600, color: accentViolet }}>
                     Meet Aiden
                   </h3>
                   <p
@@ -574,14 +536,14 @@ export function Home({ onCreateEvent, firstName }: HomeProps) {
                   <p className="mb-6" style={{ fontSize: '12px', color: '#39364f' }}>
                     Aiden Brooks, Founder of Common Table Sessions
                   </p>
-                  <button type="button" style={{ ...outlineButtonStyle, width: 'fit-content' }}>
+                  <button type="button" className="home-action-button home-action-button--outline" style={{ width: 'fit-content' }}>
                     Read article
                   </button>
                 </div>
               </div>
             </div>
 
-            <div style={panelStyle}>
+            <div className="mb-6" style={panelStyle}>
               <div className="mb-8 flex items-center">
                 <h2
                   style={{
@@ -600,13 +562,7 @@ export function Home({ onCreateEvent, firstName }: HomeProps) {
                   <button
                     key={item.title}
                     type="button"
-                    className="cursor-pointer text-center"
-                    style={{
-                      border: '1px solid #eeedf2',
-                      borderRadius: '8px',
-                      padding: '24px',
-                      backgroundColor: '#ffffff',
-                    }}
+                    className="home-topic-button cursor-pointer text-center"
                   >
                     <div
                       className="mx-auto mb-4 flex items-center justify-center"
@@ -633,6 +589,53 @@ export function Home({ onCreateEvent, firstName }: HomeProps) {
                   </button>
                 ))}
               </div>
+            </div>
+
+            <div
+              style={{
+                ...panelStyle,
+                background:
+                  'radial-gradient(260px 160px at top right, rgba(118, 38, 198, 0.14) 0%, rgba(118, 38, 198, 0) 68%), linear-gradient(180deg, rgba(255, 255, 255, 0.96) 0%, rgba(248, 245, 252, 0.98) 100%)',
+              }}
+            >
+              <div
+                className="mb-4 flex items-center gap-2"
+                style={{
+                  width: 'fit-content',
+                  borderRadius: '999px',
+                  backgroundColor: accentVioletTint,
+                  padding: '6px 12px',
+                }}
+              >
+                <span style={{ fontSize: '12px', fontWeight: 600, color: '#3a3247' }}>Mobile app</span>
+              </div>
+
+              <h2
+                className="mb-3"
+                style={{
+                  fontSize: '30px',
+                  lineHeight: '40px',
+                  fontWeight: 700,
+                  color: '#1e0a3c',
+                }}
+              >
+                Download our Mobile App
+              </h2>
+
+              <p
+                className="mb-6"
+                style={{
+                  fontSize: '17px',
+                  lineHeight: '24px',
+                  color: '#39364f',
+                }}
+              >
+                Take event operations on the go.
+              </p>
+
+              <button type="button" className="home-action-button home-action-button--outline" style={{ width: 'fit-content' }}>
+                Download
+              </button>
             </div>
           </div>
 
@@ -678,16 +681,7 @@ export function Home({ onCreateEvent, firstName }: HomeProps) {
 
             <button
               type="button"
-              className="flex items-center gap-2"
-              style={{
-                color: accentViolet,
-                fontSize: '14px',
-                fontWeight: 500,
-                cursor: 'pointer',
-                background: 'transparent',
-                border: 'none',
-                padding: 0,
-              }}
+              className="home-link-button flex items-center gap-2"
             >
               Set up your profile
               <svg aria-hidden="true" viewBox="0 0 16 16" style={{ width: '16px', height: '16px' }}>

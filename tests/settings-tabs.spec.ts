@@ -5,14 +5,47 @@ test("settings tabs render an active underline and hover highlight", async ({ pa
 
   await page.getByRole("button", { name: /^settings$/i }).click();
 
+  const stickyHeader = page.locator(".glass-header");
   const tablist = page.getByRole("tablist");
   const profileTab = page.getByRole("tab", { name: /^profile$/i });
   const securityTab = page.getByRole("tab", { name: /^security$/i });
 
+  await expect(stickyHeader).toBeVisible();
   await expect(tablist).toBeVisible();
   await expect(profileTab).toBeVisible();
   await expect(securityTab).toBeVisible();
   await page.waitForTimeout(350);
+
+  const headerStyles = await stickyHeader.evaluate((element) => {
+    const styles = getComputedStyle(element);
+
+    return {
+      height: styles.height,
+      position: styles.position,
+      top: styles.top,
+      zIndex: styles.zIndex,
+    };
+  });
+
+  const stickySubnavStyles = await tablist.evaluate((element) => {
+    let current: HTMLElement | null = element.parentElement;
+
+    while (current && !current.className.includes("sticky")) {
+      current = current.parentElement;
+    }
+
+    if (!current) {
+      return null;
+    }
+
+    const styles = getComputedStyle(current);
+
+    return {
+      position: styles.position,
+      top: styles.top,
+      zIndex: styles.zIndex,
+    };
+  });
 
   const beforeHover = await tablist.evaluate((element) => {
     const hoverLayer = element.children[0] as HTMLElement | undefined;
@@ -56,6 +89,12 @@ test("settings tabs render an active underline and hover highlight", async ({ pa
 
   expect(Number.parseFloat(beforeHover.activeWidth ?? "0")).toBeGreaterThan(0);
   expect(Number.parseFloat(beforeHover.activeHeight ?? "0")).toBeGreaterThan(0);
+  expect(headerStyles.position).toBe("sticky");
+  expect(headerStyles.top).toBe("0px");
+  expect(headerStyles.height).toBe("64px");
+  expect(stickySubnavStyles?.position).toBe("sticky");
+  expect(stickySubnavStyles?.top).toBe("0px");
+  expect(Number.parseFloat(stickySubnavStyles?.zIndex ?? "0")).toBeLessThan(Number.parseFloat(headerStyles.zIndex ?? "0"));
   expect(afterHover.hoverOpacity).toBe("1");
   expect(Number.parseFloat(afterHover.hoverWidth ?? "0")).toBeGreaterThan(0);
   expect(afterHover.hoverRectWidth).toBeGreaterThan(0);

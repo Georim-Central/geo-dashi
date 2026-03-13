@@ -1,4 +1,4 @@
-import { Suspense, lazy, useEffect, useMemo, useState } from 'react';
+import { Suspense, lazy, useEffect, useMemo, useRef, useState, type UIEvent } from 'react';
 import { GlobalAIChat } from './components/GlobalAIChat';
 import { Home } from './components/Home';
 import { Sidebar } from './components/Sidebar';
@@ -9,7 +9,6 @@ import {
   filterNotificationsByTier,
   filterSearchResultsByTier,
   getStoredSubscriptionTier,
-  isEventTabAllowed,
   isNotificationAllowed,
   isViewAllowed,
   resolveSafeRouteForTier,
@@ -325,7 +324,9 @@ export default function App() {
   const [eventDetailsById, setEventDetailsById] = useState<Record<string, EventDraft>>(seededEventDetails);
   const [eventSummariesById, setEventSummariesById] = useState<Record<string, EventSummary>>(seededEventSummaries);
   const [searchQuery, setSearchQuery] = useState('');
+  const [isShellScrolled, setIsShellScrolled] = useState(false);
   const [notifications, setNotifications] = useState<OrganizerNotification[]>(seededNotifications);
+  const pageScrollRootRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     window.localStorage.setItem(SUBSCRIPTION_STORAGE_KEY, activeTier);
@@ -612,13 +613,6 @@ export default function App() {
     }
   };
 
-  const handleEventTabSelect = (tab: EventManagementTab) => {
-    if (!selectedEventId || !isEventTabAllowed(activeTier, tab) || !isViewAllowed(activeTier, 'event-management')) return;
-    setEventManagementTab(tab);
-    setContextMode('event');
-    setCurrentView('event-management');
-  };
-
   const handleBackToOrganization = () => {
     setContextMode('organization');
     setSelectedEventId(null);
@@ -700,55 +694,128 @@ export default function App() {
     setContextMode('organization');
   };
 
-  const handleOpenNotificationPreferences = () => {
-    setSettingsSection('notifications');
+  const openSettingsView = (section: SettingsSection) => {
+    setSettingsSection(section);
     setCurrentView('settings');
     setContextMode('organization');
+    resetShellToDefaultState();
+  };
+
+  const handleSidebarViewChange = (view: AppView) => {
+    if (view === 'settings') {
+      openSettingsView('profile');
+      return;
+    }
+
+    setCurrentView(view);
+  };
+
+  const handleOpenNotificationPreferences = () => {
+    openSettingsView('notifications');
   };
 
   const handleOpenProfileSettings = () => {
-    setSettingsSection('profile');
-    setCurrentView('settings');
+    openSettingsView('profile');
+  };
+
+  const handleOpenHelpCenter = () => {
+    setCurrentView('home');
     setContextMode('organization');
   };
 
   const handleOpenPaymentSettings = () => {
-    setSettingsSection('payments');
-    setCurrentView('settings');
+    openSettingsView('payments');
+  };
+
+  const scrollPageRootToTop = () => {
+    pageScrollRootRef.current?.scrollTo({ top: 0, behavior: 'auto' });
+
+    if (typeof window !== 'undefined') {
+      window.requestAnimationFrame(() => {
+        pageScrollRootRef.current?.scrollTo({ top: 0, behavior: 'auto' });
+      });
+    }
+  };
+
+  const resetShellToDefaultState = () => {
+    setIsShellScrolled(false);
+    scrollPageRootToTop();
+  };
+
+  const handleTopBarLogoClick = () => {
+    setSearchQuery('');
     setContextMode('organization');
+    setSelectedEventId(null);
+    setSelectedEventName(null);
+    setEventManagementTab('details');
+    setSettingsSection('profile');
+    setCurrentView('home');
+    resetShellToDefaultState();
+  };
+
+  const handleSwitchToAttending = () => {
+    handleBackToOrganization();
+  };
+
+  const handleLogOut = () => {
+    setSearchQuery('');
+    setSettingsSection('profile');
+    handleBackToOrganization();
+  };
+
+  const handlePageScroll = (event: UIEvent<HTMLElement>) => {
+    const nextScrolled = event.currentTarget.scrollTop > 8;
+
+    setIsShellScrolled((currentState) => (currentState === nextScrolled ? currentState : nextScrolled));
   };
 
   return (
-    <div className="app-shell flex h-screen overflow-hidden">
-      <Sidebar
-        activeTier={activeTier}
-        currentView={effectiveView}
-        onViewChange={setCurrentView}
-        contextMode={effectiveContextMode}
-        onBackToOrganization={handleBackToOrganization}
-        selectedEventName={selectedEventName}
-        activeEventTab={effectiveEventManagementTab}
-        onEventTabSelect={handleEventTabSelect}
-        activeSettingsSection={effectiveSettingsSection}
-        onSettingsSectionSelect={setSettingsSection}
-      />
-      
-      <div className="min-w-0 flex-1 flex flex-col overflow-hidden">
+    <div
+      className={`app-shell flex h-screen flex-col overflow-hidden ${isShellScrolled ? 'is-shell-scrolled' : ''}`}
+      data-shell-scrolled={isShellScrolled ? 'true' : 'false'}
+    >
+      <div
+        className={`app-shell__topbar-frame ${isShellScrolled ? 'is-shell-scrolled' : ''}`}
+        data-shell-scrolled={isShellScrolled ? 'true' : 'false'}
+      >
         <TopBar
           contextMode={effectiveContextMode}
           currentView={effectiveView}
+          isShellScrolled={isShellScrolled}
           searchQuery={searchQuery}
           onSearchQueryChange={setSearchQuery}
           searchResults={visibleSearchResults}
           onSearchResultSelect={handleSearchResultSelect}
           notifications={visibleNotifications}
           onMarkAllNotificationsRead={handleMarkAllNotificationsRead}
-          onNotificationOpen={openNotificationTarget}
-          onOpenNotificationCenter={handleOpenNotificationCenter}
-          onOpenProfileSettings={handleOpenProfileSettings}
+        onNotificationOpen={openNotificationTarget}
+        onOpenNotificationCenter={handleOpenNotificationCenter}
+        onOpenHelpCenter={handleOpenHelpCenter}
+        onOpenProfileSettings={handleOpenProfileSettings}
+        onSwitchToAttending={handleSwitchToAttending}
+        onLogOut={handleLogOut}
+        onLogoClick={handleTopBarLogoClick}
+      />
+      </div>
+
+      <div className="min-h-0 flex flex-1 overflow-hidden">
+        <Sidebar
+          activeTier={activeTier}
+          currentView={effectiveView}
+          isShellScrolled={isShellScrolled}
+          onViewChange={handleSidebarViewChange}
+          onPinnedLogoClick={handleTopBarLogoClick}
+          activeSettingsSection={effectiveSettingsSection}
+          onSettingsSectionSelect={setSettingsSection}
         />
-        
-        <main className="min-w-0 flex-1 overflow-x-hidden overflow-y-auto" aria-live="polite">
+
+        <main
+          ref={pageScrollRootRef}
+          className="app-page-background min-w-0 flex-1 overflow-x-hidden overflow-y-auto"
+          aria-live="polite"
+          data-page-scroll-root
+          onScroll={handlePageScroll}
+        >
           <Suspense
             fallback={(
               <div className="p-8">
@@ -761,14 +828,14 @@ export default function App() {
             {effectiveView === 'home' && (
               <Home
                 firstName={currentUserFirstName}
-                onCreateEvent={() => setCurrentView('create-event')}
+                onCreateEvent={() => handleSidebarViewChange('create-event')}
               />
             )}
             {effectiveView === 'events' && (
               <EventsPage
                 activeTier={activeTier}
                 events={eventSummaries}
-                onCreateEvent={() => setCurrentView('create-event')}
+                onCreateEvent={() => handleSidebarViewChange('create-event')}
                 onEventSelect={handleEventSelect}
                 onDuplicateEvent={handleDuplicateEvent}
                 onArchiveEvent={handleArchiveEvent}

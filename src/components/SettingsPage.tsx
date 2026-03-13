@@ -54,6 +54,9 @@ const settingsTabs: Array<{ id: SettingsSection; label: string; icon: typeof Shi
   { id: 'subscriptions', label: 'Subscriptions', icon: SlidersHorizontal },
 ];
 
+const SETTINGS_PAGE_BACKGROUND =
+  'var(--app-page-background)';
+
 const profileAddresses = [
   {
     id: 'address-1',
@@ -1971,8 +1974,7 @@ export function SettingsPage({ activeTier, onTierChange, section, onSectionChang
     <div
       className="min-h-full p-5 sm:p-6 lg:p-8"
       style={{
-        background:
-          'radial-gradient(circle at top left, rgba(118, 38, 198, 0.08), transparent 28%), linear-gradient(180deg, #f7f5fb 0%, #f4f5f8 100%)',
+        background: SETTINGS_PAGE_BACKGROUND,
       }}
     >
       <div className="mx-auto max-w-[1380px]">
@@ -1983,7 +1985,10 @@ export function SettingsPage({ activeTier, onTierChange, section, onSectionChang
           </p>
         </div>
 
-        <div className="mb-8">
+        <div
+          className="sticky top-0 z-30 mb-8 p-3"
+          style={{ background: SETTINGS_PAGE_BACKGROUND }}
+        >
           <VercelTabs
             value={section}
             onValueChange={(value) => onSectionChange(value as SettingsSection)}

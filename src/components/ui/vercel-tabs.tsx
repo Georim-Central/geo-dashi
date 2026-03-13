@@ -5,6 +5,7 @@ import * as React from "react";
 import { useEffect, useRef, useState } from "react";
 
 import { cn } from "@/lib/utils";
+import { scrollTabPageToTop } from "@/components/ui/tab-scroll";
 
 type TabsContextValue = {
   currentValue: string | null;
@@ -188,7 +189,7 @@ TabsList.displayName = TabsPrimitive.List.displayName;
 const TabsTrigger = React.forwardRef<
   React.ElementRef<typeof TabsPrimitive.Trigger>,
   React.ComponentPropsWithoutRef<typeof TabsPrimitive.Trigger>
->(({ className, value, children, ...props }, ref) => {
+>(({ className, value, children, onClick, ...props }, ref) => {
   const { currentValue, registerTrigger, setHoveredValue } = useTabsContext();
   const isActive = currentValue === value;
 
@@ -210,6 +211,10 @@ const TabsTrigger = React.forwardRef<
         isActive ? "text-[#7626c6]" : "text-[#0e0f1199] hover:text-[#5f1fa3]",
         className
       )}
+      onClick={(event) => {
+        scrollTabPageToTop(event.currentTarget);
+        onClick?.(event);
+      }}
       onPointerEnter={() => setHoveredValue(value)}
       onFocus={() => setHoveredValue(value)}
       onBlur={() => setHoveredValue(null)}

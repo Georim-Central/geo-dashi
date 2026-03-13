@@ -492,7 +492,7 @@ export function Finance({ onOpenPaymentSettings }: { onOpenPaymentSettings?: () 
   };
 
   return (
-    <div className="min-h-full bg-[#f7f5fb] p-6 md:p-8">
+    <div className="app-page-background min-h-full p-6 md:p-8">
       <div className="mx-auto flex max-w-7xl flex-col gap-6">
         <div className="ui-page-header flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>

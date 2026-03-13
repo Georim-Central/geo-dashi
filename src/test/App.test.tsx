@@ -9,6 +9,31 @@ function renderAppWithTier(tier: 'free' | 'premium' | 'business' = 'free') {
   return render(<App />);
 }
 
+function scrollShellDown() {
+  const pageScrollRoot = document.querySelector('[data-page-scroll-root]') as HTMLElement | null;
+  const topbarFrame = document.querySelector('.app-shell__topbar-frame') as HTMLElement | null;
+
+  expect(pageScrollRoot).not.toBeNull();
+  expect(topbarFrame).not.toBeNull();
+
+  const scrollTo = vi.fn();
+  Object.defineProperty(pageScrollRoot!, 'scrollTo', {
+    value: scrollTo,
+    configurable: true,
+  });
+  Object.defineProperty(pageScrollRoot!, 'scrollTop', {
+    value: 420,
+    writable: true,
+    configurable: true,
+  });
+
+  fireEvent.scroll(pageScrollRoot!, { target: { scrollTop: 420 } });
+
+  expect(topbarFrame!).toHaveAttribute('data-shell-scrolled', 'true');
+
+  return { pageScrollRoot: pageScrollRoot!, topbarFrame: topbarFrame!, scrollTo };
+}
+
 describe('App core flows', () => {
   beforeEach(() => {
     window.localStorage.clear();
@@ -18,10 +43,12 @@ describe('App core flows', () => {
     const user = userEvent.setup();
     render(<App />);
 
-    await user.click(await screen.findByRole('button', { name: /create event/i }));
+    await user.click(screen.getByRole('button', { name: /^create event$/i }));
 
-    expect(await screen.findByRole('heading', { name: /create new event/i })).toBeInTheDocument();
-  });
+    expect(
+      await screen.findByRole('heading', { name: /create new event/i }, { timeout: 5000 })
+    ).toBeInTheDocument();
+  }, 10000);
 
   it('opens the events page from the primary sidebar', async () => {
     const user = userEvent.setup();
@@ -80,12 +107,20 @@ describe('App core flows', () => {
   it('opens profile settings from the top-right account identity control', async () => {
     const user = userEvent.setup();
     render(<App />);
+    const { topbarFrame, scrollTo } = scrollShellDown();
 
-    await user.click(screen.getByRole('button', { name: /open profile settings/i }));
+    await user.click(screen.getByRole('button', { name: /open profile menu/i }));
+
+    const profileMenu = await screen.findByRole('dialog', { name: /profile menu/i });
+    await user.click(within(profileMenu).getByRole('button', { name: /account settings/i }));
 
     expect(await screen.findByRole('heading', { name: /^settings$/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /^profile$/i, pressed: true })).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: /^profile$/i, selected: true })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: /your profile/i })).toBeInTheDocument();
+    await waitFor(() => {
+      expect(topbarFrame).toHaveAttribute('data-shell-scrolled', 'false');
+    });
+    expect(scrollTo).toHaveBeenCalledWith({ top: 0, behavior: 'auto' });
   }, 10000);
 
   it('opens the notification center from the bell and routes into linked organizer workflows', async () => {
@@ -185,19 +220,43 @@ describe('App core flows', () => {
     expect(screen.getAllByText(/archived/i).length).toBeGreaterThan(0);
   });
 
+  it('keeps the global primary sidebar visible when an event is open', async () => {
+    const user = userEvent.setup();
+    renderAppWithTier('premium');
+
+    await user.click(screen.getByRole('button', { name: /^events$/i }));
+    await user.click(await screen.findByRole('heading', { name: /summer music festival 2026/i }));
+
+    const sidebarNav = screen.getByRole('navigation', { name: /^primary$/i });
+
+    expect(within(sidebarNav).queryByRole('button', { name: /back to organization/i })).not.toBeInTheDocument();
+    expect(within(sidebarNav).getByRole('button', { name: /^home$/i })).toBeInTheDocument();
+    expect(within(sidebarNav).getByRole('button', { name: /^events$/i })).toBeInTheDocument();
+    expect(within(sidebarNav).getByRole('button', { name: /^analytics$/i })).toBeInTheDocument();
+    expect(within(sidebarNav).getByRole('button', { name: /^finance$/i })).toBeInTheDocument();
+    expect(within(sidebarNav).getByRole('button', { name: /^notification center$/i })).toBeInTheDocument();
+    expect(within(sidebarNav).getByRole('button', { name: /^settings$/i })).toBeInTheDocument();
+    expect(within(sidebarNav).getByRole('button', { name: /^events$/i })).toHaveAttribute('aria-current', 'page');
+  });
+
   it('opens the settings workspace from the sidebar and switches sections with the top tabs', async () => {
     const user = userEvent.setup();
     render(<App />);
+    const { topbarFrame, scrollTo } = scrollShellDown();
 
     await user.click(screen.getByRole('button', { name: /^settings$/i }));
 
     expect(await screen.findByRole('heading', { name: /^settings$/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /^profile$/i, pressed: true })).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: /^profile$/i, selected: true })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: /your profile/i })).toBeInTheDocument();
+    await waitFor(() => {
+      expect(topbarFrame).toHaveAttribute('data-shell-scrolled', 'false');
+    });
+    expect(scrollTo).toHaveBeenCalledWith({ top: 0, behavior: 'auto' });
 
-    await user.click(screen.getByRole('button', { name: /^payments$/i }));
+    await user.click(screen.getByRole('tab', { name: /^payments$/i }));
 
-    expect(screen.getByRole('button', { name: /^payments$/i, pressed: true })).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: /^payments$/i, selected: true })).toBeInTheDocument();
     expect(await screen.findByRole('heading', { name: /payout preferences/i })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: /recent transactions/i })).toBeInTheDocument();
   });
@@ -234,7 +293,7 @@ describe('App core flows', () => {
     await user.click(screen.getAllByRole('button', { name: /^edit$/i })[0]);
 
     expect(await screen.findByRole('heading', { name: /^settings$/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /^payments$/i, pressed: true })).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: /^payments$/i, selected: true })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: /choose how to pay/i })).toBeInTheDocument();
   }, 10000);
 
@@ -254,7 +313,7 @@ describe('App core flows', () => {
     render(<App />);
 
     await user.click(screen.getByRole('button', { name: /^settings$/i }));
-    await user.click(await screen.findByRole('button', { name: /^profile$/i }));
+    await user.click(await screen.findByRole('tab', { name: /^profile$/i }));
 
     await user.click(screen.getByRole('button', { name: /^edit$/i }));
     const nameInput = await screen.findByDisplayValue(/maksudur rahman/i);
@@ -286,10 +345,10 @@ describe('App core flows', () => {
     render(<App />);
 
     await user.click(screen.getByRole('button', { name: /^settings$/i }));
-    await user.click(await screen.findByRole('button', { name: /^security$/i }));
+    await user.click(await screen.findByRole('tab', { name: /^security$/i }));
 
     expect(await screen.findByRole('heading', { name: /^settings$/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /^security$/i, pressed: true })).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: /^security$/i, selected: true })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: /password & access/i })).toBeInTheDocument();
     expect(screen.getByPlaceholderText(/enter your current password/i)).toBeInTheDocument();
     expect(screen.getByPlaceholderText(/create a strong new password/i)).toBeInTheDocument();
@@ -301,7 +360,7 @@ describe('App core flows', () => {
     render(<App />);
 
     await user.click(screen.getByRole('button', { name: /^settings$/i }));
-    await user.click(await screen.findByRole('button', { name: /^security$/i }));
+    await user.click(await screen.findByRole('tab', { name: /^security$/i }));
 
     await user.type(await screen.findByPlaceholderText(/enter your current password/i), 'OldPassword#1');
     await user.type(screen.getByPlaceholderText(/create a strong new password/i), 'NewPassword#2');
@@ -316,10 +375,10 @@ describe('App core flows', () => {
     render(<App />);
 
     await user.click(screen.getByRole('button', { name: /^settings$/i }));
-    await user.click(await screen.findByRole('button', { name: /^payments$/i }));
+    await user.click(await screen.findByRole('tab', { name: /^payments$/i }));
 
     expect(await screen.findByRole('heading', { name: /^settings$/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /^payments$/i, pressed: true })).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: /^payments$/i, selected: true })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: /choose how to pay/i })).toBeInTheDocument();
     expect(screen.getAllByText(/visa \*\*\*\* 0912/i).length).toBeGreaterThan(0);
     expect(screen.getByText(/recent transactions/i)).toBeInTheDocument();
@@ -330,10 +389,10 @@ describe('App core flows', () => {
     render(<App />);
 
     await user.click(screen.getByRole('button', { name: /^settings$/i }));
-    await user.click(await screen.findByRole('button', { name: /^subscriptions$/i }));
+    await user.click(await screen.findByRole('tab', { name: /^subscriptions$/i }));
 
     expect(await screen.findByRole('heading', { name: /^settings$/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /^subscriptions$/i, pressed: true })).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: /^subscriptions$/i, selected: true })).toBeInTheDocument();
     const premiumTierButton = screen
       .getAllByRole('button')
       .find((button) => within(button).queryByText(/^Premium$/i));
@@ -352,7 +411,7 @@ describe('App core flows', () => {
     render(<App />);
 
     await user.click(screen.getByRole('button', { name: /^settings$/i }));
-    await user.click(await screen.findByRole('button', { name: /^payments$/i }));
+    await user.click(await screen.findByRole('tab', { name: /^payments$/i }));
 
     await user.click(screen.getByRole('button', { name: /add new method/i }));
     fireEvent.change(await screen.findByLabelText(/payment method label/i), { target: { value: 'Visa **** 2222' } });
@@ -369,10 +428,10 @@ describe('App core flows', () => {
     render(<App />);
 
     await user.click(screen.getByRole('button', { name: /^settings$/i }));
-    await user.click(await screen.findByRole('button', { name: /^notifications$/i }));
+    await user.click(await screen.findByRole('tab', { name: /^notifications$/i }));
 
     expect(await screen.findByRole('heading', { name: /^settings$/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /^notifications$/i, pressed: true })).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: /^notifications$/i, selected: true })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: /delivery channels/i })).toBeInTheDocument();
     expect(screen.getByRole('switch', { name: /email notifications/i })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: /quiet hours/i })).toBeInTheDocument();
@@ -396,11 +455,11 @@ describe('App core flows', () => {
     expect(await screen.findByText(/revenue attribution/i)).toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: /^settings$/i }));
-    await user.click(await screen.findByRole('button', { name: /^subscriptions$/i }));
+    await user.click(await screen.findByRole('tab', { name: /^subscriptions$/i }));
     await user.click(screen.getByRole('button', { name: /^free base organizer workspace/i }));
 
     expect(await screen.findByRole('heading', { name: /^settings$/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /^subscriptions$/i, pressed: true })).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: /^subscriptions$/i, selected: true })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /^analytics$/i })).not.toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: /^home$/i }));

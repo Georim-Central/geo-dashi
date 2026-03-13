@@ -654,7 +654,7 @@ export function OrdersSection() {
             >
               <Download className="h-4 w-4" />
               {exportState === 'exporting'
-                ? 'Preparing…'
+                ? 'Preparing CSV'
                 : exportState === 'ready'
                   ? 'CSV Ready'
                   : 'Export CSV'}

@@ -1,4 +1,4 @@
-import { Search, Bell, User } from 'lucide-react';
+import { ArrowRightLeft, Bell, ChevronDown, CircleHelp, LogOut, Search, Settings, User, type LucideIcon } from 'lucide-react';
 import { useState } from 'react';
 import { useModalA11y } from '../hooks/useModalA11y';
 import { AppView, GlobalSearchResult } from '../types/navigation';
@@ -7,6 +7,7 @@ import { OrganizerNotification } from '../types/notifications';
 interface TopBarProps {
   contextMode: 'organization' | 'event';
   currentView: AppView;
+  isShellScrolled: boolean;
   searchQuery: string;
   onSearchQueryChange: (value: string) => void;
   searchResults: GlobalSearchResult[];
@@ -15,7 +16,11 @@ interface TopBarProps {
   onMarkAllNotificationsRead: () => void;
   onNotificationOpen: (notification: OrganizerNotification) => void;
   onOpenNotificationCenter: () => void;
+  onOpenHelpCenter: () => void;
   onOpenProfileSettings: () => void;
+  onSwitchToAttending: () => void;
+  onLogOut: () => void;
+  onLogoClick: () => void;
 }
 
 function getSearchResultBadgeClass(type: GlobalSearchResult['type']) {
@@ -28,6 +33,7 @@ function getSearchResultBadgeClass(type: GlobalSearchResult['type']) {
 export function TopBar({
   contextMode,
   currentView,
+  isShellScrolled,
   searchQuery,
   onSearchQueryChange,
   searchResults,
@@ -36,9 +42,16 @@ export function TopBar({
   onMarkAllNotificationsRead,
   onNotificationOpen,
   onOpenNotificationCenter,
-  onOpenProfileSettings
+  onOpenHelpCenter,
+  onOpenProfileSettings,
+  onSwitchToAttending,
+  onLogOut,
+  onLogoClick
 }: TopBarProps) {
+  const profileName = 'John Doe';
+  const profileEmail = 'john.doe@georim.com';
   const [showNotifications, setShowNotifications] = useState(false);
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
 
   const unreadCount = notifications.filter((notification) => !notification.read).length;
   const {
@@ -49,14 +62,86 @@ export function TopBar({
     isOpen: showNotifications,
     onClose: () => setShowNotifications(false)
   });
+  const {
+    dialogRef: profileMenuRef
+  } = useModalA11y({
+    isOpen: showProfileMenu,
+    onClose: () => setShowProfileMenu(false)
+  });
 
   const showSearchResults = searchQuery.trim().length > 0;
+  const profileMenuItems: Array<{
+    id: string;
+    label: string;
+    icon: LucideIcon;
+    onSelect: () => void;
+    danger?: boolean;
+  }> = [
+    {
+      id: 'switch-to-attending',
+      label: 'Switch to attending',
+      icon: ArrowRightLeft,
+      onSelect: onSwitchToAttending,
+    },
+    {
+      id: 'help-center',
+      label: 'Help Center',
+      icon: CircleHelp,
+      onSelect: onOpenHelpCenter,
+    },
+    {
+      id: 'account-settings',
+      label: 'Account Settings',
+      icon: Settings,
+      onSelect: onOpenProfileSettings,
+    },
+    {
+      id: 'logout',
+      label: 'Log out',
+      icon: LogOut,
+      onSelect: onLogOut,
+      danger: true,
+    },
+  ] as const;
+
+  const handleProfileMenuToggle = () => {
+    setShowNotifications(false);
+    setShowProfileMenu((currentState) => !currentState);
+  };
+
+  const handleProfileMenuAction = (onSelect: () => void) => {
+    onSelect();
+    setShowProfileMenu(false);
+  };
 
   return (
-    <div className="glass-header sticky top-0 z-20 px-8 py-4">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <div className="relative w-96 max-w-full flex-1">
+    <div
+      className={`glass-header app-shell__topbar sticky top-0 z-40 flex-shrink-0 h-16 w-full ${
+        isShellScrolled ? 'is-shell-scrolled' : ''
+      }`}
+      data-shell-scrolled={isShellScrolled ? 'true' : 'false'}
+    >
+      <div className="flex h-full items-center justify-between gap-4 pl-2 pr-4 sm:pl-3 sm:pr-6 lg:pl-4 lg:pr-8">
+        <div className="min-w-0 flex items-center gap-3">
+          <button
+            type="button"
+            onClick={onLogoClick}
+            className={`app-shell__topbar-logo flex shrink-0 items-center justify-center ${
+              isShellScrolled ? 'is-hidden' : ''
+            }`}
+            aria-label="Go to home"
+            title="Go to home"
+            aria-hidden={isShellScrolled}
+            tabIndex={isShellScrolled ? -1 : undefined}
+          >
+            <img
+              src="/images/logo.svg?v=20260313"
+              alt="Georim logo"
+              className="h-8 w-auto max-w-[148px] object-contain"
+            />
+          </button>
+
+          <div className="relative w-96 max-w-full">
             <div className="ui-search-field relative z-10 flex-1">
               <Search className="ui-search-field__icon" />
               <input
@@ -70,7 +155,10 @@ export function TopBar({
               />
             </div>
             {showSearchResults && (
-              <div className="ui-menu-panel search-results-container absolute left-0 top-full z-0 mt-3 w-full overflow-hidden">
+              <div
+                className="ui-menu-panel search-results-container absolute left-0 z-50 mt-3 w-full overflow-hidden"
+                style={{ top: '100%' }}
+              >
                 <div className="border-b border-gray-200 py-4">
                   <div className="ui-card-title">Search Results</div>
                   <div className="ui-meta-text mt-1">
@@ -104,7 +192,7 @@ export function TopBar({
           </div>
         </div>
 
-        <div className="flex items-center gap-4">
+        <div className="flex shrink-0 items-center gap-4">
           <div className="inline-flex h-10 items-center rounded-full border border-gray-200 bg-white/80 px-4 text-sm font-medium text-gray-600 shadow-sm">
             {contextMode === 'organization' ? 'Organization View' : 'Event View'}
           </div>
@@ -112,7 +200,10 @@ export function TopBar({
           <div className="relative">
             <button
               type="button"
-              onClick={() => setShowNotifications(!showNotifications)}
+              onClick={() => {
+                setShowProfileMenu(false);
+                setShowNotifications(!showNotifications);
+              }}
               className="relative inline-flex h-10 w-10 items-center justify-center rounded-full border border-transparent bg-white/70 text-gray-600 shadow-sm hover:border-gray-200 hover:bg-white"
               aria-expanded={showNotifications}
               aria-controls="notifications-panel"
@@ -130,7 +221,7 @@ export function TopBar({
 
             {showNotifications && (
               <>
-                <div className="fixed inset-0 z-10" onClick={() => setShowNotifications(false)} />
+                <div className="fixed inset-0 z-30" onClick={() => setShowNotifications(false)} />
 
                 <div
                   id="notifications-panel"
@@ -140,9 +231,9 @@ export function TopBar({
                   aria-labelledby={notificationsTitleId}
                   aria-describedby={notificationsDescriptionId}
                   tabIndex={-1}
-                  className="ui-menu-panel absolute right-0 z-20 mt-3 flex max-h-[500px] w-96 flex-col motion-pop"
+                  className="ui-menu-panel absolute right-0 z-50 mt-3 flex max-h-[500px] w-96 flex-col motion-pop"
                 >
-                  <div className="flex items-center justify-between border-b border-gray-200 px-5 py-4">
+                  <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4">
                     <div>
                       <h3 id={notificationsTitleId} className="ui-card-title">Notifications</h3>
                       <p id={notificationsDescriptionId} className="sr-only">
@@ -239,17 +330,65 @@ export function TopBar({
             )}
           </div>
 
-          <button
-            type="button"
-            onClick={onOpenProfileSettings}
-            className="flex items-center gap-3 rounded-full border border-transparent bg-white/70 px-3 py-2 text-left shadow-sm transition hover:border-gray-200 hover:bg-white"
-            aria-label="Open profile settings"
-          >
-            <div className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-[#7626c6]">
-              <User className="w-5 h-5 text-white" />
-            </div>
-            <span className="text-sm font-medium text-gray-700">John Doe</span>
-          </button>
+          <div className="relative">
+            <button
+              type="button"
+              onClick={handleProfileMenuToggle}
+              className="flex items-center gap-3 rounded-full border border-transparent bg-white/70 px-3 py-2 text-left shadow-sm transition hover:border-gray-200 hover:bg-white"
+              aria-expanded={showProfileMenu}
+              aria-controls="profile-menu-panel"
+              aria-label="Open profile menu"
+            >
+              <div className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-[#7626c6]">
+                <User className="w-5 h-5 text-white" />
+              </div>
+              <span className="text-sm font-medium text-gray-700">{profileName}</span>
+              <ChevronDown className="h-4 w-4 text-gray-500" aria-hidden="true" />
+            </button>
+
+            {showProfileMenu && (
+              <>
+                <div className="fixed inset-0 z-30" onClick={() => setShowProfileMenu(false)} />
+
+                <div
+                  id="profile-menu-panel"
+                  ref={profileMenuRef}
+                  role="dialog"
+                  aria-modal="true"
+                  aria-label="Profile menu"
+                  tabIndex={-1}
+                  className="ui-menu-panel absolute right-0 z-50 mt-3 overflow-hidden motion-pop"
+                  style={{ width: '240px', maxWidth: 'calc(100vw - 1rem)' }}
+                >
+                  <div className="border-b border-gray-200 px-4 py-3">
+                    <div className="text-sm font-semibold text-gray-900">{profileName}</div>
+                    <div className="text-xs text-gray-500">{profileEmail}</div>
+                  </div>
+                  <div className="p-2">
+                    {profileMenuItems.map((item) => {
+                      const Icon = item.icon;
+
+                      return (
+                        <button
+                          key={item.id}
+                          type="button"
+                          onClick={() => handleProfileMenuAction(item.onSelect)}
+                          className={`flex w-full items-center gap-3 rounded-2xl px-3 py-3 text-left text-sm font-medium transition ${
+                            item.danger
+                              ? 'text-rose-600 hover:bg-rose-50'
+                              : 'text-gray-700 hover:bg-gray-50'
+                          }`}
+                        >
+                          <Icon className={`h-4 w-4 ${item.danger ? 'text-rose-500' : 'text-gray-400'}`} aria-hidden="true" />
+                          <span>{item.label}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
         </div>
       </div>
     </div>
