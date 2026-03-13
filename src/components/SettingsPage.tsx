@@ -381,7 +381,7 @@ function SettingsModal({
           <button
             type="button"
             onClick={onClose}
-            className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-xl border border-gray-200 text-gray-400 transition duration-[150ms] hover:border-gray-300 hover:bg-gray-50 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#7626c6]/20"
+            className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full text-gray-400 transition duration-[150ms] hover:bg-gray-50 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#7626c6]/20"
             aria-label="Close dialog"
           >
             <X className="h-3.5 w-3.5" />
@@ -428,7 +428,7 @@ function ProfileCardTitle({
 }) {
   return (
     <span className="inline-flex items-center gap-2.5">
-      <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-gray-100 text-gray-600">
+      <span className="flex h-8 w-8 items-center justify-center text-gray-600">
         {icon}
       </span>
       <span className="text-base font-semibold tracking-tight text-gray-900">{title}</span>
@@ -452,7 +452,7 @@ function ProfileMetric({
   return (
     <div className="flex flex-col gap-3 rounded-2xl border border-gray-100 bg-gray-50/70 p-4">
       <div className="flex items-center justify-between">
-        <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-white text-gray-500 shadow-sm ring-1 ring-gray-200/80">
+        <div className="flex h-8 w-8 items-center justify-center text-gray-500">
           {icon}
         </div>
         <span className="text-2xl font-semibold tracking-[-0.03em] text-gray-950">{value}</span>
@@ -694,7 +694,7 @@ function ProfileSettingsContent() {
                   />
                   <label
                     htmlFor={avatarInputId}
-                    className="absolute -bottom-1.5 -right-1.5 z-10 flex h-8 w-8 cursor-pointer items-center justify-center rounded-xl border-2 border-white bg-gray-900 text-white shadow-md transition duration-[150ms] hover:bg-gray-700"
+                    className="absolute -bottom-1.5 -right-1.5 z-10 flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-gray-900 text-white shadow-md transition duration-[150ms] hover:bg-gray-700"
                     aria-label="Update profile image"
                   >
                     <Camera className="h-3.5 w-3.5" />
@@ -744,7 +744,7 @@ function ProfileSettingsContent() {
             <div className="divide-y divide-gray-100">
               {visibleEmails.map((email) => (
                 <div key={email.id} className="flex items-center gap-3 py-3 first:pt-0 last:pb-0">
-                  <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-gray-50 text-gray-400">
+                  <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center text-gray-400">
                     <Mail className="h-4 w-4" />
                   </div>
                   <div className="min-w-0 flex-1">
@@ -812,7 +812,7 @@ function ProfileSettingsContent() {
             <div className="divide-y divide-gray-100">
               {phones.map((phone) => (
                 <div key={phone.id} className="flex items-center gap-3 py-3 first:pt-0 last:pb-0">
-                  <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-gray-50 text-gray-400">
+                  <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center text-gray-400">
                     <Smartphone className="h-4 w-4" />
                   </div>
                   <div className="min-w-0 flex-1">
@@ -851,7 +851,7 @@ function ProfileSettingsContent() {
             <div className="divide-y divide-gray-100">
               {addresses.map((address) => (
                 <div key={address.id} className="flex items-start gap-3 py-3 first:pt-0 last:pb-0">
-                  <div className="mt-0.5 flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-gray-50 text-gray-400">
+                  <div className="mt-0.5 flex h-9 w-9 flex-shrink-0 items-center justify-center text-gray-400">
                     <Building2 className="h-4 w-4" />
                   </div>
                   <div className="min-w-0 flex-1">
@@ -1148,7 +1148,7 @@ function PaymentsSettingsContent() {
               ].map((transaction) => (
                 <div key={transaction.id} className={`flex items-center justify-between ${SETTINGS_PANEL_CLASS} transition duration-[150ms] hover:bg-gray-50`}>
                   <div className="flex items-center gap-4">
-                    <div className={`flex h-12 w-12 items-center justify-center rounded-2xl ${transaction.positive ? 'bg-emerald-50 text-emerald-600' : 'bg-[#f1e5fb] text-[#7626c6]'}`}>
+                    <div className={`flex h-12 w-12 items-center justify-center ${transaction.positive ? 'text-emerald-600' : 'text-[#7626c6]'}`}>
                       <DollarSign className="h-5 w-5" />
                     </div>
                     <div>
@@ -1412,7 +1412,7 @@ function SecuritySettingsContent() {
                   className={`flex w-full items-center justify-between gap-4 ${SETTINGS_PANEL_CLASS} text-left transition duration-150 hover:bg-gray-50 hover:shadow-sm`}
                 >
                   <div className="flex items-center gap-3">
-                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center text-emerald-600">
                       <CheckCircle2 className="h-4 w-4" />
                     </div>
                     <div>
@@ -1438,7 +1438,7 @@ function SecuritySettingsContent() {
           <div className="rounded-[28px] border border-emerald-200 bg-emerald-50 p-6 shadow-sm">
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div className="flex items-center gap-4">
-                <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-600">
+                <div className="flex h-14 w-14 shrink-0 items-center justify-center text-emerald-600">
                   <Shield className="h-6 w-6" />
                 </div>
                 <div>
@@ -1481,7 +1481,7 @@ function SecuritySettingsContent() {
                   detail: 'Chicago, United States',
                   time: 'Today 9:42 AM',
                   icon: KeyRound,
-                  color: 'bg-amber-50 text-amber-600',
+                  color: 'text-amber-600',
                 },
                 {
                   id: 'activity-2',
@@ -1489,7 +1489,7 @@ function SecuritySettingsContent() {
                   detail: 'MacBook Pro · Safari 18.1',
                   time: 'Today 8:15 AM',
                   icon: Laptop,
-                  color: 'bg-blue-50 text-blue-600',
+                  color: 'text-blue-600',
                 },
                 {
                   id: 'activity-3',
@@ -1497,7 +1497,7 @@ function SecuritySettingsContent() {
                   detail: 'iPhone 16 Pro · Face ID',
                   time: 'Yesterday 11:30 PM',
                   icon: Smartphone,
-                  color: 'bg-gray-100 text-gray-600',
+                  color: 'text-gray-600',
                 },
               ] as const).map((activity) => {
                 const Icon = activity.icon;
@@ -1506,7 +1506,7 @@ function SecuritySettingsContent() {
                     key={activity.id}
                     className={`flex items-center gap-4 ${SETTINGS_PANEL_CLASS} transition duration-150 hover:bg-gray-50`}
                   >
-                    <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl ${activity.color}`}>
+                    <div className={`flex h-10 w-10 shrink-0 items-center justify-center ${activity.color}`}>
                       <Icon className="h-4 w-4" />
                     </div>
                     <div className="min-w-0 flex-1">
@@ -1552,7 +1552,7 @@ function SecuritySettingsContent() {
                     key={device.id}
                     className={`flex items-center gap-4 ${SETTINGS_PANEL_CLASS} transition duration-150 hover:bg-gray-50`}
                   >
-                    <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl ${device.isCurrent ? 'bg-[#f1e5fb] text-[#7626c6]' : 'bg-gray-100 text-gray-500'}`}>
+                    <div className={`flex h-10 w-10 shrink-0 items-center justify-center ${device.isCurrent ? 'text-[#7626c6]' : 'text-gray-500'}`}>
                       <Icon className="h-4 w-4" />
                     </div>
                     <div className="min-w-0 flex-1">
@@ -1659,7 +1659,7 @@ function NotificationToggle({
 }) {
   return (
     <div className={`flex items-center gap-4 ${SETTINGS_PANEL_CLASS} transition duration-[150ms] hover:bg-gray-50`}>
-      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[#f1e5fb] text-[#7626c6]">
+      <div className="flex h-10 w-10 shrink-0 items-center justify-center text-[#7626c6]">
         {icon}
       </div>
       <div className="min-w-0 flex-1 space-y-0.5">
@@ -1756,7 +1756,7 @@ function NotificationsSettingsContent() {
               const Icon = item.icon;
               return (
                 <div key={item.id} className={`flex items-center gap-4 ${SETTINGS_PANEL_CLASS} transition duration-[150ms] hover:bg-gray-50`}>
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[#f1e5fb] text-[#7626c6]">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center text-[#7626c6]">
                     <Icon className="h-4 w-4" />
                   </div>
                   <div className="min-w-0 flex-1 space-y-0.5">
@@ -1810,7 +1810,7 @@ function NotificationsSettingsContent() {
         <SettingsCard title={<ProfileCardTitle icon={<Clock3 className="h-4 w-4" />} title="Quiet Hours" />}>
           <div className={SETTINGS_CONTENT_STACK_CLASS}>
             <div className={`flex items-center gap-4 ${SETTINGS_PANEL_CLASS}`}>
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-amber-50 text-amber-500">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center text-amber-500">
                 <Clock3 className="h-4 w-4" />
               </div>
               <div className="min-w-0 flex-1 space-y-0.5">
@@ -1853,7 +1853,7 @@ function PlaceholderSettingsContent({ section }: { section: SettingsSection }) {
     <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
       <section className={`rounded-xl border border-gray-200 bg-white shadow-sm xl:col-span-2 ${SETTINGS_CARD_PADDING_CLASS}`}>
         <div className="flex items-start gap-4">
-          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#f1e5fb] text-[#7626c6]">
+          <div className="flex h-14 w-14 items-center justify-center text-[#7626c6]">
             <Icon className="h-6 w-6" />
           </div>
           <div className="space-y-2">

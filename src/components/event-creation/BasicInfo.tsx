@@ -1,6 +1,6 @@
-import { X } from 'lucide-react';
 import { useState } from 'react';
 import { EventDraft, EventDraftUpdate } from '../../types/event';
+import { AppleClose } from '../../apple-icons';
 
 interface BasicInfoProps {
   data: EventDraft;
@@ -117,7 +117,7 @@ export function BasicInfo({ data, onUpdate }: BasicInfoProps) {
                   className="hover:bg-blue-100 rounded-full p-0.5 transition-colors"
                   aria-label={`Remove ${tag}`}
                 >
-                  <X className="w-3 h-3" />
+                  <AppleClose className="w-3 h-3" />
                 </button>
               </span>
             ))}

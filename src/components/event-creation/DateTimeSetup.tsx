@@ -1,5 +1,5 @@
-import { Calendar, Repeat } from 'lucide-react';
 import { EventDraft, EventDraftUpdate } from '../../types/event';
+import { AppleCalendar, AppleIconSurface, AppleRepeat } from '../../apple-icons';
 
 interface DateTimeSetupProps {
   data: EventDraft;
@@ -24,7 +24,9 @@ export function DateTimeSetup({ data, onUpdate }: DateTimeSetupProps) {
             className="w-5 h-5 text-[#7626c6] rounded focus:ring-[#7626c6]"
           />
           <div className="flex items-center gap-2">
-            <Repeat className="w-5 h-5 text-blue-600" />
+            <AppleIconSurface tone="blue" className="h-10 w-10">
+              <AppleRepeat className="w-5 h-5" />
+            </AppleIconSurface>
             <span className="font-medium text-gray-900">This is a recurring event</span>
           </div>
         </label>
@@ -39,13 +41,13 @@ export function DateTimeSetup({ data, onUpdate }: DateTimeSetupProps) {
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Start Date <span className="text-red-500">*</span>
           </label>
-          <div className="relative">
-            <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+          <div className="input-group-wrapper">
+            <AppleCalendar className="icon-left w-5 h-5 text-gray-400" />
             <input
               type="date"
               value={data.startDate}
               onChange={(e) => onUpdate({ startDate: e.target.value })}
-              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7626c6] focus:border-transparent"
+              className="event-creation-input-with-icon pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7626c6] focus:border-transparent"
             />
           </div>
         </div>
@@ -69,13 +71,13 @@ export function DateTimeSetup({ data, onUpdate }: DateTimeSetupProps) {
           <label className="block text-sm font-medium text-gray-700 mb-2">
             End Date <span className="text-red-500">*</span>
           </label>
-          <div className="relative">
-            <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+          <div className="input-group-wrapper">
+            <AppleCalendar className="icon-left w-5 h-5 text-gray-400" />
             <input
               type="date"
               value={data.endDate}
               onChange={(e) => onUpdate({ endDate: e.target.value })}
-              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7626c6] focus:border-transparent"
+              className="event-creation-input-with-icon pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7626c6] focus:border-transparent"
             />
           </div>
         </div>

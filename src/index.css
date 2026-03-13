@@ -2554,6 +2554,35 @@ button.btn-glass:focus-visible {
     transform var(--ui-duration-micro) ease;
 }
 
+/* Shared icon-input layout for Create New Event forms */
+.input-group-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-group-wrapper .icon-left {
+  position: absolute;
+  left: 12px;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.input-group-wrapper input {
+  width: 100%;
+  padding-left: 44px !important;
+}
+
+.event-creation-page .input-group-wrapper input[type="date"]::-webkit-date-and-time-value,
+.event-creation-page .input-group-wrapper input[type="time"]::-webkit-date-and-time-value {
+  text-align: left;
+}
+
+.event-creation-page .input-group-wrapper input[type="date"]::-webkit-datetime-edit,
+.event-creation-page .input-group-wrapper input[type="time"]::-webkit-datetime-edit {
+  padding-left: 2px;
+}
+
 .app-shell button svg {
   flex-shrink: 0;
   vertical-align: middle;
@@ -3112,9 +3141,13 @@ button.btn-glass:focus-visible {
 }
 
 .ai-chat-root {
+  --ai-chat-launcher-bottom: calc(env(safe-area-inset-bottom, 0px) + 68px);
+  --ai-chat-top-clearance: 112px;
+  --ai-chat-panel-gap: 12px;
+  --ai-chat-max-height: calc(100vh - var(--ai-chat-top-clearance) - var(--ai-chat-launcher-bottom) - var(--ai-chat-panel-gap));
   position: fixed;
   z-index: 70;
-  bottom: calc(env(safe-area-inset-bottom, 0px) + 84px);
+  bottom: var(--ai-chat-launcher-bottom);
 }
 
 .ai-chat-root--bottom-right {
@@ -3127,9 +3160,10 @@ button.btn-glass:focus-visible {
 
 .ai-chat-panel {
   position: absolute;
-  bottom: calc(100% + 12px);
+  bottom: calc(100% + var(--ai-chat-panel-gap));
   width: min(420px, calc(100vw - 32px));
-  height: min(680px, calc(100vh - 120px));
+  height: min(680px, var(--ai-chat-max-height));
+  max-height: var(--ai-chat-max-height);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -3155,27 +3189,27 @@ button.btn-glass:focus-visible {
 
 .ai-chat-panel--sm {
   width: min(360px, calc(100vw - 32px));
-  height: min(500px, calc(100vh - 120px));
+  height: min(500px, var(--ai-chat-max-height));
 }
 
 .ai-chat-panel--md {
   width: min(420px, calc(100vw - 32px));
-  height: min(600px, calc(100vh - 120px));
+  height: min(600px, var(--ai-chat-max-height));
 }
 
 .ai-chat-panel--lg {
   width: min(460px, calc(100vw - 32px));
-  height: min(700px, calc(100vh - 120px));
+  height: min(700px, var(--ai-chat-max-height));
 }
 
 .ai-chat-panel--xl {
   width: min(520px, calc(100vw - 32px));
-  height: min(780px, calc(100vh - 120px));
+  height: min(780px, var(--ai-chat-max-height));
 }
 
 .ai-chat-panel--full {
   width: min(760px, calc(100vw - 32px));
-  height: min(86vh, calc(100vh - 80px));
+  height: min(86vh, var(--ai-chat-max-height));
 }
 
 .ai-chat-panel--closed {
@@ -3193,10 +3227,43 @@ button.btn-glass:focus-visible {
 }
 
 .ai-chat-toggle {
-  width: 48px;
-  height: 48px;
-  border-radius: 9999px;
-  box-shadow: 0 16px 34px rgba(81, 34, 143, 0.28);
+  width: 76px;
+  min-height: 80px;
+  height: auto;
+  border-radius: 22px;
+  padding: 0.5rem 0.45rem;
+  color: #1f2937;
+  background: transparent !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+
+.ai-chat-toggle:not(:disabled):hover {
+  transform: none;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.ai-chat-toggle__brand {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.18rem;
+  line-height: 1;
+  transform: translateY(8px);
+}
+
+.ai-chat-toggle__brand-image {
+  width: 38px;
+  height: 38px;
+  object-fit: contain;
+}
+
+.ai-chat-toggle__brand-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
 }
 
 .ai-chat-toggle--idle {
@@ -3473,9 +3540,10 @@ button.btn-glass:focus-visible {
 
 @media (max-width: 640px) {
   .ai-chat-root {
+    --ai-chat-launcher-bottom: calc(env(safe-area-inset-bottom, 0px) + 56px);
     right: 14px;
     left: auto;
-    bottom: calc(env(safe-area-inset-bottom, 0px) + 72px);
+    bottom: var(--ai-chat-launcher-bottom);
   }
 
   .ai-chat-panel {

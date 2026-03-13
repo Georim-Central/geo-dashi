@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Users, DollarSign, Ticket, Download, Calendar, Eye, MousePointer } from 'lucide-react';
+import { Users, DollarSign, Ticket, Download, Calendar, Eye, MousePointer, GitCompareArrows, Target, TrendingUp } from 'lucide-react';
 import { LineChart, Line, BarChart, Bar, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { downloadReportPdf } from '../utils/reportExport';
 import { ContentState } from './ui/ContentState';
@@ -12,11 +12,13 @@ interface AnalyticsProps {
 }
 
 type OrgOverviewMode = 'both' | 'revenue' | 'tickets';
+type EventComparisonMetric = 'revenue' | 'conversion' | 'attendees';
 
 export function Analytics({ selectedEventId, selectedEventName }: AnalyticsProps) {
   const isEventView = !!selectedEventId;
   const [selectedRange, setSelectedRange] = useState('Last 7 days');
   const [orgOverviewMode, setOrgOverviewMode] = useState<OrgOverviewMode>('both');
+  const [eventComparisonMetric, setEventComparisonMetric] = useState<EventComparisonMetric>('revenue');
   const eventDisplayName = selectedEventName?.trim() || 'Selected Event';
   const analyticsError: string | null = null;
   const isLoading = false;
@@ -51,6 +53,14 @@ export function Analytics({ selectedEventId, selectedEventName }: AnalyticsProps
             lines: eventTrafficData.map((traffic) => `${traffic.date}: ${traffic.views} views, ${traffic.clicks} ticket clicks`)
           },
           {
+            heading: 'Conversion Funnel',
+            lines: eventConversionFunnel.map((stage) => `${stage.stage}: ${stage.value.toLocaleString()} (${stage.rateLabel})`)
+          },
+          {
+            heading: 'Revenue Attribution',
+            lines: eventRevenueAttribution.map((channel) => `${channel.channel}: $${channel.revenue.toLocaleString()} revenue, ${channel.share}% share`)
+          },
+          {
             heading: 'Top Attendee Cities',
             lines: eventGeographyData.cities.map((city) => `${city.name}: ${city.count} attendees (${city.percentage}%)`)
           }
@@ -73,6 +83,14 @@ export function Analytics({ selectedEventId, selectedEventName }: AnalyticsProps
         {
           heading: 'Top Events by Revenue ($K)',
           lines: orgEventsPerformance.map((event) => `${event.event}: $${event.revenue}K`)
+        },
+        {
+          heading: 'Revenue Attribution',
+          lines: orgRevenueAttributionData.map((channel) => `${channel.channel}: $${channel.revenue.toLocaleString()} revenue, ${channel.share}% share`)
+        },
+        {
+          heading: 'Event Comparison',
+          lines: orgEventComparisonData.map((event) => `${event.event}: $${event.revenue.toLocaleString()} revenue, ${event.conversion}% conversion, ${event.attendees.toLocaleString()} attendees`)
         },
         {
           heading: 'Top Attendee Cities',
@@ -291,6 +309,66 @@ export function Analytics({ selectedEventId, selectedEventName }: AnalyticsProps
               </div>
             </div>
           </div>
+
+          <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1.2fr)_420px]">
+            <section className="rounded-[28px] border border-gray-200 bg-white p-6">
+              <div className="mb-6 flex items-start justify-between gap-4">
+                <div>
+                  <h2 className="ui-card-title">Conversion Funnel</h2>
+                  <p className="mt-1 text-sm text-gray-600">Track the path from event discovery to completed ticket purchase.</p>
+                </div>
+                <div className="inline-flex items-center gap-2 rounded-full bg-[#f5ecfd] px-3 py-1 text-xs font-semibold text-[#7626c6]">
+                  <Target className="h-3.5 w-3.5" />
+                  6.8% overall conversion
+                </div>
+              </div>
+              <div className="space-y-4">
+                {eventConversionFunnel.map((stage) => (
+                  <div key={stage.stage} className="rounded-2xl border border-gray-200 bg-gray-50 p-4">
+                    <div className="flex items-center justify-between gap-4">
+                      <div>
+                        <p className="text-sm font-semibold text-gray-900">{stage.stage}</p>
+                        <p className="mt-1 text-xs text-gray-500">{stage.description}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-lg font-semibold text-gray-900">{stage.value.toLocaleString()}</p>
+                        <p className="text-xs font-medium text-gray-500">{stage.rateLabel}</p>
+                      </div>
+                    </div>
+                    <div className="ui-progress-track mt-3 h-2.5">
+                      <div className="ui-progress-indicator" style={{ width: `${stage.percentOfTop}%` }}></div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+
+            <section className="rounded-[28px] border border-gray-200 bg-white p-6">
+              <div className="mb-6">
+                <h2 className="ui-card-title">Revenue Attribution</h2>
+                <p className="mt-1 text-sm text-gray-600">See which channels are driving the most converted ticket revenue.</p>
+              </div>
+              <div className="space-y-4">
+                {eventRevenueAttribution.map((channel) => (
+                  <div key={channel.channel}>
+                    <div className="flex items-center justify-between gap-4">
+                      <div>
+                        <p className="text-sm font-semibold text-gray-900">{channel.channel}</p>
+                        <p className="mt-1 text-xs text-gray-500">{channel.conversions} purchases attributed</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sm font-semibold text-gray-900">${channel.revenue.toLocaleString()}</p>
+                        <p className="text-xs text-gray-500">{channel.share}% share</p>
+                      </div>
+                    </div>
+                    <div className="ui-progress-track mt-2">
+                      <div className="h-full rounded-full bg-emerald-500" style={{ width: `${channel.share}%` }}></div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+          </div>
         </>
       ) : (
         // ORGANIZATION-LEVEL ANALYTICS
@@ -483,6 +561,127 @@ export function Analytics({ selectedEventId, selectedEventName }: AnalyticsProps
             </div>
           </div>
 
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+            <section className="rounded-[28px] border border-gray-200 bg-white p-6">
+              <div className="mb-6 flex items-start justify-between gap-4">
+                <div>
+                  <h2 className="ui-card-title">Revenue Attribution</h2>
+                  <p className="mt-1 text-sm text-gray-600">Connect paid, organic, partner, and lifecycle channels to closed ticket revenue.</p>
+                </div>
+                <div className="inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
+                  <TrendingUp className="h-3.5 w-3.5" />
+                  $124.6K attributed revenue
+                </div>
+              </div>
+              <ResponsiveContainer width="100%" height={280}>
+                <BarChart data={orgRevenueAttributionData} layout="vertical" margin={{ left: 8, right: 8 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                  <XAxis type="number" stroke="#666" style={{ fontSize: '12px' }} tickFormatter={(value) => `$${Number(value / 1000).toFixed(0)}K`} />
+                  <YAxis type="category" dataKey="channel" stroke="#666" style={{ fontSize: '12px' }} width={110} />
+                  <Tooltip
+                    formatter={(value: number, _name, payload) => [`$${value.toLocaleString()}`, `${payload?.payload?.share}% share`]}
+                    contentStyle={{ backgroundColor: '#fff', border: '1px solid #e5e7eb', borderRadius: '8px' }}
+                  />
+                  <Bar dataKey="revenue" fill="#10b981" radius={[0, 8, 8, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+              <div className="mt-4 grid grid-cols-2 gap-3">
+                {orgRevenueAttributionData.map((channel) => (
+                  <div key={channel.channel} className="rounded-2xl border border-gray-200 bg-gray-50 p-4">
+                    <p className="text-xs font-medium uppercase tracking-[0.14em] text-gray-400">{channel.channel}</p>
+                    <p className="mt-2 text-lg font-semibold text-gray-900">${channel.revenue.toLocaleString()}</p>
+                    <p className="mt-1 text-xs text-gray-500">{channel.conversions} conversions · {channel.share}% share</p>
+                  </div>
+                ))}
+              </div>
+            </section>
+
+            <section className="rounded-[28px] border border-gray-200 bg-white p-6">
+              <div className="mb-6 flex items-start justify-between gap-4">
+                <div>
+                  <h2 className="ui-card-title">Event Comparison</h2>
+                  <p className="mt-1 text-sm text-gray-600">Compare core outcomes across your highest-impact events without leaving the dashboard.</p>
+                </div>
+                <div className="inline-flex items-center gap-2 rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700">
+                  <GitCompareArrows className="h-3.5 w-3.5" />
+                  Cross-event benchmark
+                </div>
+              </div>
+
+              <div className="mb-6 flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setEventComparisonMetric('revenue')}
+                  aria-pressed={eventComparisonMetric === 'revenue'}
+                  className={`ui-chip ${eventComparisonMetric === 'revenue' ? 'is-active' : ''}`}
+                >
+                  Revenue
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setEventComparisonMetric('conversion')}
+                  aria-pressed={eventComparisonMetric === 'conversion'}
+                  className={`ui-chip ${eventComparisonMetric === 'conversion' ? 'is-active' : ''}`}
+                >
+                  Conversion
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setEventComparisonMetric('attendees')}
+                  aria-pressed={eventComparisonMetric === 'attendees'}
+                  className={`ui-chip ${eventComparisonMetric === 'attendees' ? 'is-active' : ''}`}
+                >
+                  Attendees
+                </button>
+              </div>
+
+              <ResponsiveContainer width="100%" height={280}>
+                <BarChart data={orgEventComparisonData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                  <XAxis dataKey="event" stroke="#666" style={{ fontSize: '11px' }} angle={-15} textAnchor="end" height={74} />
+                  <YAxis
+                    stroke="#666"
+                    style={{ fontSize: '12px' }}
+                    tickFormatter={(value) =>
+                      eventComparisonMetric === 'revenue'
+                        ? `$${Number(value / 1000).toFixed(0)}K`
+                        : eventComparisonMetric === 'conversion'
+                          ? `${value}%`
+                          : Number(value).toLocaleString()
+                    }
+                  />
+                  <Tooltip
+                    formatter={(value: number) => [
+                      eventComparisonMetric === 'revenue'
+                        ? `$${value.toLocaleString()}`
+                        : eventComparisonMetric === 'conversion'
+                          ? `${value}%`
+                          : value.toLocaleString(),
+                      eventComparisonMetric.charAt(0).toUpperCase() + eventComparisonMetric.slice(1),
+                    ]}
+                    contentStyle={{ backgroundColor: '#fff', border: '1px solid #e5e7eb', borderRadius: '8px' }}
+                  />
+                  <Bar dataKey={eventComparisonMetric} fill="#7626c6" radius={[8, 8, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+
+              <div className="mt-5 space-y-3">
+                {orgEventComparisonData.map((event) => (
+                  <div key={event.event} className="flex items-center justify-between rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3">
+                    <div>
+                      <p className="text-sm font-semibold text-gray-900">{event.event}</p>
+                      <p className="mt-1 text-xs text-gray-500">${event.attributedRevenue.toLocaleString()} attributed revenue</p>
+                    </div>
+                    <div className="text-right text-sm text-gray-600">
+                      <p className="font-semibold text-gray-900">{eventComparisonMetric === 'revenue' ? `$${event.revenue.toLocaleString()}` : eventComparisonMetric === 'conversion' ? `${event.conversion}%` : event.attendees.toLocaleString()}</p>
+                      <p className="mt-1 text-xs text-gray-500">{event.checkoutStarts.toLocaleString()} checkout starts</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+          </div>
+
           <InlineAnalyticsTable
             title="Regional Revenue Pulse"
             subtitle="A compact operating view of sales, revenue, and growth across your strongest organizer markets."
@@ -530,6 +729,22 @@ const orgEventsPerformance = [
   { event: 'Food Expo', revenue: 18.7 },
   { event: 'Art Gallery', revenue: 12.4 },
   { event: 'Music Night', revenue: 22.7 }
+];
+
+const orgRevenueAttributionData = [
+  { channel: 'Paid Social', revenue: 34600, share: 28, conversions: 812 },
+  { channel: 'Email CRM', revenue: 27800, share: 22, conversions: 634 },
+  { channel: 'Organic Search', revenue: 24350, share: 20, conversions: 558 },
+  { channel: 'Partners', revenue: 19610, share: 16, conversions: 421 },
+  { channel: 'Direct', revenue: 18200, share: 14, conversions: 397 },
+];
+
+const orgEventComparisonData = [
+  { event: 'Summer Fest', revenue: 28500, conversion: 7.6, attendees: 1240, attributedRevenue: 9400, checkoutStarts: 1820 },
+  { event: 'Tech Conf', revenue: 42300, conversion: 8.9, attendees: 1685, attributedRevenue: 15320, checkoutStarts: 2364 },
+  { event: 'Food Expo', revenue: 18700, conversion: 6.1, attendees: 920, attributedRevenue: 6240, checkoutStarts: 1410 },
+  { event: 'Art Gallery', revenue: 12400, conversion: 4.8, attendees: 610, attributedRevenue: 3580, checkoutStarts: 980 },
+  { event: 'Music Night', revenue: 22700, conversion: 7.1, attendees: 1084, attributedRevenue: 7710, checkoutStarts: 1595 },
 ];
 
 const orgEventStatusData = [
@@ -599,6 +814,21 @@ const eventTrafficData = [
   { date: 'Jan 9', views: 1950, clicks: 289 },
   { date: 'Jan 10', views: 2380, clicks: 358 },
   { date: 'Jan 11', views: 2620, clicks: 401 }
+];
+
+const eventConversionFunnel = [
+  { stage: 'Event Page Views', value: 14200, rateLabel: '100% of traffic', percentOfTop: 100, description: 'Unique sessions that viewed the event page.' },
+  { stage: 'Ticket Clicks', value: 2410, rateLabel: '17.0% click-through', percentOfTop: 17, description: 'Visitors who clicked into ticket selection.' },
+  { stage: 'Checkout Starts', value: 1128, rateLabel: '46.8% of clickers', percentOfTop: 7.9, description: 'Buyers who started checkout after selecting tickets.' },
+  { stage: 'Purchases', value: 967, rateLabel: '85.7% checkout completion', percentOfTop: 6.8, description: 'Completed orders attributed to this event funnel.' },
+];
+
+const eventRevenueAttribution = [
+  { channel: 'Instagram Ads', revenue: 8940, share: 31, conversions: 214 },
+  { channel: 'Email Reminder', revenue: 7210, share: 25, conversions: 185 },
+  { channel: 'Partner Codes', revenue: 5180, share: 18, conversions: 116 },
+  { channel: 'Organic Search', revenue: 4550, share: 16, conversions: 103 },
+  { channel: 'Direct / Referral', revenue: 2570, share: 10, conversions: 67 },
 ];
 
 const eventGeographyData = {

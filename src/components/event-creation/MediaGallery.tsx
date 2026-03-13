@@ -1,5 +1,5 @@
-import { Upload, Image as ImageIcon, Video } from 'lucide-react';
 import { EventDraft, EventDraftUpdate } from '../../types/event';
+import { AppleIconSurface, AppleImage, AppleUpload, AppleVideo } from '../../apple-icons';
 
 interface MediaGalleryProps {
   data: EventDraft;
@@ -93,9 +93,9 @@ export function MediaGallery({ data, onUpdate }: MediaGalleryProps) {
               }}
             />
             <label htmlFor="main-image-upload" className="cursor-pointer">
-              <div className="bg-gray-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Upload className="w-8 h-8 text-gray-600" />
-              </div>
+              <AppleIconSurface tone="neutral" className="mx-auto mb-4 h-16 w-16 rounded-[22px]">
+                <AppleUpload className="w-8 h-8 text-gray-600" />
+              </AppleIconSurface>
               <p className="text-gray-900 font-medium mb-1">Drop image here or click to upload</p>
               <p className="text-sm text-gray-500">PNG, JPG, GIF up to 10MB</p>
             </label>
@@ -140,7 +140,9 @@ export function MediaGallery({ data, onUpdate }: MediaGalleryProps) {
                 }}
               />
               <label htmlFor="additional-images-upload" className="w-full h-full flex flex-col items-center justify-center cursor-pointer p-3 text-center">
-                <ImageIcon className="w-8 h-8 text-gray-400 mb-2" />
+                <AppleIconSurface tone="neutral" className="mb-2 h-12 w-12 rounded-[18px]">
+                  <AppleImage className="w-5 h-5 text-gray-500" />
+                </AppleIconSurface>
                 <p className="text-xs text-gray-600">Add images</p>
               </label>
             </div>
@@ -157,20 +159,22 @@ export function MediaGallery({ data, onUpdate }: MediaGalleryProps) {
           Add a YouTube or Vimeo video to your event header
         </p>
 
-        <div className="relative">
-          <Video className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+        <div className="input-group-wrapper">
+          <AppleVideo className="icon-left w-5 h-5 text-gray-400" />
           <input
             type="url"
             value={data.videoUrl}
             onChange={(e) => onUpdate({ videoUrl: e.target.value })}
             placeholder="https://youtube.com/watch?v=..."
-            className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7626c6] focus:border-transparent"
+            className="event-creation-input-with-icon pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7626c6] focus:border-transparent"
           />
         </div>
 
         {data.videoUrl && (
           <div className="mt-4 bg-gray-100 rounded-lg p-8 text-center">
-            <Video className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+            <AppleIconSurface tone="neutral" className="mx-auto mb-3 h-14 w-14">
+              <AppleVideo className="w-6 h-6 text-gray-500" />
+            </AppleIconSurface>
             <p className="text-sm text-gray-600">Video preview</p>
             <p className="text-xs text-gray-500 mt-1">{data.videoUrl}</p>
           </div>
@@ -179,7 +183,12 @@ export function MediaGallery({ data, onUpdate }: MediaGalleryProps) {
 
       {/* Tips */}
       <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-        <h4 className="font-medium text-gray-900 mb-2">📸 Image Best Practices</h4>
+        <div className="mb-2 flex items-center gap-3">
+          <AppleIconSurface tone="neutral" className="h-10 w-10">
+            <AppleImage className="w-5 h-5" />
+          </AppleIconSurface>
+          <h4 className="font-medium text-gray-900">Image Best Practices</h4>
+        </div>
         <ul className="text-sm text-gray-700 space-y-1">
           <li>• Use high-quality, eye-catching images that represent your event</li>
           <li>• Ensure images are well-lit and properly framed</li>

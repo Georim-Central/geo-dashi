@@ -1,6 +1,16 @@
 import { useState } from 'react';
-import { Bold, Italic, List, Link as LinkIcon, AlignLeft } from 'lucide-react';
 import { EventDraft, EventDraftUpdate } from '../../types/event';
+import {
+  AppleAlignLeft,
+  AppleBold,
+  AppleCalendar,
+  AppleGlobe,
+  AppleLink,
+  AppleListBullet,
+  AppleMapPin,
+  AppleVideo,
+  AppleItalic,
+} from '../../apple-icons';
 
 interface DescriptionEditorProps {
   data: EventDraft;
@@ -15,12 +25,12 @@ export function DescriptionEditor({ data, onUpdate }: DescriptionEditorProps) {
   const [sectionError, setSectionError] = useState('');
 
   const suggestedSections = [
-    { id: 'overview', label: '📋 Event Overview', title: 'Event Overview' },
-    { id: 'speakers', label: '🎤 Speakers/Performers', title: 'Speakers/Performers' },
-    { id: 'agenda', label: '📅 Agenda/Schedule', title: 'Agenda/Schedule' },
-    { id: 'audience', label: '🎯 Who Should Attend', title: 'Who Should Attend' },
-    { id: 'info', label: 'ℹ️ Additional Information', title: 'Additional Information' },
-    { id: 'venue', label: '📍 Venue Details', title: 'Venue Details' }
+    { id: 'overview', label: 'Event Overview', title: 'Event Overview', icon: AppleListBullet, tone: 'neutral' as const },
+    { id: 'speakers', label: 'Speakers/Performers', title: 'Speakers/Performers', icon: AppleVideo, tone: 'neutral' as const },
+    { id: 'agenda', label: 'Agenda/Schedule', title: 'Agenda/Schedule', icon: AppleCalendar, tone: 'blue' as const },
+    { id: 'audience', label: 'Who Should Attend', title: 'Who Should Attend', icon: AppleGlobe, tone: 'blue' as const },
+    { id: 'info', label: 'Additional Information', title: 'Additional Information', icon: AppleLink, tone: 'neutral' as const },
+    { id: 'venue', label: 'Venue Details', title: 'Venue Details', icon: AppleMapPin, tone: 'brand' as const }
   ];
 
   const toggleFormat = (format: string) => {
@@ -109,7 +119,7 @@ export function DescriptionEditor({ data, onUpdate }: DescriptionEditorProps) {
             }`}
             title="Bold"
           >
-            <Bold className="w-4 h-4 text-gray-700" />
+            <AppleBold className="w-4 h-4 text-gray-700" />
           </button>
           <button
             type="button"
@@ -119,7 +129,7 @@ export function DescriptionEditor({ data, onUpdate }: DescriptionEditorProps) {
             }`}
             title="Italic"
           >
-            <Italic className="w-4 h-4 text-gray-700" />
+            <AppleItalic className="w-4 h-4 text-gray-700" />
           </button>
           <div className="w-px h-8 bg-gray-300 mx-1"></div>
           <button
@@ -130,7 +140,7 @@ export function DescriptionEditor({ data, onUpdate }: DescriptionEditorProps) {
             }`}
             title="Bullet List"
           >
-            <List className="w-4 h-4 text-gray-700" />
+            <AppleListBullet className="w-4 h-4 text-gray-700" />
           </button>
           <button
             type="button"
@@ -140,7 +150,7 @@ export function DescriptionEditor({ data, onUpdate }: DescriptionEditorProps) {
             }`}
             title="Align"
           >
-            <AlignLeft className="w-4 h-4 text-gray-700" />
+            <AppleAlignLeft className="w-4 h-4 text-gray-700" />
           </button>
           <button
             type="button"
@@ -150,7 +160,7 @@ export function DescriptionEditor({ data, onUpdate }: DescriptionEditorProps) {
             }`}
             title="Insert Link"
           >
-            <LinkIcon className="w-4 h-4 text-gray-700" />
+            <AppleLink className="w-4 h-4 text-gray-700" />
           </button>
         </div>
 
@@ -173,24 +183,41 @@ Include:
 
       {/* Suggested Sections */}
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-        <h4 className="font-medium text-gray-900 mb-3">✍️ Suggested Sections to Include</h4>
+        <div className="mb-3 flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center text-sky-700">
+            <AppleAlignLeft className="w-5 h-5" />
+          </div>
+          <h4 className="font-medium text-gray-900">Suggested Sections to Include</h4>
+        </div>
         <div className="grid grid-cols-2 gap-3">
           {suggestedSections.map((section) => (
             <button
               key={section.id}
               type="button"
               onClick={() => openSectionForm(section.title)}
-              className="text-left px-3 py-2 bg-white border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors text-sm"
+              className="flex items-center gap-3 text-left px-3 py-2 bg-white border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors text-sm"
             >
-              {section.label}
+              <div className={`flex h-9 w-9 items-center justify-center ${
+                section.tone === 'brand'
+                  ? 'text-[#6b3fb5]'
+                  : section.tone === 'blue'
+                  ? 'text-sky-700'
+                  : 'text-slate-600'
+              }`}>
+                <section.icon className="w-4 h-4" />
+              </div>
+              <span>{section.label}</span>
             </button>
           ))}
           <button
             type="button"
             onClick={() => openSectionForm('')}
-            className="text-left px-3 py-2 bg-white border border-dashed border-blue-300 rounded-lg hover:bg-blue-100 transition-colors text-sm font-medium text-blue-700"
+            className="flex items-center gap-3 text-left px-3 py-2 bg-white border border-dashed border-blue-300 rounded-lg hover:bg-blue-100 transition-colors text-sm font-medium text-blue-700"
           >
-            + Custom Title
+            <div className="flex h-9 w-9 items-center justify-center text-slate-600">
+              <AppleLink className="w-4 h-4" />
+            </div>
+            <span>Custom Title</span>
           </button>
         </div>
       </div>

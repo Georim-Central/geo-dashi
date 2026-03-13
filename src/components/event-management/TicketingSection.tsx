@@ -34,6 +34,30 @@ type TicketFormState = {
   timedEntry: boolean;
 };
 
+type PromoCode = {
+  id: string;
+  code: string;
+  access: 'public' | 'access';
+  discountType: 'percent' | 'fixed';
+  discountValue: number;
+  appliesTo: string;
+  used: number;
+  usageLimit: number | null;
+  validFrom: string;
+  validUntil: string;
+};
+
+type PromoFormState = {
+  code: string;
+  access: PromoCode['access'];
+  discountType: PromoCode['discountType'];
+  discountValue: string;
+  usageLimit: string;
+  validFrom: string;
+  validUntil: string;
+  appliesTo: string;
+};
+
 export function TicketingSection() {
   const ticketFormIdPrefix = useId();
   const promoFormIdPrefix = useId();
@@ -43,7 +67,9 @@ export function TicketingSection() {
   const [editingTicketId, setEditingTicketId] = useState<string | null>(null);
   const [ticketForm, setTicketForm] = useState<TicketFormState>(emptyTicketFormState);
   const [ticketFormError, setTicketFormError] = useState('');
-  const [promoCodes, setPromoCodes] = useState(mockPromoCodes);
+  const [promoCodes, setPromoCodes] = useState<PromoCode[]>(mockPromoCodes);
+  const [promoForm, setPromoForm] = useState<PromoFormState>(emptyPromoFormState);
+  const [promoFormError, setPromoFormError] = useState('');
   const getTicketFieldId = (field: string) => `${ticketFormIdPrefix}-${field}`;
   const getPromoFieldId = (field: string) => `${promoFormIdPrefix}-${field}`;
 
@@ -52,6 +78,12 @@ export function TicketingSection() {
     setEditingTicketId(null);
     setTicketForm(emptyTicketFormState);
     setTicketFormError('');
+  };
+
+  const closeCreateCodeModal = () => {
+    setShowCreateCodeModal(false);
+    setPromoForm(emptyPromoFormState);
+    setPromoFormError('');
   };
 
   const openAddTicketModal = () => {
@@ -185,13 +217,98 @@ export function TicketingSection() {
     descriptionId: createCodeDescriptionId
   } = useModalA11y({
     isOpen: showCreateCodeModal,
-    onClose: () => setShowCreateCodeModal(false)
+    onClose: closeCreateCodeModal
   });
 
   const handleDeletePromoCode = (promoId: string) => {
     setPromoCodes((currentPromoCodes) =>
       currentPromoCodes.filter((promo) => promo.id !== promoId)
     );
+  };
+
+  const handlePromoFormChange = <K extends keyof PromoFormState>(field: K, value: PromoFormState[K]) => {
+    setPromoForm((currentForm) => ({ ...currentForm, [field]: value }));
+    if (promoFormError) setPromoFormError('');
+  };
+
+  const handleSavePromoCode = () => {
+    const code = promoForm.code.trim().toUpperCase();
+    const discountValue = Number(promoForm.discountValue);
+    const usageLimit = promoForm.usageLimit.trim() ? Number(promoForm.usageLimit) : null;
+
+    if (!code) {
+      setPromoFormError('Please enter a promo code.');
+      return;
+    }
+
+    if (promoCodes.some((promo) => promo.code.toLowerCase() === code.toLowerCase())) {
+      setPromoFormError('This promo code already exists.');
+      return;
+    }
+
+    if (!Number.isFinite(discountValue) || discountValue <= 0) {
+      setPromoFormError('Please enter a valid discount value.');
+      return;
+    }
+
+    if (promoForm.discountType === 'percent' && discountValue > 100) {
+      setPromoFormError('Percentage discounts must be 100 or less.');
+      return;
+    }
+
+    if (usageLimit !== null && (!Number.isFinite(usageLimit) || usageLimit < 1)) {
+      setPromoFormError('Usage limit must be at least 1.');
+      return;
+    }
+
+    if (!promoForm.validFrom || !promoForm.validUntil) {
+      setPromoFormError('Please set both a start date and an end date.');
+      return;
+    }
+
+    if (promoForm.validUntil < promoForm.validFrom) {
+      setPromoFormError('End date must be on or after the start date.');
+      return;
+    }
+
+    const nextPromoCode: PromoCode = {
+      id: `promo-${Date.now()}`,
+      code,
+      access: promoForm.access,
+      discountType: promoForm.discountType,
+      discountValue,
+      appliesTo: promoForm.appliesTo,
+      used: 0,
+      usageLimit,
+      validFrom: promoForm.validFrom,
+      validUntil: promoForm.validUntil,
+    };
+
+    setPromoCodes((currentPromoCodes) => [nextPromoCode, ...currentPromoCodes]);
+    closeCreateCodeModal();
+  };
+
+  const formatPromoDiscount = (promo: PromoCode) => {
+    if (promo.discountType === 'percent') {
+      return `${promo.discountValue}% off`;
+    }
+
+    return `$${promo.discountValue} off`;
+  };
+
+  const formatPromoUsage = (promo: PromoCode) => (
+    promo.usageLimit === null ? `${promo.used} uses • Unlimited` : `${promo.used} / ${promo.usageLimit} uses`
+  );
+
+  const formatPromoWindow = (promo: PromoCode) => {
+    const start = new Date(`${promo.validFrom}T00:00:00`);
+    const end = new Date(`${promo.validUntil}T00:00:00`);
+
+    if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
+      return 'Validity window not set';
+    }
+
+    return `Valid ${start.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })} - ${end.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}`;
   };
 
   return (
@@ -333,17 +450,29 @@ export function TicketingSection() {
           >
             {promoCodes.map((promo) => (
             <div key={promo.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-              <div className="flex items-center gap-4">
+              <div className="flex items-start gap-4">
                 <div className="bg-white px-4 py-2 rounded border border-gray-300 font-mono text-sm font-medium">
                   {promo.code}
                 </div>
                 <div>
-                  <div className="font-medium text-gray-900">{promo.discount}</div>
-                  <div className="text-sm text-gray-600">{promo.used} uses • {promo.type}</div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <div className="font-medium text-gray-900">{formatPromoDiscount(promo)}</div>
+                    <span className={`px-2 py-1 rounded text-[11px] font-medium ${
+                      promo.discountType === 'percent'
+                        ? 'bg-blue-100 text-blue-700'
+                        : 'bg-emerald-100 text-emerald-700'
+                    }`}>
+                      {promo.discountType === 'percent' ? 'Percent' : 'Fixed'}
+                    </span>
+                    <span className="px-2 py-1 rounded text-[11px] font-medium bg-violet-100 text-violet-700">
+                      {promo.access === 'public' ? 'Public' : 'Access Code'}
+                    </span>
+                  </div>
+                  <div className="text-sm text-gray-600">{formatPromoUsage(promo)} • {promo.appliesTo}</div>
+                  <div className="text-xs text-gray-500 mt-1">{formatPromoWindow(promo)}</div>
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <div className="text-sm text-gray-600">{promo.expires}</div>
                 <button
                   type="button"
                   aria-label={`Delete promo code ${promo.code}`}
@@ -550,7 +679,7 @@ export function TicketingSection() {
         <div className="ticketing-modal-overlay">
           <div
             className="ticketing-modal-backdrop"
-            onClick={() => setShowCreateCodeModal(false)}
+            onClick={closeCreateCodeModal}
           />
           <div
             ref={createCodeDialogRef}
@@ -571,13 +700,35 @@ export function TicketingSection() {
                   <input
                     id={getPromoFieldId('code')}
                     type="text"
+                    value={promoForm.code}
+                    onChange={(event) => handlePromoFormChange('code', event.target.value)}
                     placeholder="e.g., SUMMER2026"
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7626c6] focus:border-transparent"
                   />
                 </div>
                 <div>
+                  <label htmlFor={getPromoFieldId('access-type')} className="block text-sm font-medium text-gray-700 mb-2">Code Access</label>
+                  <select
+                    id={getPromoFieldId('access-type')}
+                    value={promoForm.access}
+                    onChange={(event) => handlePromoFormChange('access', event.target.value as PromoCode['access'])}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7626c6] focus:border-transparent"
+                  >
+                    <option value="public">Public</option>
+                    <option value="access">Access Code</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
                   <label htmlFor={getPromoFieldId('discount-type')} className="block text-sm font-medium text-gray-700 mb-2">Discount Type</label>
-                  <select id={getPromoFieldId('discount-type')} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7626c6] focus:border-transparent">
+                  <select
+                    id={getPromoFieldId('discount-type')}
+                    value={promoForm.discountType}
+                    onChange={(event) => handlePromoFormChange('discountType', event.target.value as PromoCode['discountType'])}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7626c6] focus:border-transparent"
+                  >
                     <option value="percent">Percentage (%)</option>
                     <option value="fixed">Fixed Amount ($)</option>
                   </select>
@@ -590,7 +741,9 @@ export function TicketingSection() {
                   <input
                     id={getPromoFieldId('discount-value')}
                     type="number"
-                    placeholder="20"
+                    value={promoForm.discountValue}
+                    onChange={(event) => handlePromoFormChange('discountValue', event.target.value)}
+                    placeholder={promoForm.discountType === 'percent' ? '20' : '25'}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7626c6] focus:border-transparent"
                   />
                 </div>
@@ -599,6 +752,8 @@ export function TicketingSection() {
                   <input
                     id={getPromoFieldId('usage-limit')}
                     type="number"
+                    value={promoForm.usageLimit}
+                    onChange={(event) => handlePromoFormChange('usageLimit', event.target.value)}
                     placeholder="100"
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7626c6] focus:border-transparent"
                   />
@@ -611,6 +766,8 @@ export function TicketingSection() {
                   <input
                     id={getPromoFieldId('start-date')}
                     type="date"
+                    value={promoForm.validFrom}
+                    onChange={(event) => handlePromoFormChange('validFrom', event.target.value)}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7626c6] focus:border-transparent"
                   />
                 </div>
@@ -619,6 +776,8 @@ export function TicketingSection() {
                   <input
                     id={getPromoFieldId('end-date')}
                     type="date"
+                    value={promoForm.validUntil}
+                    onChange={(event) => handlePromoFormChange('validUntil', event.target.value)}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7626c6] focus:border-transparent"
                   />
                 </div>
@@ -626,26 +785,45 @@ export function TicketingSection() {
 
               <div>
                 <label htmlFor={getPromoFieldId('applies-to')} className="block text-sm font-medium text-gray-700 mb-2">Applies To</label>
-                <select id={getPromoFieldId('applies-to')} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7626c6] focus:border-transparent">
-                  <option>All ticket types</option>
-                  <option>General Admission only</option>
-                  <option>VIP tickets only</option>
-                  <option>Student tickets only</option>
+                <select
+                  id={getPromoFieldId('applies-to')}
+                  value={promoForm.appliesTo}
+                  onChange={(event) => handlePromoFormChange('appliesTo', event.target.value)}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7626c6] focus:border-transparent"
+                >
+                  <option value="All ticket types">All ticket types</option>
+                  <option value="General Admission only">General Admission only</option>
+                  <option value="VIP tickets only">VIP tickets only</option>
+                  <option value="Student tickets only">Student tickets only</option>
                 </select>
               </div>
+
+              <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
+                <h4 className="text-sm font-medium text-gray-900 mb-2">Discount Rules</h4>
+                <ul className="space-y-1 text-sm text-gray-600">
+                  <li>• Percent discounts must stay between 1% and 100%.</li>
+                  <li>• Fixed discounts are entered as dollar amounts.</li>
+                  <li>• Promo codes require both a start and end date.</li>
+                  <li>• Usage limits cap the total number of successful redemptions.</li>
+                </ul>
+              </div>
+
+              {promoFormError && (
+                <p className="text-sm text-red-600" role="alert">{promoFormError}</p>
+              )}
             </div>
 
             <div className="flex justify-end gap-3 pt-6 mt-6 border-t border-gray-200">
               <button
                 type="button"
-                onClick={() => setShowCreateCodeModal(false)}
+                onClick={closeCreateCodeModal}
                 className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
               >
                 Cancel
               </button>
               <button
                 type="button"
-                onClick={() => setShowCreateCodeModal(false)}
+                onClick={handleSavePromoCode}
                 className="px-4 py-2 bg-[#7626c6] text-white btn-glass rounded-lg hover:bg-[#5f1fa3] transition-colors"
               >
                 Create Code
@@ -669,6 +847,17 @@ const emptyTicketFormState: TicketFormState = {
   isEarlyBird: false,
   reservedSeating: false,
   timedEntry: false
+};
+
+const emptyPromoFormState: PromoFormState = {
+  code: '',
+  access: 'public',
+  discountType: 'percent',
+  discountValue: '',
+  usageLimit: '',
+  validFrom: '',
+  validUntil: '',
+  appliesTo: 'All ticket types'
 };
 
 const mockTickets: TicketType[] = [
@@ -723,21 +912,29 @@ const mockTickets: TicketType[] = [
   }
 ];
 
-const mockPromoCodes = [
+const mockPromoCodes: PromoCode[] = [
   {
     id: '1',
     code: 'SUMMER2026',
-    discount: '20% off',
+    access: 'public',
+    discountType: 'percent',
+    discountValue: 20,
+    appliesTo: 'All ticket types',
     used: 47,
-    type: 'Public',
-    expires: 'Expires May 31'
+    usageLimit: 100,
+    validFrom: '2026-05-01',
+    validUntil: '2026-05-31'
   },
   {
     id: '2',
     code: 'VIPACCESS',
-    discount: '$25 off VIP tickets',
+    access: 'access',
+    discountType: 'fixed',
+    discountValue: 25,
+    appliesTo: 'VIP tickets only',
     used: 12,
-    type: 'Access Code',
-    expires: 'Expires Jun 1'
+    usageLimit: 25,
+    validFrom: '2026-05-10',
+    validUntil: '2026-06-01'
   }
 ];

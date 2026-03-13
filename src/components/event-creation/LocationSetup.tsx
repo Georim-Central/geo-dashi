@@ -1,5 +1,6 @@
-import { MapPin, Globe, Clock } from 'lucide-react';
 import { EventDraft, EventDraftUpdate } from '../../types/event';
+import { AppleClock, AppleGlobe, AppleMapPin } from '../../apple-icons';
+import { cn } from '../../lib/utils';
 
 interface LocationSetupProps {
   data: EventDraft;
@@ -7,6 +8,27 @@ interface LocationSetupProps {
 }
 
 export function LocationSetup({ data, onUpdate }: LocationSetupProps) {
+  const locationOptions = [
+    {
+      value: 'in-person',
+      label: 'Venue',
+      description: 'An in-person event at a physical location',
+      icon: AppleMapPin,
+    },
+    {
+      value: 'online',
+      label: 'Online Event',
+      description: 'A virtual event with online meeting links',
+      icon: AppleGlobe,
+    },
+    {
+      value: 'tba',
+      label: 'To Be Announced',
+      description: 'Location details will be shared later',
+      icon: AppleClock,
+    },
+  ] as const;
+
   return (
     <div className="space-y-6">
       <div>
@@ -20,65 +42,44 @@ export function LocationSetup({ data, onUpdate }: LocationSetupProps) {
           Location Type <span className="text-red-500">*</span>
         </label>
 
-        <label className="flex items-start gap-4 p-4 border-2 rounded-lg cursor-pointer transition-all hover:bg-gray-50">
-          <input
-            type="radio"
-            name="locationType"
-            value="in-person"
-            checked={data.locationType === 'in-person'}
-            onChange={(e) => onUpdate({ locationType: e.target.value })}
-            className="mt-1"
-          />
-          <div className="flex-1">
-            <div className="flex items-center gap-2 mb-1">
-              <MapPin className="w-5 h-5 text-[#7626c6]" />
-              <span className="font-medium text-gray-900">Venue</span>
-            </div>
-            <p className="text-sm text-gray-600">
-              An in-person event at a physical location
-            </p>
-          </div>
-        </label>
+        {locationOptions.map((option) => {
+          const Icon = option.icon;
+          const isSelected = data.locationType === option.value;
 
-        <label className="flex items-start gap-4 p-4 border-2 rounded-lg cursor-pointer transition-all hover:bg-gray-50">
-          <input
-            type="radio"
-            name="locationType"
-            value="online"
-            checked={data.locationType === 'online'}
-            onChange={(e) => onUpdate({ locationType: e.target.value })}
-            className="mt-1"
-          />
-          <div className="flex-1">
-            <div className="flex items-center gap-2 mb-1">
-              <Globe className="w-5 h-5 text-[#7626c6]" />
-              <span className="font-medium text-gray-900">Online Event</span>
-            </div>
-            <p className="text-sm text-gray-600">
-              A virtual event with online meeting links
-            </p>
-          </div>
-        </label>
-
-        <label className="flex items-start gap-4 p-4 border-2 rounded-lg cursor-pointer transition-all hover:bg-gray-50">
-          <input
-            type="radio"
-            name="locationType"
-            value="tba"
-            checked={data.locationType === 'tba'}
-            onChange={(e) => onUpdate({ locationType: e.target.value })}
-            className="mt-1"
-          />
-          <div className="flex-1">
-            <div className="flex items-center gap-2 mb-1">
-              <Clock className="w-5 h-5 text-[#7626c6]" />
-              <span className="font-medium text-gray-900">To Be Announced</span>
-            </div>
-            <p className="text-sm text-gray-600">
-              Location details will be shared later
-            </p>
-          </div>
-        </label>
+          return (
+            <label
+              key={option.value}
+              className={cn(
+                'flex items-start gap-4 rounded-[24px] border p-4 cursor-pointer transition-all',
+                isSelected
+                  ? 'border-[#e5d4fb] bg-[#fbf8ff] shadow-[0_22px_38px_-32px_rgba(118,38,198,0.6)]'
+                  : 'border-gray-200 bg-white hover:bg-gray-50 hover:border-gray-300',
+              )}
+            >
+              <input
+                type="radio"
+                name="locationType"
+                value={option.value}
+                checked={isSelected}
+                onChange={(e) => onUpdate({ locationType: e.target.value })}
+                className="mt-1"
+              />
+              <div className="flex flex-1 items-start gap-3">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center">
+                  <Icon className={cn('w-5 h-5', isSelected ? 'text-[#7626c6]' : 'text-gray-500')} />
+                </div>
+                <div className="flex-1">
+                  <div className="mb-1 flex items-center gap-2">
+                    <span className="font-medium text-gray-900">{option.label}</span>
+                  </div>
+                  <p className="text-sm text-gray-600">
+                    {option.description}
+                  </p>
+                </div>
+              </div>
+            </label>
+          );
+        })}
       </div>
 
       {/* Venue Address (for in-person) */}
@@ -102,7 +103,7 @@ export function LocationSetup({ data, onUpdate }: LocationSetupProps) {
 
           {/* Google Maps Integration Placeholder */}
           <div className="bg-gray-100 rounded-lg p-8 text-center">
-            <MapPin className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+            <AppleMapPin className="mx-auto mb-3 w-6 h-6 text-gray-500" />
             <p className="text-sm text-gray-600">Map preview will appear here</p>
             <p className="text-xs text-gray-500 mt-1">Google Maps integration</p>
           </div>

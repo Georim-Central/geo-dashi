@@ -1,5 +1,5 @@
 import { ChangeEvent, FormEvent, useEffect, useMemo, useRef, useState } from 'react';
-import { Bot, CornerDownLeft, Mic, Paperclip, X } from 'lucide-react';
+import { CornerDownLeft, Mic, Paperclip, X } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -264,7 +264,20 @@ export function GlobalAIChat({ currentView, contextMode, selectedEventName }: Gl
   };
 
   return (
-    <ExpandableChat size="lg" position="bottom-right" icon={<Bot />}>
+    <ExpandableChat
+      size="lg"
+      position="bottom-right"
+      icon={(
+        <span className="ai-chat-toggle__brand" aria-hidden="true">
+          <img
+            src="/images/Geo AI logo.png"
+            alt=""
+            className="ai-chat-toggle__brand-image"
+          />
+          <span className="ai-chat-toggle__brand-label">Geo</span>
+        </span>
+      )}
+    >
       <ExpandableChatHeader className="ai-chat-header--stacked">
         <h2 className="ai-chat-title">Dashboard AI</h2>
         <p className="ai-chat-subtitle">{introMessage}</p>

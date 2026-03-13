@@ -11,12 +11,13 @@ How this file is organized:
 Important:
 - `Premium` and `Business / Enterprise` are paid tiers.
 - `Business / Enterprise` should include everything in `Premium`.
-- This repo is still a frontend MVP, so the features below describe the current product experience in the UI.
+- This repo is frontend-focused right now.
+- The features below describe the current UI and frontend product experience only.
+- Backend integrations, live data sync, and production service behavior should not be assumed unless explicitly noted elsewhere.
 
 
 
 ## ------- Free Features -------
-
 
 ### Dashboard Page
 
@@ -45,6 +46,8 @@ Important:
 - `[Page: Create Event]` Add an external event video URL.
 - `[Page: Create Event]` Add a short summary and long event description.
 - `[Page: Create Event]` Use suggested description sections to build event copy faster.
+- `[Page: Create Event]` Save draft progress automatically so unfinished event setup is restored after refresh.
+- `[Page: Create Event]` Clear the saved draft and restart the form from the beginning.
 
 ### Top Bar / Global Navigation
 
@@ -94,8 +97,6 @@ Important:
 
 ## ------- Premium Features -------
 
-
-
 ### Event Management > Details Page
 
 - `[Page: Event Management > Details]` View and edit event information after creation.
@@ -122,6 +123,7 @@ Important:
 - `[Page: Event Management > Ticketing]` Configure reserved seating and timed entry flags.
 - `[Page: Event Management > Ticketing]` Track sold quantity versus total quantity.
 - `[Page: Event Management > Ticketing]` Create promo codes from a modal flow.
+- `[Page: Event Management > Ticketing]` Configure promo-code discount type, discount value, usage limits, and validity windows.
 - `[Page: Event Management > Ticketing]` View and delete promo codes.
 
 ### Event Management > Orders Page
@@ -159,6 +161,7 @@ Important:
 - `[Page: Event Management > Marketing]` Save campaigns as draft, scheduled, or sent.
 - `[Page: Event Management > Marketing]` Set campaign audience, send time, subject, objective, and message.
 - `[Page: Event Management > Marketing]` Target audience segments such as subscribers, ticket holders, VIP guests, waitlist, and dormant fans.
+- `[Page: Event Management > Marketing]` Connect campaigns to send integrations and sync delivery metrics back into the UI.
 - `[Page: Event Management > Marketing]` View campaign history and campaign detail summaries.
 - `[Page: Event Management > Marketing]` View delivery, engagement, conversion, and revenue metrics per campaign.
 
@@ -186,6 +189,8 @@ Important:
 - `[Page: Analytics]` Change date range for analytics views.
 - `[Page: Analytics]` Review KPI cards for revenue, tickets, attendees, and related metrics.
 - `[Page: Analytics]` View revenue and sales charts.
+- `[Page: Analytics]` View a conversion funnel for event-level discovery-to-purchase performance.
+- `[Page: Analytics]` View a Revenue Attribution card on the left and an Event Comparison card on the right in a shared two-column analytics row.
 - `[Page: Analytics]` View ticket-type breakdown charts.
 - `[Page: Analytics]` View event page traffic charts.
 - `[Page: Analytics]` View attendee geography by city and state.
@@ -206,8 +211,6 @@ Important:
 
 ## ------- Business / Enterprise Features -------
 
-
-
 ### Team Management Page
 
 - `[Page: Team Management]` View all team members in a dedicated team workspace.
@@ -216,6 +219,7 @@ Important:
 - `[Page: Team Management]` Assign permission presets including Admin, Marketing, Operations, and Custom.
 - `[Page: Team Management]` Create custom role names.
 - `[Page: Team Management]` Choose all-events access or selected-events access for a team member.
+- `[Page: Team Management]` Route invite acceptance and role assignment changes through approval workflows in the UI.
 - `[Page: Team Management]` Resend pending invites.
 - `[Page: Team Management]` Cancel pending invites.
 - `[Page: Team Management]` Edit an existing team member's permissions and event access.
@@ -224,26 +228,22 @@ Important:
 - `[Page: Team Management]` View preset role summaries and role counts.
 - `[Page: Team Management]` View on-site tools cards for Organizer App, Guest List Manager, and Coverage Planning.
 
-## Suggested Additions
+
+## ---  Suggested Additions -----
 
 These are not part of the current live MVP feature list above. They are only suggestions based on what is already hinted at in the repo.
 
 ### Suggested Additions for Free
 
-- `[Suggested for Create Event / Event Details]` Save draft progress automatically so unfinished event setup is not lost on refresh.
 - `[Suggested for Help Center]` Add guided onboarding checklists for first-time organizers.
 
 ### Suggested Additions for Premium
 
-- `[Suggested for Event Management > Ticketing]` Add stronger promo-code controls like usage limits, validity windows, and fixed-vs-percent discount rules.
 - `[Suggested for Event Management > Orders]` Add real downloadable CSV/PDF exports instead of export states only.
 - `[Suggested for Event Management > Checked-In]` Add camera-based QR scanning instead of code-entry simulation only.
-- `[Suggested for Event Management > Marketing]` Add real campaign send integrations and delivery syncing.
-- `[Suggested for Analytics]` Add more advanced conversion, revenue attribution, and event comparison views.
 - `[Suggested for Finance]` Add real payout scheduling and finance backend syncing.
 
 ### Suggested Additions for Business / Enterprise
 
 - `[Suggested for Team Management]` Add stronger approval workflows for invite acceptance and role assignment.
 - `[Suggested for Settings > Security]` Add two-factor authentication, active sessions, and login history.
-- `[Suggested for Notification Center]` Add quiet hours, routing rules, and deeper team notification controls.
