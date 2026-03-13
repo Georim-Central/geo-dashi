@@ -13,7 +13,6 @@ import {
   Repeat,
   Settings,
   Shield,
-  Sparkles,
   Ticket,
   Users,
   Wallet,
@@ -159,12 +158,6 @@ export function createOrganizationSidebarGroups({
                   label: 'Payments',
                   icon: Wallet,
                   action: { kind: 'settings-section', section: 'payments' },
-                },
-                {
-                  id: 'settings-premium-subscriptions',
-                  label: 'Premium Subscriptions',
-                  icon: Sparkles,
-                  action: { kind: 'settings-section', section: 'premium-subscriptions' },
                 },
                 {
                   id: 'settings-notifications',

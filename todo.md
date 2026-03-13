@@ -51,7 +51,6 @@
 - [ ] Profile: avatar upload, name, email, phone, address, multiple emails/phones, primary designation
 - [ ] Security: password change, two-factor authentication, active sessions, login history
 - [ ] Payments: payment methods list, add method, set default, payment history
-- [ ] Premium Subscriptions: pricing table, plan comparison, current plan indicator, upgrade/downgrade, billing cycle
 - [ ] Notifications: channel preferences (email/SMS/in-app), quiet hours, category toggles
 
 ---

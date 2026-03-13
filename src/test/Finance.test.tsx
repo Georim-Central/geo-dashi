@@ -26,7 +26,7 @@ describe('Finance exports', () => {
           expect.objectContaining({ heading: 'Payout History' }),
           expect.objectContaining({ heading: 'Recent Transactions' }),
           expect.objectContaining({ heading: 'Withdrawal Requests' }),
-          expect.objectContaining({ heading: 'Invoice & Subscription History' }),
+          expect.objectContaining({ heading: 'Invoice History' }),
         ]),
       })
     );

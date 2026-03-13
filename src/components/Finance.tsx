@@ -219,7 +219,7 @@ const invoices: InvoiceRecord[] = [
   },
   {
     id: 'INV-2026-04',
-    plan: 'Premium Subscriptions Add-on',
+    plan: 'Organizer Support Add-on',
     period: 'Apr 1 - Apr 30, 2026',
     issuedOn: 'Mar 24, 2026',
     status: 'Due Soon',
@@ -231,7 +231,7 @@ const tabLabels: Record<FinanceTab, string> = {
   payouts: 'Payout History',
   transactions: 'Transactions',
   withdrawals: 'Withdrawal History',
-  invoices: 'Invoices & Subscription',
+  invoices: 'Invoices & Billing',
 };
 
 const formatCurrency = (amount: number) =>
@@ -468,7 +468,7 @@ export function Finance({ onOpenPaymentSettings }: { onOpenPaymentSettings?: () 
           ),
         },
         {
-          heading: 'Invoice & Subscription History',
+          heading: 'Invoice History',
           lines: invoices.map(
             (invoice) =>
               `${invoice.id} · ${invoice.plan} · ${invoice.period} · ${invoice.status} · ${formatCurrency(invoice.total)}`
@@ -585,7 +585,7 @@ export function Finance({ onOpenPaymentSettings }: { onOpenPaymentSettings?: () 
                   value="invoices"
                   className="px-4 py-2.5"
                 >
-                  Invoices & Subscription
+                  Invoices & Billing
                 </TabsTrigger>
               </TabsList>
 
@@ -738,7 +738,7 @@ export function Finance({ onOpenPaymentSettings }: { onOpenPaymentSettings?: () 
                 <div className="mb-4 flex items-center justify-between gap-3">
                   <div>
                     <h3 className="text-sm font-semibold uppercase tracking-[0.2em] text-gray-500">
-                      Invoice & Subscription History
+                      Invoice History
                     </h3>
                     <p className="mt-1 text-sm text-gray-500">
                       Monthly plan charges, add-ons, and billing documents for your organizer account.
@@ -844,7 +844,7 @@ export function Finance({ onOpenPaymentSettings }: { onOpenPaymentSettings?: () 
 
               <FinanceCard
                 title="Finance Controls"
-                description="Key organizer settings tied to payouts and subscriptions."
+                description="Key organizer settings tied to payouts and billing."
               >
                 <div className="space-y-4">
                   <div className="finance-subcard rounded-[28px] border border-gray-200 bg-[#fafafa] p-4 sm:p-5">
@@ -856,7 +856,7 @@ export function Finance({ onOpenPaymentSettings }: { onOpenPaymentSettings?: () 
                         <div className="flex-1">
                           <h3 className="text-sm font-semibold text-gray-900">Primary payout method</h3>
                           <p className="mt-1 text-sm text-gray-500">
-                            Visa ending in 0912 is used for subscription charges and bank verification.
+                            Visa ending in 0912 is used for account charges and bank verification.
                           </p>
                         </div>
                       </div>
@@ -902,9 +902,9 @@ export function Finance({ onOpenPaymentSettings }: { onOpenPaymentSettings?: () 
                           <CalendarDays className="h-4 w-4" />
                         </div>
                         <div className="flex-1">
-                          <h3 className="text-sm font-semibold text-gray-900">Subscription renewal</h3>
+                          <h3 className="text-sm font-semibold text-gray-900">Plan renewal</h3>
                           <p className="mt-1 text-sm text-gray-500">
-                            Pro Organizer renews on April 1, 2026 for {formatCurrency(149)} unless upgraded first.
+                            Pro Organizer renews on April 1, 2026 for {formatCurrency(149)} unless changed first.
                           </p>
                         </div>
                       </div>

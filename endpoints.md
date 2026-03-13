@@ -79,8 +79,6 @@
 | POST | `/user/payment-methods` | Add a payment method | ❌ |
 | DELETE | `/user/payment-methods/:id` | Remove a payment method | ❌ |
 | PUT | `/user/payment-methods/:id/default` | Set default payment method | ❌ |
-| GET | `/user/subscription` | Get current subscription plan | ❌ |
-| PUT | `/user/subscription` | Upgrade or downgrade plan | ❌ |
 | GET | `/user/notification-preferences` | Get notification preferences | ❌ |
 | PUT | `/user/notification-preferences` | Update notification preferences | ❌ |
 

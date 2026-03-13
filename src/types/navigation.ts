@@ -13,7 +13,6 @@ export type SettingsSection =
   | 'profile'
   | 'security'
   | 'payments'
-  | 'premium-subscriptions'
   | 'notifications';
 
 export type EventManagementTab =

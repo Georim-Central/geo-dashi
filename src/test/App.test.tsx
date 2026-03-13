@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import App from '../App';
 import { EventManagement } from '../components/EventManagement';
@@ -169,9 +169,9 @@ describe('App core flows', () => {
     render(<App />);
 
     await user.click(screen.getByRole('button', { name: /add member/i }));
-    expect(await screen.findByRole('dialog', { name: /invite team member/i })).toBeInTheDocument();
+    const inviteDialog = await screen.findByRole('dialog', { name: /invite team member/i });
 
-    await user.click(screen.getByRole('button', { name: /cancel/i }));
+    await user.click(within(inviteDialog).getByRole('button', { name: /^cancel$/i }));
     await user.click(screen.getByRole('button', { name: /^dashboard$/i }));
     await user.click(screen.getByRole('button', { name: /view all activity/i }));
 
@@ -220,9 +220,9 @@ describe('App core flows', () => {
 
     expect(await screen.findByRole('heading', { name: /^security$/i })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: /password & access/i })).toBeInTheDocument();
-    expect(screen.getByText(/previous password/i)).toBeInTheDocument();
-    expect(screen.getByText(/current password/i)).toBeInTheDocument();
-    expect(screen.getByText(/confirm password/i)).toBeInTheDocument();
+    expect(screen.getByPlaceholderText(/enter your current password/i)).toBeInTheDocument();
+    expect(screen.getByPlaceholderText(/create a strong new password/i)).toBeInTheDocument();
+    expect(screen.getByPlaceholderText(/re-enter your new password/i)).toBeInTheDocument();
   });
 
   it('updates the password from the security settings page when the form is valid', async () => {
@@ -232,12 +232,12 @@ describe('App core flows', () => {
     await user.click(screen.getByRole('button', { name: /^settings$/i }));
     await user.click(await screen.findByRole('button', { name: /^security$/i }));
 
-    await user.type(await screen.findByPlaceholderText(/enter your previous password/i), 'OldPassword#1');
-    await user.type(screen.getByPlaceholderText(/create a new secure password/i), 'NewPassword#2');
+    await user.type(await screen.findByPlaceholderText(/enter your current password/i), 'OldPassword#1');
+    await user.type(screen.getByPlaceholderText(/create a strong new password/i), 'NewPassword#2');
     await user.type(screen.getByPlaceholderText(/re-enter your new password/i), 'NewPassword#2');
     await user.click(screen.getByRole('button', { name: /update password/i }));
 
-    expect(await screen.findByText(/password updated and active sessions remain protected/i)).toBeInTheDocument();
+    expect(await screen.findByText(/password updated\. all active sessions remain protected\./i)).toBeInTheDocument();
   }, 10000);
 
   it('renders the payment method selector in settings payments', async () => {
@@ -251,6 +251,15 @@ describe('App core flows', () => {
     expect(screen.getByRole('heading', { name: /choose how to pay/i })).toBeInTheDocument();
     expect(screen.getAllByText(/visa \*\*\*\* 0912/i).length).toBeGreaterThan(0);
     expect(screen.getByText(/recent transactions/i)).toBeInTheDocument();
+  });
+
+  it('does not show a premium subscriptions settings section', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.click(screen.getByRole('button', { name: /^settings$/i }));
+
+    expect(screen.queryByRole('button', { name: /premium subscriptions/i })).not.toBeInTheDocument();
   });
 
   it('adds and selects a new payment method from settings payments', async () => {
@@ -268,42 +277,6 @@ describe('App core flows', () => {
 
     expect(await screen.findByText(/visa \*\*\*\* 2222 added and selected for future billing actions/i)).toBeInTheDocument();
     expect(screen.getAllByText(/visa \*\*\*\* 2222/i).length).toBeGreaterThan(0);
-  }, 10000);
-
-  it('renders the pricing table in premium subscriptions', async () => {
-    const user = userEvent.setup();
-    render(<App />);
-
-    await user.click(screen.getByRole('button', { name: /^settings$/i }));
-    await user.click(await screen.findByRole('button', { name: /premium subscriptions/i }));
-
-    expect(await screen.findByRole('heading', { name: /premium subscriptions/i })).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: /choose your plan/i })).toBeInTheDocument();
-    expect(screen.getAllByText(/professional/i).length).toBeGreaterThan(0);
-    expect(screen.getByRole('radiogroup', { name: /billing cycle/i })).toBeInTheDocument();
-    expect(screen.getByRole('radio', { name: /monthlypay month to month/i })).toBeInTheDocument();
-    expect(screen.getByRole('radio', { name: /yearlysave 20% annually/i })).toBeInTheDocument();
-  });
-
-  it('selects a premium plan and opens the settings assistant dialog', async () => {
-    const user = userEvent.setup();
-    render(<App />);
-
-    await user.click(screen.getByRole('button', { name: /^settings$/i }));
-    await user.click(await screen.findByRole('button', { name: /premium subscriptions/i }));
-
-    await user.click(screen.getByRole('button', { name: /get started/i }));
-    expect(await screen.findByText(/starter plan selected with monthly billing/i)).toBeInTheDocument();
-    expect(screen.getByText(/pending: starter \(monthly\)/i)).toBeInTheDocument();
-
-    await user.click(screen.getByRole('button', { name: /open settings assistant/i }));
-    expect(await screen.findByRole('dialog', { name: /premium subscriptions assistant/i })).toBeInTheDocument();
-    expect(screen.getByText(/compare monthly and yearly billing before switching plans/i)).toBeInTheDocument();
-
-    await user.click(screen.getByRole('button', { name: /close assistant/i }));
-    await waitFor(() => {
-      expect(screen.queryByRole('dialog', { name: /premium subscriptions assistant/i })).not.toBeInTheDocument();
-    });
   }, 10000);
 
   it('renders the notifications settings page with alert controls', async () => {

@@ -32,16 +32,6 @@ import {
   X,
 } from 'lucide-react';
 
-import {
-  PricingTable,
-  PricingTableHeader,
-  PricingTableBody,
-  PricingTableRow,
-  PricingTableHead,
-  PricingTableCell,
-  PricingTablePlan,
-  type FeatureItem,
-} from '@/components/ui/pricing-table';
 import { PaymentMethodSelector } from '@/components/ui/payment-1';
 import { PasswordField } from '@/components/ui/password-input';
 import { OrangeToggle } from '@/components/ui/toggle';
@@ -94,7 +84,7 @@ const paymentMethods = [
       </div>
     ),
     label: 'Mastercard **** 4821',
-    description: 'Backup card used for premium plan renewals.',
+    description: 'Backup card used for account renewals.',
   },
   {
     id: 'payment-3',
@@ -106,21 +96,6 @@ const paymentMethods = [
     label: 'Georim Wallet',
     description: 'Use your account balance for campaign credits.',
   },
-];
-
-const PLAN_FEATURES: FeatureItem[] = [
-  { label: 'Active events',         values: ['5',          '25',              'Unlimited'] },
-  { label: 'Team members',          values: ['1',          'Up to 25',        'Unlimited'] },
-  { label: 'Analytics',             values: ['Basic',      'Advanced',        'Enterprise'] },
-  { label: 'Attendee exports',      values: [true,         true,              true] },
-  { label: 'Marketing tools',       values: [false,        true,              true] },
-  { label: 'Payout controls',       values: [false,        true,              true] },
-  { label: 'Custom event branding', values: [false,        true,              true] },
-  { label: 'Integrations',          values: [false,        true,              true] },
-  { label: 'Priority support',      values: [false,        'Business hours',  '24/7'] },
-  { label: 'Role-based access',     values: [false,        false,             true] },
-  { label: 'SSO authentication',    values: [false,        false,             true] },
-  { label: 'White-glove onboarding',values: [false,        false,             true] },
 ];
 
 const settingsMeta: Record<SettingsSection, { title: string; subtitle: string; icon: typeof Shield }> = {
@@ -138,11 +113,6 @@ const settingsMeta: Record<SettingsSection, { title: string; subtitle: string; i
     title: 'Payments',
     subtitle: 'Manage payout methods, default payment settings, and transaction preferences.',
     icon: Wallet,
-  },
-  'premium-subscriptions': {
-    title: 'Premium Subscriptions',
-    subtitle: 'Control premium plan benefits, upgrades, and workspace entitlements.',
-    icon: Sparkles,
   },
   notifications: {
     title: 'Notifications',
@@ -1635,11 +1605,6 @@ function getAssistantSuggestions(section: SettingsSection) {
       'Use a dedicated finance contact so settlement updates go to the right inbox.',
       'Review recent transactions after adding or switching billing methods.',
     ],
-    'premium-subscriptions': [
-      'Compare monthly and yearly billing before switching plans.',
-      'Use featured plans for faster seat expansion and advanced organizer controls.',
-      'Review seat usage before upgrading so your next tier matches team demand.',
-    ],
     notifications: [
       'Keep urgent payout and security alerts enabled even when digest summaries are reduced.',
       'Pair quiet hours with push alerts so critical day-of-event updates still surface.',
@@ -1648,125 +1613,6 @@ function getAssistantSuggestions(section: SettingsSection) {
   };
 
   return suggestions[section];
-}
-
-function PremiumSubscriptionsContent() {
-  const [feedback, setFeedback] = React.useState<string | null>(null);
-  const [selectedPlan, setSelectedPlan] = React.useState<{
-    title: string;
-    billingCycle: 'monthly' | 'yearly';
-  } | null>(null);
-
-  React.useEffect(() => {
-    if (!feedback) {
-      return undefined;
-    }
-
-    const timer = window.setTimeout(() => setFeedback(null), 2800);
-    return () => window.clearTimeout(timer);
-  }, [feedback]);
-
-  const handlePlanSelect = (planName: string) => {
-    setSelectedPlan({ title: planName, billingCycle: 'monthly' });
-    setFeedback(`${planName} plan selected.`);
-  };
-
-  return (
-    <div className={SETTINGS_PAGE_STACK_CLASS}>
-      {feedback ? <SettingsFeedback message={feedback} /> : null}
-
-      {selectedPlan ? (
-        <div className="flex items-center justify-end">
-          <span className="rounded-full border border-[#d9c1f5] bg-[#f7efff] px-3.5 py-1 text-xs font-semibold text-[#7626c6]">
-            Pending: {selectedPlan.title} · {selectedPlan.billingCycle}
-          </span>
-        </div>
-      ) : null}
-
-      <div className="grid grid-cols-3 gap-8 mt-8">
-        <div className="flex flex-col gap-4 rounded-[28px] border border-gray-200 bg-white p-6 shadow-sm">
-          <div className="flex items-center justify-between">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#f1e5fb] text-[#7626c6]">
-              <Sparkles className="h-4 w-4" />
-            </div>
-            <span className="rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-semibold text-emerald-700">Active</span>
-          </div>
-          <div>
-            <div className="text-xs font-semibold uppercase tracking-[0.08em] text-gray-400">Active Plan</div>
-            <div className="mt-1.5 text-2xl font-semibold tracking-tight text-gray-950">Professional</div>
-            <div className="mt-1 text-sm font-medium text-[#7626c6]">Renews annually · Aug 14</div>
-          </div>
-        </div>
-
-        <div className="flex flex-col gap-4 rounded-[28px] border border-gray-200 bg-white p-6 shadow-sm">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gray-100 text-gray-500">
-            <UserRound className="h-4 w-4" />
-          </div>
-          <div>
-            <div className="text-xs font-semibold uppercase tracking-[0.08em] text-gray-400">Team Seats</div>
-            <div className="mt-1.5 text-2xl font-semibold tracking-tight text-gray-950">18 / 25</div>
-            <div className="mt-1 text-sm font-medium text-gray-400">7 seats remaining</div>
-          </div>
-        </div>
-
-        <div className="flex flex-col gap-4 rounded-[28px] border border-gray-200 bg-white p-6 shadow-sm">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
-            <DollarSign className="h-4 w-4" />
-          </div>
-          <div>
-            <div className="text-xs font-semibold uppercase tracking-[0.08em] text-gray-400">Savings This Year</div>
-            <div className="mt-1.5 text-2xl font-semibold tracking-tight text-gray-950">$36</div>
-            <div className="mt-1 text-sm font-medium text-emerald-600">Yearly discount applied</div>
-          </div>
-        </div>
-      </div>
-
-      <hr className="mt-8 border-gray-200" />
-
-      <div className="overflow-hidden rounded-[28px] border border-gray-100 bg-white shadow-[0_2px_16px_rgba(15,23,42,0.06)]">
-        <PricingTable className="min-w-full">
-          <PricingTableHeader>
-            <PricingTableRow>
-              <th className="w-[32%] px-6 pb-0 pt-8 text-left">
-                <div className="text-xs font-semibold uppercase tracking-[0.1em] text-gray-400">Compare plans</div>
-              </th>
-              <th className="w-[23%] p-0">
-                <PricingTablePlan name="Starter" badge="For individuals" price="$9" compareAt="$12" icon={Sparkles}>
-                  <button type="button" onClick={() => handlePlanSelect('Starter')} className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 transition duration-[120ms] hover:bg-gray-50 hover:border-gray-300">
-                    Get Started
-                  </button>
-                </PricingTablePlan>
-              </th>
-              <th className="w-[23%] p-0">
-                <PricingTablePlan name="Professional" badge="Most popular" price="$29" compareAt="$39" icon={UserRound} featured>
-                  <button type="button" onClick={() => handlePlanSelect('Professional')} className="w-full rounded-xl bg-[#7626c6] px-4 py-2.5 text-sm font-medium text-white transition duration-[120ms] hover:bg-[#6620ab]">
-                    Start Free Trial
-                  </button>
-                </PricingTablePlan>
-              </th>
-              <th className="w-[22%] p-0">
-                <PricingTablePlan name="Enterprise" badge="For large teams" price="$99" compareAt="$129" icon={Shield}>
-                  <button type="button" onClick={() => handlePlanSelect('Enterprise')} className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 transition duration-[120ms] hover:bg-gray-50 hover:border-gray-300">
-                    Contact Sales
-                  </button>
-                </PricingTablePlan>
-              </th>
-            </PricingTableRow>
-          </PricingTableHeader>
-          <PricingTableBody>
-            {PLAN_FEATURES.map((feature, i) => (
-              <PricingTableRow key={i}>
-                <PricingTableHead>{feature.label}</PricingTableHead>
-                <PricingTableCell>{feature.values[0]}</PricingTableCell>
-                <PricingTableCell featured>{feature.values[1]}</PricingTableCell>
-                <PricingTableCell>{feature.values[2]}</PricingTableCell>
-              </PricingTableRow>
-            ))}
-          </PricingTableBody>
-        </PricingTable>
-      </div>
-    </div>
-  );
 }
 
 function SettingsAssistantModal({
@@ -1861,7 +1707,7 @@ function NotificationsSettingsContent() {
             <NotificationToggle
               icon={<Mail className="h-4 w-4" />}
               label="Email Notifications"
-              description="Receive organizer summaries, attendee updates, and subscription notices by email."
+              description="Receive organizer summaries, attendee updates, and billing notices by email."
               enabled={channelSettings.email}
               onToggle={() => toggleChannel('email')}
             />
@@ -2041,12 +1887,10 @@ export function SettingsPage({ section }: SettingsPageProps) {
         {section === 'profile' ? <ProfileSettingsContent /> : null}
         {section === 'security' ? <SecuritySettingsContent /> : null}
         {section === 'payments' ? <PaymentsSettingsContent /> : null}
-        {section === 'premium-subscriptions' ? <PremiumSubscriptionsContent /> : null}
         {section === 'notifications' ? <NotificationsSettingsContent /> : null}
         {section !== 'profile' &&
         section !== 'security' &&
         section !== 'payments' &&
-        section !== 'premium-subscriptions' &&
         section !== 'notifications' ? (
           <PlaceholderSettingsContent section={section} />
         ) : null}
