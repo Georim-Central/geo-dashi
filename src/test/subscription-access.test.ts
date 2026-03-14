@@ -1,6 +1,7 @@
 import {
   canOpenNotificationWorkflow,
   filterNotificationsByTier,
+  getAllowedEventManagementTabs,
   getAllowedNotificationFeedFilters,
   getAllowedNotificationSummaryCards,
   isViewAllowed,
@@ -75,6 +76,26 @@ const notificationFixtures: OrganizerNotification[] = [
 describe('subscription access gating', () => {
   it('keeps create event free and exposes tier-matched notification controls', () => {
     expect(isViewAllowed('free', 'create-event')).toBe(true);
+    expect(isViewAllowed('free', 'event-management')).toBe(true);
+    expect(getAllowedEventManagementTabs('free')).toEqual(['details']);
+    expect(getAllowedEventManagementTabs('premium')).toEqual([
+      'details',
+      'ticketing',
+      'orders',
+      'checked-in',
+      'marketing',
+      'reports',
+      'settings',
+    ]);
+    expect(getAllowedEventManagementTabs('business')).toEqual([
+      'details',
+      'ticketing',
+      'orders',
+      'checked-in',
+      'marketing',
+      'reports',
+      'settings',
+    ]);
 
     expect(getAllowedNotificationFeedFilters('free').map((filter) => filter.id)).toEqual([
       'all',

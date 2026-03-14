@@ -12,7 +12,7 @@ import {
   Users,
 } from 'lucide-react';
 
-import { isHomeFeatureAllowed } from '@/lib/subscription-access';
+import { isViewAllowed } from '@/lib/subscription-access';
 import { SubscriptionTier } from '@/types/navigation';
 import { EventLifecycleStatus, EventSummary } from '@/types/event';
 import { ContentState } from './ui/ContentState';
@@ -49,7 +49,7 @@ export function EventsPage({
   const [selectedStatus, setSelectedStatus] = useState<'all' | EventLifecycleStatus>('all');
   const [sortMode, setSortMode] = useState<'recent' | 'revenue' | 'tickets'>('recent');
   const [activeMenuEventId, setActiveMenuEventId] = useState<string | null>(null);
-  const canOpenEvents = isHomeFeatureAllowed(activeTier, 'event-open-entry');
+  const canOpenEvents = isViewAllowed(activeTier, 'event-management');
   const totalRevenue = events.reduce((sum, eventSummary) => sum + eventSummary.revenue, 0);
   const totalAttendees = events.reduce((sum, eventSummary) => sum + eventSummary.ticketsSold, 0);
   const publishedCount = events.filter((eventSummary) => eventSummary.status === 'published').length;
@@ -77,7 +77,7 @@ export function EventsPage({
     };
   }, [activeMenuEventId]);
 
-  const handleEventRowKeyDown = (event: KeyboardEvent<HTMLDivElement>, eventId: string, eventTitle: string) => {
+  const handleEventRowKeyDown = (event: KeyboardEvent<HTMLButtonElement>, eventId: string, eventTitle: string) => {
     if (event.key === 'Enter' || event.key === ' ') {
       event.preventDefault();
       onEventSelect(eventId, eventTitle);
@@ -145,7 +145,9 @@ export function EventsPage({
               <h2 className="ui-card-title ui-type-card">Your Events</h2>
               <p className="ui-type-subsection mt-1 text-gray-600">
                 {canOpenEvents
-                  ? 'Manage lifecycle, track sales, and jump into event operations.'
+                  ? activeTier === 'free'
+                    ? 'Open event details, manage lifecycle, and track sales across your events.'
+                    : 'Manage lifecycle, track sales, and jump into advanced event operations.'
                   : 'Track lifecycle, sales, and status across your events.'}
               </p>
             </div>
@@ -191,21 +193,23 @@ export function EventsPage({
             className="py-14"
           >
             {filteredEvents.map((event) => (
-              <div
-                key={event.id}
-                className={`p-6 transition-colors ${canOpenEvents ? 'cursor-pointer hover:bg-gray-50' : ''}`}
-                onClick={canOpenEvents ? () => onEventSelect(event.id, event.title) : undefined}
-                onKeyDown={canOpenEvents ? (keyEvent) => handleEventRowKeyDown(keyEvent, event.id, event.title) : undefined}
-                role={canOpenEvents ? 'button' : undefined}
-                tabIndex={canOpenEvents ? 0 : undefined}
-              >
+              <div key={event.id} className={`p-6 transition-colors ${canOpenEvents ? 'hover:bg-gray-50' : ''}`}>
                 <div className="flex gap-6">
-                  <div className="h-32 w-48 flex-shrink-0 overflow-hidden rounded-lg bg-gray-200">
-                    <img src={event.image} alt={event.title} className="h-full w-full object-cover" />
-                  </div>
+                  <button
+                    type="button"
+                    aria-label={`Open event ${event.title}`}
+                    onClick={canOpenEvents ? () => onEventSelect(event.id, event.title) : undefined}
+                    onKeyDown={canOpenEvents ? (keyEvent) => handleEventRowKeyDown(keyEvent, event.id, event.title) : undefined}
+                    disabled={!canOpenEvents}
+                    className={`flex min-w-0 flex-1 gap-6 rounded-2xl text-left ${
+                      canOpenEvents ? 'cursor-pointer' : 'cursor-default'
+                    }`}
+                  >
+                    <div className="h-32 w-48 flex-shrink-0 overflow-hidden rounded-lg bg-gray-200">
+                      <img src={event.image} alt={event.title} className="h-full w-full object-cover" />
+                    </div>
 
-                  <div className="min-w-0 flex-1">
-                    <div className="mb-2 flex items-start justify-between">
+                    <div className="min-w-0 flex-1">
                       <div>
                         <h3 className="ui-card-title ui-type-card mb-1 text-gray-900">{event.title}</h3>
                         <div className="ui-type-subsection flex items-center gap-4 font-normal text-gray-600">
@@ -219,110 +223,113 @@ export function EventsPage({
                           </div>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <span
-                          className={`ui-type-meta rounded-full px-3 py-1 capitalize ${getEventStatusBadgeClass(event.status)}`}
-                        >
-                          {event.status}
-                        </span>
-                        <div className="relative">
-                          <button
-                            type="button"
-                            aria-label={`Quick actions for ${event.title}`}
-                            onClick={(clickEvent) => {
-                              clickEvent.stopPropagation();
-                              setActiveMenuEventId((current) => current === event.id ? null : event.id);
-                            }}
-                            className="rounded-xl p-2 hover:bg-gray-100"
-                          >
-                            <MoreVertical className="h-4 w-4 text-gray-600" />
-                          </button>
-                          {activeMenuEventId === event.id && (
-                            <div
-                              className="ui-menu-panel absolute right-0 top-11 z-10 min-w-[210px] p-2"
-                              onClick={(clickEvent) => clickEvent.stopPropagation()}
-                            >
-                              {canOpenEvents ? (
-                                <button
-                                  type="button"
-                                  aria-label={`Open ${event.title}`}
-                                  onClick={() => {
-                                    setActiveMenuEventId(null);
-                                    onEventSelect(event.id, event.title);
-                                  }}
-                                  className="ui-type-ui flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-left text-gray-700 transition hover:bg-gray-50"
-                                >
-                                  <Eye className="h-4 w-4" />
-                                  Open Event
-                                </button>
-                              ) : null}
-                              <button
-                                type="button"
-                                aria-label={event.status === 'published' ? `Move ${event.title} to draft` : `Publish ${event.title}`}
-                                onClick={() => {
-                                  setActiveMenuEventId(null);
-                                  onUpdateEventStatus(event.id, event.status === 'published' ? 'draft' : 'published');
-                                }}
-                                className="ui-type-ui flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-left text-gray-700 transition hover:bg-gray-50"
-                              >
-                                <Calendar className="h-4 w-4" />
-                                {event.status === 'published' ? 'Move to Draft' : 'Publish Event'}
-                              </button>
-                              <button
-                                type="button"
-                                aria-label={`Duplicate ${event.title}`}
-                                onClick={() => {
-                                  setActiveMenuEventId(null);
-                                  onDuplicateEvent(event.id);
-                                }}
-                                className="ui-type-ui flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-left text-gray-700 transition hover:bg-gray-50"
-                              >
-                                <Copy className="h-4 w-4" />
-                                Duplicate Event
-                              </button>
-                              <button
-                                type="button"
-                                aria-label={`Archive ${event.title}`}
-                                onClick={() => {
-                                  setActiveMenuEventId(null);
-                                  onArchiveEvent(event.id);
-                                }}
-                                className="ui-type-ui flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-left text-amber-700 transition hover:bg-amber-50"
-                              >
-                                <Archive className="h-4 w-4" />
-                                Archive Event
-                              </button>
+
+                      <div className="mt-4 flex gap-8">
+                        <div>
+                          <p className="ui-type-meta mb-1 text-gray-500">Tickets Sold</p>
+                          <div className="flex items-center gap-2">
+                            <p className="ui-type-card text-gray-900">
+                              {event.ticketsSold}/{event.totalTickets}
+                            </p>
+                            <div className="ui-progress-track w-24">
+                              <div
+                                className="ui-progress-indicator"
+                                style={{ width: `${(event.ticketsSold / event.totalTickets) * 100}%` }}
+                              ></div>
                             </div>
-                          )}
+                          </div>
+                        </div>
+                        <div>
+                          <p className="ui-type-meta mb-1 text-gray-500">Revenue</p>
+                          <p className="ui-type-card text-gray-900">
+                            ${event.revenue.toLocaleString()}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="ui-type-meta mb-1 text-gray-500">Lifecycle</p>
+                          <p className="ui-type-subsection capitalize text-gray-900">{event.status}</p>
                         </div>
                       </div>
                     </div>
+                  </button>
 
-                    <div className="mt-4 flex gap-8">
-                      <div>
-                        <p className="ui-type-meta mb-1 text-gray-500">Tickets Sold</p>
-                        <div className="flex items-center gap-2">
-                          <p className="ui-type-card text-gray-900">
-                            {event.ticketsSold}/{event.totalTickets}
-                          </p>
-                          <div className="ui-progress-track w-24">
-                            <div
-                              className="ui-progress-indicator"
-                              style={{ width: `${(event.ticketsSold / event.totalTickets) * 100}%` }}
-                            ></div>
+                  <div className="flex items-start gap-2">
+                    <span
+                      className={`ui-type-meta rounded-full px-3 py-1 capitalize ${getEventStatusBadgeClass(event.status)}`}
+                    >
+                      {event.status}
+                    </span>
+                    <div className="relative">
+                      <button
+                        type="button"
+                        aria-label={`Quick actions for ${event.title}`}
+                        onClick={(clickEvent) => {
+                          clickEvent.stopPropagation();
+                          setActiveMenuEventId((current) => current === event.id ? null : event.id);
+                        }}
+                        className="rounded-xl p-2 hover:bg-gray-100"
+                      >
+                        <MoreVertical className="h-4 w-4 text-gray-600" />
+                      </button>
+                      {activeMenuEventId === event.id && (
+                        <div
+                          className="ui-menu-panel absolute right-0 top-11 z-10 w-[320px] max-w-[calc(100vw-2rem)] p-5"
+                          onClick={(clickEvent) => clickEvent.stopPropagation()}
+                        >
+                          <div className="flex flex-col gap-2.5">
+                            {canOpenEvents ? (
+                              <button
+                                type="button"
+                                aria-label={`Open ${event.title}`}
+                                onClick={() => {
+                                  setActiveMenuEventId(null);
+                                  onEventSelect(event.id, event.title);
+                                }}
+                                className="ui-type-ui flex min-h-12 w-full items-center gap-3 rounded-2xl px-3 py-3 text-left text-gray-700 transition hover:bg-gray-50 whitespace-nowrap"
+                              >
+                                <Eye className="h-4 w-4" />
+                                Open Event
+                              </button>
+                            ) : null}
+                            <button
+                              type="button"
+                              aria-label={event.status === 'published' ? `Move ${event.title} to draft` : `Publish ${event.title}`}
+                              onClick={() => {
+                                setActiveMenuEventId(null);
+                                onUpdateEventStatus(event.id, event.status === 'published' ? 'draft' : 'published');
+                              }}
+                              className="ui-type-ui flex min-h-12 w-full items-center gap-3 rounded-2xl px-3 py-3 text-left text-gray-700 transition hover:bg-gray-50 whitespace-nowrap"
+                            >
+                              <Calendar className="h-4 w-4" />
+                              {event.status === 'published' ? 'Move to Draft' : 'Publish Event'}
+                            </button>
+                            <button
+                              type="button"
+                              aria-label={`Duplicate ${event.title}`}
+                              onClick={() => {
+                                setActiveMenuEventId(null);
+                                onDuplicateEvent(event.id);
+                              }}
+                              className="ui-type-ui flex min-h-12 w-full items-center gap-3 rounded-2xl px-3 py-3 text-left text-gray-700 transition hover:bg-gray-50 whitespace-nowrap"
+                            >
+                              <Copy className="h-4 w-4" />
+                              Duplicate Event
+                            </button>
+                            <button
+                              type="button"
+                              aria-label={`Archive ${event.title}`}
+                              onClick={() => {
+                                setActiveMenuEventId(null);
+                                onArchiveEvent(event.id);
+                              }}
+                              className="ui-type-ui flex min-h-12 w-full items-center gap-3 rounded-2xl px-3 py-3 text-left text-amber-700 transition hover:bg-amber-50 whitespace-nowrap"
+                            >
+                              <Archive className="h-4 w-4" />
+                              Archive Event
+                            </button>
                           </div>
                         </div>
-                      </div>
-                      <div>
-                        <p className="ui-type-meta mb-1 text-gray-500">Revenue</p>
-                        <p className="ui-type-card text-gray-900">
-                          ${event.revenue.toLocaleString()}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="ui-type-meta mb-1 text-gray-500">Lifecycle</p>
-                        <p className="ui-type-subsection capitalize text-gray-900">{event.status}</p>
-                      </div>
+                      )}
                     </div>
                   </div>
                 </div>

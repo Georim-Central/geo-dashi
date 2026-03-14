@@ -207,7 +207,7 @@ describe('App core flows', () => {
     renderAppWithTier('premium');
 
     await user.click(screen.getByRole('button', { name: /^events$/i }));
-    await user.click(screen.getByRole('button', { name: /quick actions for tech conference 2026/i }));
+    await user.click(await screen.findByRole('button', { name: /quick actions for tech conference 2026/i }));
     await user.click(screen.getByRole('button', { name: /duplicate tech conference 2026/i }));
 
     expect(await screen.findByText(/tech conference 2026 copy/i)).toBeInTheDocument();
@@ -220,7 +220,40 @@ describe('App core flows', () => {
     expect(screen.getAllByText(/archived/i).length).toBeGreaterThan(0);
   });
 
-  it('keeps the global primary sidebar visible when an event is open', async () => {
+  it('lets free users open an event row into the details workspace only', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.click(screen.getByRole('button', { name: /^events$/i }));
+    await user.click(await screen.findByText(/summer music festival 2026/i));
+
+    expect(await screen.findByRole('heading', { name: /summer music festival 2026/i })).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: /^event details$/i, selected: true })).toBeInTheDocument();
+    expect(screen.queryByRole('tab', { name: /^ticketing$/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('tab', { name: /^orders$/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /preview event/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /^duplicate$/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('combobox', { name: /lifecycle status/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /publish/i })).not.toBeInTheDocument();
+    expect(screen.queryByLabelText(/event video url/i)).not.toBeInTheDocument();
+    expect(screen.queryByLabelText(/^summary$/i)).not.toBeInTheDocument();
+    expect(screen.queryByLabelText(/full description/i)).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /edit details/i })).toBeInTheDocument();
+  });
+
+  it('lets free users open an event from the quick action menu', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.click(screen.getByRole('button', { name: /^events$/i }));
+    await user.click(await screen.findByRole('button', { name: /quick actions for tech conference 2026/i }));
+    await user.click(await screen.findByRole('button', { name: /open tech conference 2026/i }));
+
+    expect(await screen.findByRole('heading', { name: /tech conference 2026/i })).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: /^event details$/i, selected: true })).toBeInTheDocument();
+  });
+
+  it('keeps the global primary sidebar visible without adding a dedicated back action when an event is open', async () => {
     const user = userEvent.setup();
     renderAppWithTier('premium');
 
@@ -456,7 +489,7 @@ describe('App core flows', () => {
 
     await user.click(screen.getByRole('button', { name: /^settings$/i }));
     await user.click(await screen.findByRole('tab', { name: /^subscriptions$/i }));
-    await user.click(screen.getByRole('button', { name: /^free base organizer workspace/i }));
+    await user.click(screen.getByRole('button', { name: /^free core organizer and event-details workspace/i }));
 
     expect(await screen.findByRole('heading', { name: /^settings$/i })).toBeInTheDocument();
     expect(screen.getByRole('tab', { name: /^subscriptions$/i, selected: true })).toBeInTheDocument();

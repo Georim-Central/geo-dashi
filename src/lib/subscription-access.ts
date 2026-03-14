@@ -27,13 +27,13 @@ export const subscriptionTierDetails: Record<
 > = {
   free: {
     label: 'Free',
-    subtitle: 'Base organizer workspace',
-    description: 'Create events, manage your account, and use the core workspace.',
+    subtitle: 'Core organizer and event-details workspace',
+    description: 'Create events, open event details, manage your account, and use the core workspace.',
   },
   premium: {
     label: 'Premium',
-    subtitle: 'Unlock event operations, analytics, and finance',
-    description: 'Adds event management, analytics, finance, and richer home insights.',
+    subtitle: 'Unlock advanced event operations, analytics, and finance',
+    description: 'Adds premium event tabs, analytics, finance, and richer home insights.',
   },
   business: {
     label: 'Business / Enterprise',
@@ -52,7 +52,7 @@ const viewTierRequirements: Record<AppView, SubscriptionTier> = {
   home: 'free',
   events: 'free',
   'create-event': 'free',
-  'event-management': 'premium',
+  'event-management': 'free',
   analytics: 'premium',
   team: 'business',
   finance: 'premium',
@@ -61,7 +61,7 @@ const viewTierRequirements: Record<AppView, SubscriptionTier> = {
 };
 
 const eventTabTierRequirements: Record<EventManagementTab, SubscriptionTier> = {
-  details: 'premium',
+  details: 'free',
   ticketing: 'premium',
   orders: 'premium',
   'checked-in': 'premium',
@@ -157,7 +157,7 @@ const homeFeatureTierRequirements: Record<HomeFeature, SubscriptionTier> = {
   'platform-activity': 'premium',
   'team-collaboration': 'premium',
   'team-collaboration-actions': 'business',
-  'event-open-entry': 'premium',
+  'event-open-entry': 'free',
 };
 
 export function isTierAtLeast(activeTier: SubscriptionTier, requiredTier: SubscriptionTier) {

@@ -51,4 +51,32 @@ describe('Event details tab', () => {
     });
     expect(await screen.findByText(/event details updated/i)).toBeInTheDocument();
   });
+
+  it('falls back to event details when the active tier drops to free', async () => {
+    const { rerender } = render(
+      <EventManagement
+        activeTier="premium"
+        eventId="evt-42"
+        eventName="Original Event Title"
+        eventDetails={sampleEventDetails}
+        activeTab="orders"
+      />
+    );
+
+    expect(await screen.findByRole('heading', { name: /orders & registration/i })).toBeInTheDocument();
+
+    rerender(
+      <EventManagement
+        activeTier="free"
+        eventId="evt-42"
+        eventName="Original Event Title"
+        eventDetails={sampleEventDetails}
+        activeTab="orders"
+      />
+    );
+
+    expect(await screen.findByRole('heading', { name: /original event title/i })).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: /^event details$/i, selected: true })).toBeInTheDocument();
+    expect(screen.queryByRole('tab', { name: /^orders$/i })).not.toBeInTheDocument();
+  });
 });

@@ -388,6 +388,7 @@ export function EventManagement({
   const [showPreviewModal, setShowPreviewModal] = useState(false);
   const [statusNotice, setStatusNotice] = useState('');
   const resolvedEventName = eventName?.trim() || 'Selected Event';
+  const hasPremiumEventOperations = activeTier !== 'free';
   const eventHeaderDetails = useMemo(() => {
     const dateLabel = eventDetails?.startDate
       ? new Date(`${eventDetails.startDate}T00:00:00`).toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' })
@@ -516,38 +517,42 @@ export function EventManagement({
             <span className={`inline-flex rounded-full px-3 py-1.5 text-sm font-medium ${eventStatusBadgeClass}`}>
               {eventStatusLabel}
             </span>
-            <button
-              type="button"
-              onClick={() => setShowPreviewModal(true)}
-              className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-            >
-              Preview Event
-            </button>
-            <button
-              type="button"
-              onClick={onDuplicateEvent}
-              className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-            >
-              Duplicate
-            </button>
-            <select
-              aria-label="Lifecycle status"
-              value={eventStatus}
-              onChange={(event) => handleLifecycleChange(event.target.value as EventLifecycleStatus)}
-              className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm text-gray-700"
-            >
-              <option value="draft">Draft</option>
-              <option value="published">Published</option>
-              <option value="private">Private</option>
-              <option value="archived">Archived</option>
-            </select>
-            <button
-              type="button"
-              onClick={() => handleLifecycleChange(eventStatus === 'published' ? 'draft' : 'published')}
-              className="px-4 py-2 bg-[#7626c6] text-white btn-glass rounded-lg hover:bg-[#5f1fa3] transition-colors"
-            >
-              {eventStatus === 'published' ? 'Unpublish' : 'Publish'}
-            </button>
+            {hasPremiumEventOperations ? (
+              <>
+                <button
+                  type="button"
+                  onClick={() => setShowPreviewModal(true)}
+                  className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  Preview Event
+                </button>
+                <button
+                  type="button"
+                  onClick={onDuplicateEvent}
+                  className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  Duplicate
+                </button>
+                <select
+                  aria-label="Lifecycle status"
+                  value={eventStatus}
+                  onChange={(event) => handleLifecycleChange(event.target.value as EventLifecycleStatus)}
+                  className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm text-gray-700"
+                >
+                  <option value="draft">Draft</option>
+                  <option value="published">Published</option>
+                  <option value="private">Private</option>
+                  <option value="archived">Archived</option>
+                </select>
+                <button
+                  type="button"
+                  onClick={() => handleLifecycleChange(eventStatus === 'published' ? 'draft' : 'published')}
+                  className="px-4 py-2 bg-[#7626c6] text-white btn-glass rounded-lg hover:bg-[#5f1fa3] transition-colors"
+                >
+                  {eventStatus === 'published' ? 'Unpublish' : 'Publish'}
+                </button>
+              </>
+            ) : null}
           </div>
         </div>
       </div>
@@ -578,6 +583,7 @@ export function EventManagement({
             <EventDetailsTab
               eventName={resolvedEventName}
               eventDetails={eventDetails}
+              showAdvancedFields={hasPremiumEventOperations}
               onUpdateEventDetails={onUpdateEventDetails}
             />
           )}
@@ -597,7 +603,7 @@ export function EventManagement({
       </div>
 
       <AnimatePresence>
-        {showPreviewModal && (
+        {showPreviewModal && hasPremiumEventOperations && (
           <motion.div
             className="fixed inset-0 z-40 flex items-center justify-center p-4 sm:p-6"
             initial={{ backgroundColor: 'rgba(0,0,0,0)' }}
@@ -908,10 +914,12 @@ function CheckedInTab({
 function EventDetailsTab({
   eventName,
   eventDetails,
+  showAdvancedFields,
   onUpdateEventDetails
 }: {
   eventName: string;
   eventDetails?: EventDraft;
+  showAdvancedFields: boolean;
   onUpdateEventDetails?: (updates: EventDraftUpdate) => void;
 }) {
   const fallbackEventDetails = useMemo<EventDraft>(() => ({
@@ -1291,42 +1299,46 @@ function EventDetailsTab({
             )}
           </div>
 
-          <div className="md:col-span-2">
-            <label htmlFor={getFieldId('video-url')} className="ui-field-label mb-2">Event Video URL</label>
-            <input
-              id={getFieldId('video-url')}
-              type="url"
-              value={detailsForm.videoUrl}
-              onChange={(event) => updateDetailField('videoUrl', event.target.value)}
-              disabled={!isEditing}
-              className={inputClassName}
-              placeholder="https://..."
-            />
-          </div>
-          <div className="md:col-span-2">
-            <label htmlFor={getFieldId('summary')} className="ui-field-label mb-2">Summary</label>
-            <textarea
-              id={getFieldId('summary')}
-              rows={2}
-              value={detailsForm.summary}
-              onChange={(event) => updateDetailField('summary', event.target.value)}
-              disabled={!isEditing}
-              className={`${inputClassName} resize-none`}
-              placeholder="Not provided"
-            />
-          </div>
-          <div className="md:col-span-2">
-            <label htmlFor={getFieldId('full-description')} className="ui-field-label mb-2">Full Description</label>
-            <textarea
-              id={getFieldId('full-description')}
-              rows={8}
-              value={detailsForm.description}
-              onChange={(event) => updateDetailField('description', event.target.value)}
-              disabled={!isEditing}
-              className={`${inputClassName} resize-y`}
-              placeholder="Not provided"
-            />
-          </div>
+          {showAdvancedFields ? (
+            <>
+              <div className="md:col-span-2">
+                <label htmlFor={getFieldId('video-url')} className="ui-field-label mb-2">Event Video URL</label>
+                <input
+                  id={getFieldId('video-url')}
+                  type="url"
+                  value={detailsForm.videoUrl}
+                  onChange={(event) => updateDetailField('videoUrl', event.target.value)}
+                  disabled={!isEditing}
+                  className={inputClassName}
+                  placeholder="https://..."
+                />
+              </div>
+              <div className="md:col-span-2">
+                <label htmlFor={getFieldId('summary')} className="ui-field-label mb-2">Summary</label>
+                <textarea
+                  id={getFieldId('summary')}
+                  rows={2}
+                  value={detailsForm.summary}
+                  onChange={(event) => updateDetailField('summary', event.target.value)}
+                  disabled={!isEditing}
+                  className={`${inputClassName} resize-none`}
+                  placeholder="Not provided"
+                />
+              </div>
+              <div className="md:col-span-2">
+                <label htmlFor={getFieldId('full-description')} className="ui-field-label mb-2">Full Description</label>
+                <textarea
+                  id={getFieldId('full-description')}
+                  rows={8}
+                  value={detailsForm.description}
+                  onChange={(event) => updateDetailField('description', event.target.value)}
+                  disabled={!isEditing}
+                  className={`${inputClassName} resize-y`}
+                  placeholder="Not provided"
+                />
+              </div>
+            </>
+          ) : null}
         </div>
 
         <div className="mt-4">

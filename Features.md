@@ -42,9 +42,27 @@ Important:
 - `[Page: Events]` View event cards with image, date, location, lifecycle status, ticket sales, and revenue.
 - `[Page: Events]` Filter events by All, Published, Draft, Private, and Archived.
 - `[Page: Events]` Sort events by Most Recent, Highest Revenue, or Most Tickets Sold.
+- `[Page: Events]` Open an event row into the event-management workspace.
+- `[Page: Events]` Use the `Open Event` quick action from an event card menu.
 - `[Page: Events]` Publish an event or move a published event back to draft from quick actions.
 - `[Page: Events]` Duplicate an event from quick actions.
 - `[Page: Events]` Archive an event from quick actions.
+
+### Event Management > Details
+
+- `[Page: Event Management > Details]` Open a dedicated event workspace after selecting an event.
+- `[Page: Event Management]` Keep the global sidebar visible while working inside an event workspace.
+- `[Page: Event Management]` See the selected event name reflected in the event workspace page header.
+- `[Page: Event Management]` Use sticky tab navigation with animated underline and hover states inside the event workspace.
+- `[Page: Event Management]` In the free tier, see only the `Event Details` tab inside the event workspace.
+- `[Page: Event Management]` Scroll the page workspace back to the top when switching event-management tabs.
+- `[Page: Event Management > Details]` View and edit event information after creation.
+- `[Page: Event Management > Details]` Update title, type, category, tags, location type, and location.
+- `[Page: Event Management > Details]` Update start and end dates and times.
+- `[Page: Event Management > Details]` Toggle recurring status from the details form.
+- `[Page: Event Management > Details]` Upload, replace, and remove the main event image.
+- `[Page: Event Management > Details]` Upload and remove additional event images.
+- `[Page: Event Management > Details]` Save event edits from inside the event workspace.
 
 ### Create Event Page
 
@@ -122,11 +140,6 @@ Important:
 
 - `[Page: App Shell]` Unlock Analytics and Finance destinations in the sidebar once the workspace is on Premium.
 
-### Events Page
-
-- `[Page: Events]` Open an event row into the event-management workspace.
-- `[Page: Events]` Use the `Open Event` quick action from an event card menu.
-
 ### Notification Center Page
 
 - `[Page: Notification Center]` Filter notifications by Orders, Tickets, Marketing, and Finance.
@@ -140,20 +153,8 @@ Important:
 
 ### Event Management > Details
 
-- `[Page: Event Management > Details]` Open a dedicated event workspace after selecting an event.
-- `[Page: Event Management]` Use a `Back to Organization` action from the event sidebar.
-- `[Page: Event Management]` See the selected event name reflected in the event sidebar group label.
-- `[Page: Event Management]` Use sticky tab navigation with animated underline and hover states inside the event workspace.
-- `[Page: Event Management]` Scroll the page workspace back to the top when switching event-management tabs.
-- `[Page: Event Management > Details]` View and edit event information after creation.
-- `[Page: Event Management > Details]` Update title, type, category, tags, location type, and location.
-- `[Page: Event Management > Details]` Update start and end dates and times.
-- `[Page: Event Management > Details]` Toggle recurring status from the details form.
-- `[Page: Event Management > Details]` Upload, replace, and remove the main event image.
-- `[Page: Event Management > Details]` Upload and remove additional event images.
 - `[Page: Event Management > Details]` Add or update the event video URL.
 - `[Page: Event Management > Details]` Update event summary and full description.
-- `[Page: Event Management > Details]` Save event edits from inside the event workspace.
 - `[Page: Event Management > Details]` Preview the attendee-facing mobile event page in a modal.
 - `[Page: Event Management > Details]` Change lifecycle status between Draft, Published, Private, and Archived.
 - `[Page: Event Management > Details]` Publish or unpublish directly from the header.

@@ -613,14 +613,6 @@ export default function App() {
     }
   };
 
-  const handleBackToOrganization = () => {
-    setContextMode('organization');
-    setSelectedEventId(null);
-    setSelectedEventName(null);
-    setEventManagementTab('details');
-    setCurrentView('home');
-  };
-
   const openNotificationTarget = (notification: OrganizerNotification) => {
     if (!isNotificationAllowed(activeTier, notification)) {
       setCurrentView('home');
@@ -754,13 +746,17 @@ export default function App() {
   };
 
   const handleSwitchToAttending = () => {
-    handleBackToOrganization();
+    handleTopBarLogoClick();
   };
 
   const handleLogOut = () => {
     setSearchQuery('');
     setSettingsSection('profile');
-    handleBackToOrganization();
+    setContextMode('organization');
+    setSelectedEventId(null);
+    setSelectedEventName(null);
+    setEventManagementTab('details');
+    setCurrentView('home');
   };
 
   const handlePageScroll = (event: UIEvent<HTMLElement>) => {

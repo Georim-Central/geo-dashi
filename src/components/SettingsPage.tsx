@@ -1632,8 +1632,8 @@ function getAssistantSuggestions(section: SettingsSection) {
       'Review channel settings after onboarding new team members or changing workflows.',
     ],
     subscriptions: [
-      'Use Free to review the core organizer workspace without premium operational screens.',
-      'Switch to Premium when you want event management, analytics, and finance visible together.',
+      'Use Free to create events and manage the core event-details workspace.',
+      'Switch to Premium when you want advanced event tabs, analytics, and finance visible together.',
       'Switch to Business / Enterprise when you need team management and full collaboration controls.',
     ],
   };
@@ -1900,8 +1900,8 @@ function SubscriptionSettingsContent({
   onTierChange: (tier: SubscriptionTier) => void;
 }) {
   const tierBenefits: Record<SubscriptionTier, string[]> = {
-    free: ['Home base workspace', 'Create Event flow', 'Notification Center, Settings, and AI chat'],
-    premium: ['Everything in Free', 'Event Management, Analytics, and Finance', 'Premium Home insights'],
+    free: ['Home base workspace', 'Create Event flow and Event Details workspace', 'Notification Center, Settings, and AI chat'],
+    premium: ['Everything in Free', 'Advanced event tabs, Analytics, and Finance', 'Premium Home insights'],
     business: ['Everything in Premium', 'Team Management workspace', 'Full collaboration controls across the platform'],
   };
 
